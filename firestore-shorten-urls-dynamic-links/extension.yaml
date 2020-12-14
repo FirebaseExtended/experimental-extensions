@@ -134,10 +134,10 @@ params:
       short suffixes as long as there's no harm in someone successfuly guessing
       a short link.
     options:
-    - label: Short
-      value: SHORT
-    - label: Unguessable
-      value: UNGUESSABLE
+      - label: Short
+        value: SHORT
+      - label: Unguessable
+        value: UNGUESSABLE
     required: true
 
   - param: COLLECTION_PATH

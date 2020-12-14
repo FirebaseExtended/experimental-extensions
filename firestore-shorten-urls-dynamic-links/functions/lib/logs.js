@@ -19,47 +19,61 @@ exports.updateDocumentComplete = exports.updateDocument = exports.start = export
 const functions = require("firebase-functions");
 const config_1 = require("./config");
 exports.complete = () => {
-    functions.logger.log("Completed execution of extension");
+  functions.logger.log("Completed execution of extension");
 };
 exports.documentCreatedNoUrl = () => {
-    functions.logger.log("Document was created without a URL, so no processing is required");
+  functions.logger.log(
+    "Document was created without a URL, so no processing is required"
+  );
 };
 exports.documentCreatedWithUrl = () => {
-    functions.logger.log("Document was created with a URL");
+  functions.logger.log("Document was created with a URL");
 };
 exports.documentUpdatedChangedUrl = () => {
-    functions.logger.log("Document was updated: URL has changed");
+  functions.logger.log("Document was updated: URL has changed");
 };
 exports.documentUpdatedDeletedUrl = () => {
-    functions.logger.log("Document was updated: URL was deleted");
+  functions.logger.log("Document was updated: URL was deleted");
 };
 exports.documentUpdatedNoUrl = () => {
-    functions.logger.log("Document was updated: no URL exists, so no processing is required");
+  functions.logger.log(
+    "Document was updated: no URL exists, so no processing is required"
+  );
 };
 exports.documentUpdatedUnchangedUrl = () => {
-    functions.logger.log("Document was updated: URL has not changed, so no processing is required");
+  functions.logger.log(
+    "Document was updated: URL has not changed, so no processing is required"
+  );
 };
-exports.error = (err) => {
-    functions.logger.error("Error when shortening URL", err);
+exports.error = err => {
+  functions.logger.error("Error when shortening URL", err);
 };
 exports.fieldNamesNotDifferent = () => {
-    functions.logger.error("The `URL` and `Short URL` field names must be different");
+  functions.logger.error(
+    "The `URL` and `Short URL` field names must be different"
+  );
 };
 exports.init = () => {
-    functions.logger.log("Initializing extension with configuration", config_1.default);
+  functions.logger.log(
+    "Initializing extension with configuration",
+    config_1.default
+  );
 };
-exports.shortenUrl = (url) => {
-    functions.logger.log(`Shortening URL: '${url}'`);
+exports.shortenUrl = url => {
+  functions.logger.log(`Shortening URL: '${url}'`);
 };
-exports.shortenUrlComplete = (shortUrl) => {
-    functions.logger.log(`Finished shortening URL to: '${shortUrl}'`);
+exports.shortenUrlComplete = shortUrl => {
+  functions.logger.log(`Finished shortening URL to: '${shortUrl}'`);
 };
 exports.start = () => {
-    functions.logger.log("Started execution of extension with configuration", config_1.default);
+  functions.logger.log(
+    "Started execution of extension with configuration",
+    config_1.default
+  );
 };
-exports.updateDocument = (path) => {
-    functions.logger.log(`Updating Cloud Firestore document: '${path}'`);
+exports.updateDocument = path => {
+  functions.logger.log(`Updating Cloud Firestore document: '${path}'`);
 };
-exports.updateDocumentComplete = (path) => {
-    functions.logger.log(`Finished updating Cloud Firestore document: '${path}'`);
+exports.updateDocumentComplete = path => {
+  functions.logger.log(`Finished updating Cloud Firestore document: '${path}'`);
 };

@@ -44,53 +44,39 @@ such as in `https://example.com/link`.
 To install an extension, your project must be on the
 [Blaze (pay as you go) plan][blaze-pricing].
 
--   You will be charged [around $0.01 per month][pricing-examples] for each
-    instance of this extension you install.
--   This extension uses other Firebase and Google Cloud Platform services,
-    which have associated charges if you exceed the service's free tier:
-    -   Cloud Functions (Node.js 10+ runtime. [See FAQs][faq].)
-    -   Cloud Firestore
+- You will be charged [around \$0.01 per month][pricing-examples] for each
+  instance of this extension you install.
+- This extension uses other Firebase and Google Cloud Platform services,
+  which have associated charges if you exceed the service's free tier:
+  - Cloud Functions (Node.js 10+ runtime. [See FAQs][faq].)
+  - Cloud Firestore
 
 [blaze-pricing]: https://firebase.google.com/pricing
 [pricing-examples]: https://cloud.google.com/functions/pricing#pricing_examples
 [faq]: https://firebase.google.com/support/faq#expandable-24
 
-
-
-
 **Configuration Parameters:**
 
-* Deployment location: Where should the extension be deployed? You usually want a location close to your database. For help selecting a location, refer to the [location selection guide](https://firebase.google.com/docs/functions/locations).
+- Deployment location: Where should the extension be deployed? You usually want a location close to your database. For help selecting a location, refer to the [location selection guide](https://firebase.google.com/docs/functions/locations).
 
-* Dynamic Links URL prefix: What URL prefix do you want for your shortened links? You will need to set up this prefix in the [Dynamic Links](https://console.firebase.google.com/project/${PROJECT_ID}/durablelinks) section of the console.
-
+- Dynamic Links URL prefix: What URL prefix do you want for your shortened links? You will need to set up this prefix in the [Dynamic Links](https://console.firebase.google.com/project/${PROJECT_ID}/durablelinks) section of the console.
 
 * Dynamic Links suffix length: Do you want your short links to end with the shortest possible suffix or longer suffixes that are unlikely to be guessable? In general, you can use short suffixes as long as there's no harm in someone successfuly guessing a short link.
 
-
-* Collection path: What is the path to the collection that contains the URLs that you want to shorten?
-
+- Collection path: What is the path to the collection that contains the URLs that you want to shorten?
 
 * URL field name: What is the name of the field that contains the original long URLs that you want to shorten?
 
-
-* Short URL field name: What is the name of the field where you want to store your shortened URLs?
-
-
-
+- Short URL field name: What is the name of the field where you want to store your shortened URLs?
 
 **Cloud Functions:**
 
-* **shorten_create:** Listens for new documents in your specified Cloud Firestore collection, and if they contain URLs, shortens the URLs, then writes the shortened form back to the same document.
+- **shorten_create:** Listens for new documents in your specified Cloud Firestore collection, and if they contain URLs, shortens the URLs, then writes the shortened form back to the same document.
 
-* **shorten_update:** Listens for writes of new URLs to your specified Cloud Firestore collection, shortens the URLs, then writes the shortened form back to the same document.
-
-
+- **shorten_update:** Listens for writes of new URLs to your specified Cloud Firestore collection, shortens the URLs, then writes the shortened form back to the same document.
 
 **Access Required**:
 
-
-
 This extension will operate with the following project IAM roles:
 
-* datastore.user (Reason: Allows the extension to write shortened URLs to Cloud Firestore.)
+- datastore.user (Reason: Allows the extension to write shortened URLs to Cloud Firestore.)
