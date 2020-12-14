@@ -49,8 +49,8 @@ class ServiceAccountCredential {
     ) {
       const metadataResponse = await fetch(this.metadataServiceUri, {
         headers: {
-          "Metadata-Flavor": "Google",
-        },
+          "Metadata-Flavor": "Google"
+        }
       });
       const { access_token, expires_in } = await metadataResponse.json();
       this.accessToken = access_token;
@@ -89,16 +89,16 @@ class FirestoreDynamicLinksUrlShortener extends FirestoreUrlShortener {
       const requestBody = {
         dynamicLinkInfo: {
           domainUriPrefix: this.dynamicLinkUrlPrefix,
-          link: url,
+          link: url
         },
-        suffix: { option: this.dynamicLinkSuffixLength },
+        suffix: { option: this.dynamicLinkSuffixLength }
       };
       const response = await fetch(this.dynamicLinksApiUrl, {
         headers: {
-          Authorization: `Bearer ${accessToken}`,
+          Authorization: `Bearer ${accessToken}`
         },
         method: "POST",
-        body: JSON.stringify(requestBody),
+        body: JSON.stringify(requestBody)
       });
       const { shortLink: shortUrl } = await response.json();
 
@@ -119,13 +119,13 @@ const urlShortener = new FirestoreDynamicLinksUrlShortener(
 );
 
 export const shorten_create = functions.handler.firestore.document.onCreate(
-  async (snapshot) => {
+  async snapshot => {
     return urlShortener.onDocumentCreate(snapshot);
   }
 );
 
 export const shorten_update = functions.handler.firestore.document.onUpdate(
-  async (change) => {
+  async change => {
     return urlShortener.onDocumentUpdate(change);
   }
 );
