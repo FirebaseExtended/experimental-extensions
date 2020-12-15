@@ -27,7 +27,7 @@ create_github_release() {
 
   local body='{
     "tag_name": "%s",
-    "target_commitish": "master",
+    "target_commitish": "main",
     "name": "%s",
     "body": %s,
     "draft": false,
@@ -69,7 +69,7 @@ update_github_release() {
 
   local body='{
 	  "tag_name": "%s",
-	  "target_commitish": "master",
+	  "target_commitish": "main",
 	  "name": "%s",
 	  "body": %s,
 	  "draft": false,
