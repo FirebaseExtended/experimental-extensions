@@ -1,0 +1,86 @@
+name: storage-extract-image-text
+version: 0.0.1
+specVersion: v1beta
+
+displayName: Image Text Extraction
+description: Extracts text from images uploaded to storage and writes extracted text to storage.
+
+license: Apache-2.0  # The license you want for the extension
+
+author:
+  authorName: Firebase
+  url: https://firebase.google.com
+
+billingRequired: true
+
+apis:
+  - apiName: vision.googleapis.com
+    reason: Powers all Vision tasks performed by the extension.
+
+resources:
+  - name: extractText
+    type: firebaseextensions.v1beta.function
+    description:
+      Listens to incoming Storage documents, executes OCR on them and writes extracted text back to Storage into a preconfigured location.
+    properties:
+      location: ${param:LOCATION}
+      availableMemoryMb: 1024
+      eventTrigger:
+        eventType: google.storage.object.finalize
+        resource: projects/_/buckets/${param:IMG_BUCKET}
+      runtime: "nodejs10" 
+
+params:
+  - param: LOCATION
+    label: Cloud Functions location
+    description: >-
+      Where do you want to deploy the functions created for this extension?
+      You usually want a location close to your database. Realtime Database
+      instances are located in `us-central1`. For help selecting a
+      location, refer to the [location selection
+      guide](https://firebase.google.com/docs/functions/locations).
+    type: select
+    options:
+      - label: Iowa (us-central1)
+        value: us-central1
+      - label: South Carolina (us-east1)
+        value: us-east1
+      - label: Northern Virginia (us-east4)
+        value: us-east4
+      - label: Belgium (europe-west1)
+        value: europe-west1
+      - label: London (europe-west2)
+        value: europe-west2
+      - label: Frankfurt (europe-west3)
+        value: europe-west3
+      - label: Hong Kong (asia-east2)
+        value: asia-east2
+      - label: Tokyo (asia-northeast1)
+        value: asia-northeast1
+    default: us-central1
+    required: true
+    immutable: true
+  - param: IMG_BUCKET
+    label: Cloud Storage bucket for images
+    description: >
+      To which Cloud Storage bucket will you upload images from which you want to extract text?
+    type: string
+    example: my-project-12345.appspot.com
+    validationRegex: ^([0-9a-z_.-]*)$
+    validationErrorMessage: Invalid storage bucket
+    default: ${STORAGE_BUCKET}
+    required: true
+  - param: TEXT_FILE_SUFFIX
+    label: The suffix of the file with extrated test
+    description: >
+      The extention will write extracted text to the same location as the source image, but with this suffix appended at the end.
+    type: string
+    example: .extractedTxt
+    validationRegex: ^([0-9a-z_.-]+)$
+    validationErrorMessage: Invalid file suffix
+    default: .txt
+    required: true
+
+roles:
+  - role: storage.admin
+    reason: Allows the extension to write to your Cloud Storage.
