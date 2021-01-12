@@ -8,7 +8,7 @@ const auth = admin.auth();
 
 const CLAIMS_FIELD: string | null = process.env.CLAIMS_FIELD || null;
 
-exports.sync = functions.handler.firestore.document.onWrite(async (change) => {
+exports.sync = functions.handler.firestore.document.onWrite(async change => {
   const uid = change.after.id;
   try {
     // make sure the user exists (can be fetched) before trying to set claims

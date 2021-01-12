@@ -16,7 +16,7 @@
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = {
-    location: process.env.LOCATION,
-    inputFieldName: process.env.INPUT_FIELD_NAME,
-    outputFieldName: process.env.OUTPUT_FIELD_NAME,
+  location: process.env.LOCATION,
+  inputFieldName: process.env.INPUT_FIELD_NAME,
+  outputFieldName: process.env.OUTPUT_FIELD_NAME
 };
