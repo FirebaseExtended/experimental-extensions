@@ -97,9 +97,11 @@ async function processWrite(
     }
 
     await admin.firestore().runTransaction(async (txn) => {
-      const write = await txn.get(ref);
-      if (write.get("state") !== "PENDING") {
-        throw new Error(`expected PENDING state but was ${write.get("state")}`);
+      const existingWrite = await txn.get(ref);
+      if (existingWrite.get("state") !== "PENDING") {
+        throw new Error(
+          `expected PENDING state but was ${existingWrite.get("state")}`
+        );
       }
 
       return txn.update(ref, {

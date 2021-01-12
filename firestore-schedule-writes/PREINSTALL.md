@@ -5,11 +5,16 @@ Scheduling a write requires only writing a document to Firestore:
 ```js
 const TEN_MINUTES_MS = 10 * 60 * 1000;
 
-firebase.firestore().collection('queued_writes').add({
-  state: 'PENDING',
-  data: {message: 'Hello from the future!'},
-  deliverTime: firebase.firestore.Timestamp.fromMillis(Date.now() + TEN_MINUTES_MS)
-})
+firebase
+  .firestore()
+  .collection("queued_writes")
+  .add({
+    state: "PENDING",
+    data: { message: "Hello from the future!" },
+    deliverTime: firebase.firestore.Timestamp.fromMillis(
+      Date.now() + TEN_MINUTES_MS
+    ),
+  });
 ```
 
 # Billing
