@@ -23,5 +23,8 @@
     "lerna": "^3.4.3",
     "prettier": "1.15.3",
     "typescript": "^3.6.3"
+  },
+  "dependencies": {
+    "node-fetch": "^2.6.1"
   }
 }
