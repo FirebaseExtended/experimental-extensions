@@ -9,7 +9,7 @@ const EXTENSIONS_REGISTRY_STAGING =
   "https://staging-extensions-registry.firebaseapp.com/extensions.json";
 
 function getLatestSource(extensionName) {
-  return fetch(EXTENSIONS_REGISTRY_STAGING)
+  return fetch(EXTENSIONS_REGISTRY_PROD)
     .then(res => res.json())
     .then(registry => {
       const extensionMetadata = registry.mods[extensionName];
