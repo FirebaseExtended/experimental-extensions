@@ -12,7 +12,7 @@
 
 ### Console
 
-Use **[this install link](https://console.firebase.google.com/project/_/extensions/install?sourceName=projects/firebasemods/sources/7df5032f-e569-4aab-8a72-3c231937891d)** to install this extension on your Firebase project!
+Use **[this install link](https://console.firebase.google.com/project/_/extensions/install?sourceName=projects/firebasemods/sources/b732b059-d0f9-4bd6-8dd3-92a5588d31d5)** to install this extension on your Firebase project!
 
 ### Firebase CLI
 
