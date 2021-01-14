@@ -1,4 +1,4 @@
-name: sentiment-analysis
+name: firestore-sentiment-analysis
 version: 0.0.1
 specVersion: v1beta  # Firebase Extensions specification version (do not edit)
 
