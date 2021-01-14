@@ -1,17 +1,17 @@
-const { exec } = require('child_process');
-const { promisify } = require('util');
-const fetch = require('node-fetch');
-const prettier = require('prettier');
+const { exec } = require("child_process");
+const { promisify } = require("util");
+const fetch = require("node-fetch");
+const prettier = require("prettier");
 
 const EXTENSIONS_REGISTRY_PROD =
-  'https://extensions-registry.firebaseapp.com/extensions.json';
+  "https://extensions-registry.firebaseapp.com/extensions.json";
 const EXTENSIONS_REGISTRY_STAGING =
-  'https://staging-extensions-registry.firebaseapp.com/extensions.json';
+  "https://staging-extensions-registry.firebaseapp.com/extensions.json";
 
 function getLatestSource(extensionName) {
   return fetch(EXTENSIONS_REGISTRY_STAGING)
-    .then((res) => res.json())
-    .then((registry) => {
+    .then(res => res.json())
+    .then(registry => {
       const extensionMetadata = registry.mods[extensionName];
 
       if (!extensionMetadata) {
@@ -50,14 +50,14 @@ firebase ext:install ${extensionName} --project=<your-project-id>
 }
 
 function runDefaultReadmeScript() {
-  return promisify(exec)('firebase ext:info .. --markdown').then((result) => {
+  return promisify(exec)("firebase ext:info .. --markdown").then(result => {
     return result.stdout;
   });
 }
 
 async function generateReadme(extensionName) {
   const initialReadme = await runDefaultReadmeScript();
-  const insertIndex = initialReadme.indexOf('**Details**:');
+  const insertIndex = initialReadme.indexOf("**Details**:");
 
   const extensionSource = await getLatestSource(extensionName);
 
@@ -66,7 +66,7 @@ async function generateReadme(extensionName) {
     getExperimentalBlurb(extensionName, extensionSource) +
     initialReadme.slice(insertIndex);
 
-  return prettier.format(fullReadme, { parser: 'markdown' });
+  return prettier.format(fullReadme, { parser: "markdown" });
 }
 
 generateReadme(process.argv[2]).then(console.log);
