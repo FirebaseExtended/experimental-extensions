@@ -1,5 +1,5 @@
 {
-  "name": "functions",
+  "name": "firestore-auth-claims",
   "scripts": {
     "lint": "eslint \"src/**/*\"",
     "build": "tsc",

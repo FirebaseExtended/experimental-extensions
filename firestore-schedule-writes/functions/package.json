@@ -1,5 +1,5 @@
 {
-  "name": "functions",
+  "name": "firestore-schedule-writes",
   "scripts": {
     "lint": "tslint --project tsconfig.json",
     "build": "tsc",
