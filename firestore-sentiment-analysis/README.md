@@ -20,6 +20,8 @@ Use **[this install link](https://console.firebase.google.com/project/_/extensio
 firebase ext:install firestore-sentiment-analysis --project=<your-project-id>
 ```
 
+> Learn more about installing extensions in the Firebase Extensions documentation: [console](https://firebase.google.com/docs/extensions/install-extensions?platform=console), [CLI](https://firebase.google.com/docs/extensions/install-extensions?platform=cli)
+
 ---
 
 **Details**: Use this extension to analyze strings (for example, product reviews) written to a Cloud Firestore collection for sentiment.

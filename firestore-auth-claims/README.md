@@ -20,6 +20,8 @@ Use **[this install link](https://console.firebase.google.com/project/_/extensio
 firebase ext:install firestore-auth-claims --project=<your-project-id>
 ```
 
+> Learn more about installing extensions in the Firebase Extensions documentation: [console](https://firebase.google.com/docs/extensions/install-extensions?platform=console), [CLI](https://firebase.google.com/docs/extensions/install-extensions?platform=cli)
+
 ---
 
 **Details**: This extension will automatically sync data from the specified collection to custom claims on a corresponding Firebase Auth user. For example, if I have a user with a UID of `abc123` I could use the Firestore SDK to set custom claims like so:

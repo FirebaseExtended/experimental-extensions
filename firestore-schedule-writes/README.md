@@ -20,6 +20,8 @@ Use **[this install link](https://console.firebase.google.com/project/_/extensio
 firebase ext:install firestore-schedule-writes --project=<your-project-id>
 ```
 
+> Learn more about installing extensions in the Firebase Extensions documentation: [console](https://firebase.google.com/docs/extensions/install-extensions?platform=console), [CLI](https://firebase.google.com/docs/extensions/install-extensions?platform=cli)
+
 ---
 
 **Details**: Schedule Firestore Writes allows you to write data to a collection in Firestore that is then written to a different location at a specified time in the future. This can be used for many common time-related tasks such as delayed notifications, alarms, and reminders. Because this all happens within Firestore, scheduled writes can be listened to by clients or connected with via Cloud Functions.

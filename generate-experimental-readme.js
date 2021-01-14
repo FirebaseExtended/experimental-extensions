@@ -44,6 +44,8 @@ Use **[this install link](https://console.firebase.google.com/project/_/extensio
 firebase ext:install ${extensionName} --project=<your-project-id>
 \`\`\`
 
+> Learn more about installing extensions in the Firebase Extensions documentation: [console](https://firebase.google.com/docs/extensions/install-extensions?platform=console), [CLI](https://firebase.google.com/docs/extensions/install-extensions?platform=cli)
+
 ---
 
 `;
