@@ -36,7 +36,7 @@ function getExperimentalBlurb(extensionName, source) {
 
 ### Console
 
-Use **[this install link](https://console.firebase.google.com/project/_/extensions/install?sourceName=${source})** to install this extension on your Firebase project!
+![Install this extension in your Firebase project](../../install-extension.png?raw=true "Install this extension in your Firebase project")
 
 ### Firebase CLI
 
