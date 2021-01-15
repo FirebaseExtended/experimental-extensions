@@ -1,12 +1,13 @@
 {
-  "name": "functions",
+  "name": "firestore-sentiment-analysis",
   "description": "Cloud Functions for Firebase",
   "scripts": {
     "serve": "firebase emulators:start --only functions",
     "shell": "firebase functions:shell",
     "start": "npm run shell",
     "deploy": "firebase deploy --only functions",
-    "logs": "firebase functions:log"
+    "logs": "firebase functions:log",
+    "generate-readme": "node ../../generate-experimental-readme.js firestore-sentiment-analysis > ../README.md"
   },
   "engines": {
     "node": "12"

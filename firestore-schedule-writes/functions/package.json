@@ -1,8 +1,9 @@
 {
-  "name": "functions",
+  "name": "firestore-schedule-writes",
   "scripts": {
     "lint": "tslint --project tsconfig.json",
-    "build": "tsc"
+    "build": "tsc",
+    "generate-readme": "node ../../generate-experimental-readme.js firestore-schedule-writes > ../README.md"
   },
   "main": "lib/index.js",
   "dependencies": {

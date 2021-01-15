@@ -3,7 +3,7 @@
   "scripts": {
     "clean": "rimraf lib",
     "build": "npm run clean && tsc",
-    "generate-readme": "exit 0"
+    "generate-readme": "node ../../generate-experimental-readme.js firestore-shorten-urls-dynamic-links > ../README.md"
   },
   "main": "lib/index.js",
   "dependencies": {

@@ -1,8 +1,10 @@
 {
-  "name": "functions",
+  "name": "firestore-auth-claims",
   "scripts": {
     "lint": "eslint \"src/**/*\"",
-    "build": "tsc"
+    "build": "tsc",
+    "generate-readme": "node ../../generate-experimental-readme.js firestore-auth-claims > ../README.md"
+
   },
   "main": "lib/index.js",
   "dependencies": {
