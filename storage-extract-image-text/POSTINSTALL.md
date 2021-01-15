@@ -1,6 +1,6 @@
 # Using the extension
 
-Uploade images to the storage bucket which the extension was configured to monitor. The file with extracted text will appear in the same folder after a second.
+Upload images to the storage bucket which the extension was configured to monitor. The a new document with extracted text will appear in Firestore collection within a few seconds. The document will have the name of the file which was uploaded.
 
 # Monitoring
 

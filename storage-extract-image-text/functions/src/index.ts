@@ -23,6 +23,7 @@ const admin = require("firebase-admin");
 admin.initializeApp();
 
 const client = new vision.ImageAnnotatorClient();
+const db = admin.firestore();
 
 exports.extractText = functions.storage.object().onFinalize(async (object) => {
   // TODO: allow configuration.
@@ -48,5 +49,11 @@ exports.extractText = functions.storage.object().onFinalize(async (object) => {
   };
   const results = await client.annotateImage(request);
   const extractedText = results?.[0]?.textAnnotations?.[0]?.description;
-  await bucket.file(object.name + config.textFileSuffix).save(extractedText);
+  await db
+    .collection(config.collectionPath)
+    .doc(object.name)
+    .create({
+      file: "gs://" + object.bucket + "/" + object.name,
+      text: extractedText,
+    });
 });

@@ -3,7 +3,7 @@ version: 0.0.1
 specVersion: v1beta
 
 displayName: Image Text Extraction
-description: Extracts text from images uploaded to storage and writes extracted text to storage.
+description: Extracts text from images uploaded to storage and writes extracted text to Firestore.
 
 license: Apache-2.0 # The license you want for the extension
 
@@ -20,7 +20,7 @@ apis:
 resources:
   - name: extractText
     type: firebaseextensions.v1beta.function
-    description: Listens to incoming Storage documents, executes OCR on them and writes extracted text back to Storage into a preconfigured location.
+    description: Listens to incoming Storage documents, executes OCR on them and writes extracted text to Firestore into a preconfigured collection.
     properties:
       location: ${param:LOCATION}
       availableMemoryMb: 1024
@@ -69,17 +69,18 @@ params:
     validationErrorMessage: Invalid storage bucket
     default: ${STORAGE_BUCKET}
     required: true
-  - param: TEXT_FILE_SUFFIX
-    label: The suffix of the file with extrated test
+  - param: COLLECTION_PATH
+    label: Collection path
     description: >
-      The extention will write extracted text to the same location as the source image, but with this suffix appended at the end.
-    type: string
-    example: .extractedTxt
-    validationRegex: ^([0-9a-z_.-]+)$
-    validationErrorMessage: Invalid file suffix
-    default: .txt
+      What is the path to the collection where extracted text will be written to.
+    example: extractedText
+    validationRegex: "^[^/]+(/[^/]+/[^/]+)*$"
+    validationErrorMessage: Must be a valid Cloud Firestore Collection
+    default: extractedText
     required: true
 
 roles:
   - role: storage.admin
     reason: Allows the extension to write to your Cloud Storage.
+  - role: datastore.user
+    reason: Allows the extension to write to your Firestore Database instance.

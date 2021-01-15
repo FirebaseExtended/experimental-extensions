@@ -18,6 +18,7 @@ To install an extension, your project must be on the
   - Cloud Functions
   - Cloud Vision API
   - Firebase Storage
+  - Firebase Firestore
 
 [blaze-pricing]: https://firebase.google.com/pricing
 [pricing-examples]: https://cloud.google.com/functions/pricing#pricing_examples

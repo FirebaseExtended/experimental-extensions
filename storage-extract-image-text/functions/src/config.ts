@@ -15,5 +15,5 @@
  */
 
 export default {
-  textFileSuffix: process.env.TEXT_FILE_SUFFIX || ".txt",
+  collectionPath: process.env.COLLECTION_PATH || "extractedText",
 };
