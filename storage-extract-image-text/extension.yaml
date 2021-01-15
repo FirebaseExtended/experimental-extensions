@@ -5,7 +5,7 @@ specVersion: v1beta
 displayName: Image Text Extraction
 description: Extracts text from images uploaded to storage and writes extracted text to storage.
 
-license: Apache-2.0  # The license you want for the extension
+license: Apache-2.0 # The license you want for the extension
 
 author:
   authorName: Firebase
@@ -20,15 +20,14 @@ apis:
 resources:
   - name: extractText
     type: firebaseextensions.v1beta.function
-    description:
-      Listens to incoming Storage documents, executes OCR on them and writes extracted text back to Storage into a preconfigured location.
+    description: Listens to incoming Storage documents, executes OCR on them and writes extracted text back to Storage into a preconfigured location.
     properties:
       location: ${param:LOCATION}
       availableMemoryMb: 1024
       eventTrigger:
         eventType: google.storage.object.finalize
         resource: projects/_/buckets/${param:IMG_BUCKET}
-      runtime: "nodejs10" 
+      runtime: "nodejs10"
 
 params:
   - param: LOCATION

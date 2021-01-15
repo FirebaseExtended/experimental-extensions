@@ -14,37 +14,39 @@
  * limitations under the License.
  */
 
-import * as functions from 'firebase-functions';
+import * as functions from "firebase-functions";
 import vision from "@google-cloud/vision";
 
 import config from "./config";
 
-const admin = require('firebase-admin');
+const admin = require("firebase-admin");
 admin.initializeApp();
 
 const client = new vision.ImageAnnotatorClient();
 
 exports.extractText = functions.storage.object().onFinalize(async (object) => {
-    // TODO: allow configuration.
-    if (!object.name?.toLowerCase().endsWith(".jpg") 
-        && !object.name?.toLowerCase().endsWith(".jpeg")
-        && !object.name?.toLowerCase().endsWith(".png")) {
-        return;
-    }
-    const bucket = admin.storage().bucket(object.bucket);
-    const imageContents = await bucket.file(object.name).download();
-    const imageBase64 = Buffer.from(imageContents[0]).toString("base64");
-    const request = {
-        "image": {
-            "content": imageBase64,
-        },
-        "features": [
-            {
-                "type": "TEXT_DETECTION",
-            },
-        ],
-    };
-    const results = await client.annotateImage(request);
-    const extractedText = results?.[0]?.textAnnotations?.[0]?.description;
-    await bucket.file(object.name + config.textFileSuffix).save(extractedText);
+  // TODO: allow configuration.
+  if (
+    !object.name?.toLowerCase().endsWith(".jpg") &&
+    !object.name?.toLowerCase().endsWith(".jpeg") &&
+    !object.name?.toLowerCase().endsWith(".png")
+  ) {
+    return;
+  }
+  const bucket = admin.storage().bucket(object.bucket);
+  const imageContents = await bucket.file(object.name).download();
+  const imageBase64 = Buffer.from(imageContents[0]).toString("base64");
+  const request = {
+    image: {
+      content: imageBase64,
+    },
+    features: [
+      {
+        type: "TEXT_DETECTION",
+      },
+    ],
+  };
+  const results = await client.annotateImage(request);
+  const extractedText = results?.[0]?.textAnnotations?.[0]?.description;
+  await bucket.file(object.name + config.textFileSuffix).save(extractedText);
 });
