@@ -35,6 +35,10 @@ exports.sync = functions.handler.firestore.document.onWrite(async (change) => {
         return;
     }
     functions.logger.info(`Updating claims for user '${uid}', setting keys ${Object.keys(data).join(", ")}.`, { uid });
+    if (typeof data !== "object") {
+        functions.logger.error(`Invalid custom claims for user '${uid}'. Must be object, was ${JSON.stringify(data)}`, { uid });
+        return;
+    }
     await auth.setCustomUserClaims(uid, data);
     const fpath = ["_synced"];
     if (CLAIMS_FIELD) {

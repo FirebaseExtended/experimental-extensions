@@ -74,7 +74,7 @@ params:
     label: Claims Field
     description: >-
       The document field in which custom claims are stored. Leave blank to use
-      all document data as custom claims.
+      all document data as custom claims. Custom claims must be an object.
     type: string
     required: false
     immutable: false
