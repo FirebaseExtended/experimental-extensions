@@ -26,8 +26,8 @@ const STALENESS_THRESHOLD_SECONDS = parseInt(
   process.env.STALENESS_THRESHOLD_SECONDS || "0",
   10
 );
-const CLEANUP_POLICY: "DELETE" | "KEEP" =
-  (process.env.CLEANUP_POLICY as "DELETE" | "KEEP") || "DELETE";
+const CLEANUP: "DELETE" | "KEEP" =
+  (process.env.CLEANUP as "DELETE" | "KEEP") || "DELETE";
 
 const db = admin.firestore();
 const queueRef = db.collection(QUEUE_COLLECTION);
@@ -46,7 +46,7 @@ async function fetchAndProcess(): Promise<void> {
     return;
   }
 
-  const promises = toProcess.docs.map(doc => {
+  const promises = toProcess.docs.map((doc) => {
     return processWrite(doc.ref, doc.data() as QueuedWrite);
   });
 
@@ -96,7 +96,7 @@ async function processWrite(
       throw new Error("no target collection/doc was specified for this write");
     }
 
-    await admin.firestore().runTransaction(async txn => {
+    await admin.firestore().runTransaction(async (txn) => {
       const existingWrite = await txn.get(ref);
       if (existingWrite.get("state") !== "PENDING") {
         throw new Error(
@@ -108,15 +108,13 @@ async function processWrite(
         state: "PROCESSING",
         attempts: admin.firestore.FieldValue.increment(1),
         startTime: admin.firestore.FieldValue.serverTimestamp(),
-        updateTime: admin.firestore.FieldValue.serverTimestamp()
+        updateTime: admin.firestore.FieldValue.serverTimestamp(),
       });
     });
 
     if (isStale(write)) {
       functions.logger.warn(
-        `Write "${QUEUE_COLLECTION}/${
-          ref.id
-        }" is past invalidAfterTime, skipped delivery.`
+        `Write "${QUEUE_COLLECTION}/${ref.id}" is past invalidAfterTime, skipped delivery.`
       );
     } else {
       await deliver(write);
@@ -128,19 +126,19 @@ async function processWrite(
       state: "FAILED",
       error: { message: e.message },
       updateTime: admin.firestore.FieldValue.serverTimestamp(),
-      endTime: admin.firestore.FieldValue.serverTimestamp()
+      endTime: admin.firestore.FieldValue.serverTimestamp(),
     });
   }
 
   if (!error) {
-    switch (CLEANUP_POLICY) {
+    switch (CLEANUP) {
       case "DELETE":
         await ref.delete();
       case "KEEP":
         await ref.update({
           state: "DELIVERED",
           updateTime: admin.firestore.FieldValue.serverTimestamp(),
-          endTime: admin.firestore.FieldValue.serverTimestamp()
+          endTime: admin.firestore.FieldValue.serverTimestamp(),
         });
     }
   }
@@ -157,16 +155,14 @@ async function resetStuck(): Promise<void> {
     .get();
 
   await Promise.all(
-    stuck.docs.map(async doc => {
+    stuck.docs.map(async (doc) => {
       await doc.ref.update({
         state: "PENDING",
         timeouts: admin.firestore.FieldValue.increment(1),
-        lastTimeoutTime: admin.firestore.FieldValue.serverTimestamp()
+        lastTimeoutTime: admin.firestore.FieldValue.serverTimestamp(),
       });
       functions.logger.error(
-        `Write "${QUEUE_COLLECTION}/${
-          doc.id
-        }" was still PROCESSING after lease expired. Reset to PENDING.`
+        `Write "${QUEUE_COLLECTION}/${doc.id}" was still PROCESSING after lease expired. Reset to PENDING.`
       );
     })
   );

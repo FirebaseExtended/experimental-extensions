@@ -24,7 +24,7 @@ description: >-
 license: Apache-2.0 # https://spdx.org/licenses/
 
 # Public URL for the source code of your extension
-sourceUrl: https://github.com/FirebaseExtended/experimental-extensions/tree/main/firestore-auth-claims
+sourceUrl: https://github.com/FirebaseExtended/experimental-extensions/tree/next/firestore-auth-claims
 
 # Specify whether a paid-tier billing plan is required to use your extension.
 # Learn more in the docs: https://firebase.google.com/docs/extensions/alpha/ref-extension-yaml#billing-required-field
@@ -74,7 +74,7 @@ params:
     label: Claims Field
     description: >-
       The document field in which custom claims are stored. Leave blank to use
-      all document data as custom claims.
+      all document data as custom claims. Custom claims must be an object.
     type: string
     required: false
     immutable: false

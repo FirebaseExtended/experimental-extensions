@@ -5,6 +5,15 @@ name: firestore-schedule-writes # Identifier for your extension
 version: 0.0.1 # Follow semver versioning
 specVersion: v1beta # Version of the Firebase Extensions specification
 
+author:
+  authorName: Firebase
+  url: https://firebase.google.com
+
+contributors:
+  - authorName: Michael Bleigh
+    email: bleigh@google.com
+    url: https://github.com/mbleigh
+
 # Friendly display name for your extension (~3-5 words)
 displayName: Schedule Firestore Writes
 
@@ -15,7 +24,7 @@ description: >-
 license: Apache-2.0 # https://spdx.org/licenses/
 
 # Public URL for the source code of your extension
-sourceUrl: https://github.com/FirebaseExtended/experimental-extensions/tree/main/firestore-schedule-writes
+sourceUrl: https://github.com/FirebaseExtended/experimental-extensions/tree/next/firestore-schedule-writes
 
 # Specify whether a paid-tier billing plan is required to use your extension.
 # Learn more in the docs: https://firebase.google.com/docs/extensions/alpha/ref-extension-yaml#billing-required-field
@@ -139,6 +148,6 @@ params:
   - param: SCHEDULE
     label: Processing Schedule
     description: >-
-      The schedule (in cron syntax) at which messages should be evaluated for
+      The schedule (in [cron syntax](https://cloud.google.com/scheduler/docs/configuring/cron-job-schedules)) at which messages should be evaluated for
       delivery. Defaults to every minute.
     default: "every 1 minutes"

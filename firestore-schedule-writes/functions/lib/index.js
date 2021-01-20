@@ -8,7 +8,7 @@ const BATCH_SIZE = 100;
 const QUEUE_COLLECTION = process.env.QUEUE_COLLECTION || "queued_writes";
 const TARGET_COLLECTION = process.env.TARGET_COLLECTION;
 const STALENESS_THRESHOLD_SECONDS = parseInt(process.env.STALENESS_THRESHOLD_SECONDS || "0", 10);
-const CLEANUP_POLICY = process.env.CLEANUP_POLICY || "DELETE";
+const CLEANUP = process.env.CLEANUP || "DELETE";
 const db = admin.firestore();
 const queueRef = db.collection(QUEUE_COLLECTION);
 const targetRef = TARGET_COLLECTION ? db.collection(TARGET_COLLECTION) : null;
@@ -54,9 +54,9 @@ async function processWrite(ref, write) {
             throw new Error("no target collection/doc was specified for this write");
         }
         await admin.firestore().runTransaction(async (txn) => {
-            const write = await txn.get(ref);
-            if (write.get("state") !== "PENDING") {
-                throw new Error(`expected PENDING state but was ${write.get("state")}`);
+            const existingWrite = await txn.get(ref);
+            if (existingWrite.get("state") !== "PENDING") {
+                throw new Error(`expected PENDING state but was ${existingWrite.get("state")}`);
             }
             return txn.update(ref, {
                 state: "PROCESSING",
@@ -83,7 +83,7 @@ async function processWrite(ref, write) {
         });
     }
     if (!error) {
-        switch (CLEANUP_POLICY) {
+        switch (CLEANUP) {
             case "DELETE":
                 await ref.delete();
             case "KEEP":

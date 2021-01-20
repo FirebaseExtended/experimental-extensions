@@ -17,6 +17,10 @@ firebase
   });
 ```
 
+# Before Installation
+
+This extension requires Firestore to be configured for your project, including a [default App Engine location](https://firebase.google.com/docs/projects/locations#set-firestore-storage-schfunctions) for scheduled functions.
+
 # Billing
 
 This extension uses other Firebase or Google Cloud Platform services which may have associated charges:
