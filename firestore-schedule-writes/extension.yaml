@@ -5,6 +5,15 @@ name: firestore-schedule-writes # Identifier for your extension
 version: 0.0.1 # Follow semver versioning
 specVersion: v1beta # Version of the Firebase Extensions specification
 
+author:
+  authorName: Firebase
+  url: https://firebase.google.com
+
+contributors:
+  - authorName: Michael Bleigh
+    email: bleigh@google.com
+    url: https://github.com/mbleigh
+
 # Friendly display name for your extension (~3-5 words)
 displayName: Schedule Firestore Writes
 
