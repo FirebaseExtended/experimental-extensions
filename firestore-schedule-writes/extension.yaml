@@ -148,6 +148,6 @@ params:
   - param: SCHEDULE
     label: Processing Schedule
     description: >-
-      The schedule (in cron syntax) at which messages should be evaluated for
+      The schedule (in [cron syntax](https://cloud.google.com/scheduler/docs/configuring/cron-job-schedules)) at which messages should be evaluated for
       delivery. Defaults to every minute.
     default: "every 1 minutes"
