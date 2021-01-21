@@ -11,6 +11,8 @@ author:
   authorName: Firebase
   url: https://firebase.google.com
 
+sourceUrl: https://github.com/FirebaseExtended/experimental-extensions/tree/main/storage-extract-image-text
+
 billingRequired: true
 
 apis:
