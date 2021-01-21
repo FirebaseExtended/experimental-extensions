@@ -12,7 +12,7 @@
 
 ### Console
 
-[![Install this extension in your Firebase project](../install-extension.png?raw=true "Install this extension in your Firebase project")](https://console.firebase.google.com/project/_/extensions/install?sourceName=projects/firebasemods/sources/f4679585-4e99-495d-af81-054d62babbd4)
+[![Install this extension in your Firebase project](../install-extension.png?raw=true "Install this extension in your Firebase project")](https://console.firebase.google.com/project/_/extensions/install?sourceName=projects/firebasemods/sources/75aead28-f3f6-424d-8212-8e715cb6f341)
 
 ### Firebase CLI
 
@@ -31,7 +31,7 @@ db.collection("user_claims")
   .doc("abc123")
   .set({
     role: "admin",
-    groups: ["example1", "example2"]
+    groups: ["example1", "example2"],
   });
 ```
 
@@ -52,7 +52,7 @@ When you use Firebase Extensions, you're only charged for the underlying resourc
 
 - Claims Collection: Firestore collection in which custom claims are stored. Must use Firebase Auth UIDs as document IDs.
 
-- Claims Field: The document field in which custom claims are stored. Leave blank to use all document data as custom claims.
+- Claims Field: The document field in which custom claims are stored. Leave blank to use all document data as custom claims. Custom claims must be an object.
 
 - Cloud Functions location: Where do you want to deploy the functions created for this extension? You usually want a location close to your database. For help selecting a location, refer to the [location selection guide](https://firebase.google.com/docs/functions/locations).
 

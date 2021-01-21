@@ -12,7 +12,7 @@
 
 ### Console
 
-[![Install this extension in your Firebase project](../install-extension.png?raw=true "Install this extension in your Firebase project")](https://console.firebase.google.com/project/_/extensions/install?sourceName=projects/firebasemods/sources/b732b059-d0f9-4bd6-8dd3-92a5588d31d5)
+[![Install this extension in your Firebase project](../install-extension.png?raw=true "Install this extension in your Firebase project")](https://console.firebase.google.com/project/_/extensions/install?sourceName=projects/firebasemods/sources/eb2b3e3a-4ef1-4998-93c7-8f541e8c918e)
 
 ### Firebase CLI
 
@@ -57,7 +57,7 @@ such as in `https://yourapp.page.link` or your own domain, such as in
 To install an extension, your project must be on the
 [Blaze (pay as you go) plan][blaze-pricing].
 
-- You will be charged [around \$0.01 per month][pricing-examples] for each
+- You will be charged [around $0.01 per month][pricing-examples] for each
   instance of this extension you install.
 - This extension uses other Firebase and Google Cloud Platform services,
   which have associated charges if you exceed the service's free tier:
@@ -74,11 +74,11 @@ To install an extension, your project must be on the
 
 - Dynamic Links URL prefix: What URL prefix do you want for your shortened links? You will need to set up this prefix in the [Dynamic Links](https://console.firebase.google.com/project/_/durablelinks) section of the console.
 
-* Dynamic Links suffix length: Do you want your short links to end with the shortest possible suffix or longer suffixes that are unlikely to be guessable? In general, you can use short suffixes as long as there's no harm in someone successfuly guessing a short link.
+- Dynamic Links suffix length: Do you want your short links to end with the shortest possible suffix or longer suffixes that are unlikely to be guessable? In general, you can use short suffixes as long as there's no harm in someone successfuly guessing a short link.
 
 - Collection path: What is the path to the collection that contains the URLs that you want to shorten?
 
-* URL field name: What is the name of the field that contains the original long URLs that you want to shorten?
+- URL field name: What is the name of the field that contains the original long URLs that you want to shorten?
 
 - Short URL field name: What is the name of the field where you want to store your shortened URLs?
 

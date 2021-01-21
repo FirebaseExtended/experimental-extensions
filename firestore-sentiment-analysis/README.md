@@ -12,7 +12,7 @@
 
 ### Console
 
-[![Install this extension in your Firebase project](../install-extension.png?raw=true "Install this extension in your Firebase project")](https://console.firebase.google.com/project/_/extensions/install?sourceName=projects/firebasemods/sources/bfeadd9f-3ef3-41f4-9210-fb3d0bb01e02)
+[![Install this extension in your Firebase project](../install-extension.png?raw=true "Install this extension in your Firebase project")](https://console.firebase.google.com/project/_/extensions/install?sourceName=projects/firebasemods/sources/33387d07-e01d-4b40-b718-c935730bb9c6)
 
 ### Firebase CLI
 
@@ -41,7 +41,7 @@ Before installing this extension, make sure that you've [set up a Cloud Firestor
 
 To install an extension, your project must be on the [Blaze (pay as you go) plan](https://firebase.google.com/pricing)
 
-- You will be charged a small amount (typically around \$0.01/month) for the Firebase resources required by this extension (even if it is not used).
+- You will be charged a small amount (typically around $0.01/month) for the Firebase resources required by this extension (even if it is not used).
 - This extension uses other Firebase and Google Cloud Platform services, which have associated charges if you exceed the service’s free tier:
   - Cloud Language API
   - Cloud Firestore
@@ -53,7 +53,7 @@ To install an extension, your project must be on the [Blaze (pay as you go) plan
 
 - Collection path: What is the path to the collection that contains the strings that you want to analyze?
 
-* Input field name: What is the name of the field that contains the string that you want to analyze?
+- Input field name: What is the name of the field that contains the string that you want to analyze?
 
 - Sentiment output field name: What is the name of the field where you want to store your sentiment information?
 

@@ -1,6 +1,6 @@
 # Schedule Firestore Writes
 
-**Author**: undefined
+**Author**: Firebase (**[https://firebase.google.com](https://firebase.google.com)**)
 
 **Description**: Write documents to Firestore at an arbitrary time in the future.
 
@@ -12,7 +12,7 @@
 
 ### Console
 
-[![Install this extension in your Firebase project](../install-extension.png?raw=true "Install this extension in your Firebase project")](https://console.firebase.google.com/project/_/extensions/install?sourceName=projects/firebasemods/sources/262e0781-f7b7-4367-bf73-e3a70a666bf7)
+[![Install this extension in your Firebase project](../install-extension.png?raw=true "Install this extension in your Firebase project")](https://console.firebase.google.com/project/_/extensions/install?sourceName=projects/firebasemods/sources/3775989a-1e6b-4d63-a13d-79b528f381cd)
 
 ### Firebase CLI
 
@@ -39,9 +39,13 @@ firebase
     data: { message: "Hello from the future!" },
     deliverTime: firebase.firestore.Timestamp.fromMillis(
       Date.now() + TEN_MINUTES_MS
-    )
+    ),
   });
 ```
+
+# Before Installation
+
+This extension requires Firestore to be configured for your project, including a [default App Engine location](https://firebase.google.com/docs/projects/locations#set-firestore-storage-schfunctions) for scheduled functions.
 
 # Billing
 
@@ -68,7 +72,7 @@ When you use Firebase Extensions, you're only charged for the underlying resourc
 
 - Cleanup Policy: How to handle messages in the queue collection once successfully delivered.
 
-- Processing Schedule: The schedule (in cron syntax) at which messages should be evaluated for delivery. Defaults to every minute.
+- Processing Schedule: The schedule (in [cron syntax](https://cloud.google.com/scheduler/docs/configuring/cron-job-schedules)) at which messages should be evaluated for delivery. Defaults to every minute.
 
 **Cloud Functions:**
 
