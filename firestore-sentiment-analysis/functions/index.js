@@ -9,7 +9,7 @@ const client = new language.LanguageServiceClient();
 
 var ChangeType;
 
-(function(ChangeType) {
+(function (ChangeType) {
   ChangeType[(ChangeType["CREATE"] = 0)] = "CREATE";
   ChangeType[(ChangeType["DELETE"] = 1)] = "DELETE";
   ChangeType[(ChangeType["UPDATE"] = 2)] = "UPDATE";
@@ -18,7 +18,7 @@ var ChangeType;
 admin.initializeApp();
 
 exports.fssentiment = functions.handler.firestore.document.onWrite(
-  async change => {
+  async (change) => {
     const { inputFieldName, outputFieldName } = config_1.default;
 
     if (inputFieldName == outputFieldName) {
@@ -47,10 +47,10 @@ exports.fssentiment = functions.handler.firestore.document.onWrite(
   }
 );
 
-const extractInput = snapshot => {
+const extractInput = (snapshot) => {
   return snapshot.get(config_1.default.inputFieldName);
 };
-const getChangeType = change => {
+const getChangeType = (change) => {
   if (!change.after.exists) {
     return ChangeType.DELETE;
   }
@@ -60,7 +60,7 @@ const getChangeType = change => {
   return ChangeType.UPDATE;
 };
 
-const handleCreateDocument = async snapshot => {
+const handleCreateDocument = async (snapshot) => {
   const input = extractInput(snapshot);
   if (input) {
     await calculateSentiment(snapshot);
@@ -87,14 +87,14 @@ const handleUpdateDocument = async (before, after) => {
   }
 };
 
-const calculateSentiment = async snapshot => {
+const calculateSentiment = async (snapshot) => {
   const input = extractInput(snapshot);
   const result = await getSentiment(input);
   try {
     const sentimentData = result.documentSentiment;
     const sentiment = {
       magnitude: sentimentData.magnitude,
-      score: sentimentData.score
+      score: sentimentData.score,
     };
     await updateSentiment(snapshot, sentiment);
   } catch (err) {
@@ -102,11 +102,11 @@ const calculateSentiment = async snapshot => {
   }
 };
 
-const getSentiment = async input_value => {
+const getSentiment = async (input_value) => {
   try {
     const document = {
       content: input_value,
-      type: "PLAIN_TEXT"
+      type: "PLAIN_TEXT",
     };
     const [sentiment] = await client.analyzeSentiment({ document });
     return sentiment;
@@ -116,7 +116,7 @@ const getSentiment = async input_value => {
 };
 
 const updateSentiment = async (snapshot, sentiment) => {
-  await admin.firestore().runTransaction(transaction => {
+  await admin.firestore().runTransaction((transaction) => {
     transaction.update(
       snapshot.ref,
       config_1.default.outputFieldName,

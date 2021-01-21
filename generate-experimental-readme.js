@@ -10,8 +10,8 @@ const EXTENSIONS_REGISTRY_STAGING =
 
 function getLatestSource(extensionName) {
   return fetch(EXTENSIONS_REGISTRY_PROD)
-    .then(res => res.json())
-    .then(registry => {
+    .then((res) => res.json())
+    .then((registry) => {
       const extensionMetadata = registry.mods[extensionName];
 
       if (!extensionMetadata) {
@@ -52,7 +52,7 @@ firebase ext:install ${extensionName} --project=<your-project-id>
 }
 
 function runDefaultReadmeScript() {
-  return promisify(exec)("firebase ext:info .. --markdown").then(result => {
+  return promisify(exec)("firebase ext:info .. --markdown").then((result) => {
     return result.stdout;
   });
 }
