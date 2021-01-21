@@ -12,7 +12,7 @@
 
 ### Console
 
-[![Install this extension in your Firebase project](../install-extension.png?raw=true "Install this extension in your Firebase project")](https://console.firebase.google.com/project/_/extensions/install?sourceName=projects/firebasemods/sources/5005572b-b532-4f3d-855c-63a2c4b27f4c)
+[![Install this extension in your Firebase project](../install-extension.png?raw=true "Install this extension in your Firebase project")](https://console.firebase.google.com/project/_/extensions/install?sourceName=projects/firebasemods/sources/563ad037-011d-4e58-91fe-348ad33c85f7)
 
 ### Firebase CLI
 
