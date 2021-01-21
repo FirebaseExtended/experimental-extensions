@@ -7,7 +7,7 @@ description: Determines the sentiment magnitude and score for given text values 
 
 license: Apache-2.0  # The license you want for the extension
 
-#sourceUrl: #TODO https://github.com/firebase/extensions/tree/master/firestore-translate-text
+sourceUrl: https://github.com/FirebaseExtended/experimental-extensions/tree/next/firestore-sentiment-analysis
 #releaseNotesUrl: #TODO https://github.com/firebase/extensions/blob/master/firestore-translate-text/CHANGELOG.md
 
 author:
