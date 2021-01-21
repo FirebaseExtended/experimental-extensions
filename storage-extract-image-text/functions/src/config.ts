@@ -1,4 +1,3 @@
-"use strict";
 /*
  * Copyright 2019 Google LLC
  *
@@ -14,12 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = {
-    dynamicLinkUrlPrefix: process.env.DYNAMIC_LINKS_URL_PREFIX,
-    dynamicLinkSuffixLength: process.env.DYNAMIC_LINKS_SUFFIX_LENGTH,
-    collectionPath: process.env.COLLECTION_PATH,
-    location: process.env.LOCATION,
-    shortUrlFieldName: process.env.SHORT_URL_FIELD_NAME,
-    urlFieldName: process.env.URL_FIELD_NAME
+
+export default {
+  collectionPath: process.env.COLLECTION_PATH || "extractedText",
 };

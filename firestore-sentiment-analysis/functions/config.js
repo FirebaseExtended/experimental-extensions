@@ -16,10 +16,7 @@
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = {
-    dynamicLinkUrlPrefix: process.env.DYNAMIC_LINKS_URL_PREFIX,
-    dynamicLinkSuffixLength: process.env.DYNAMIC_LINKS_SUFFIX_LENGTH,
-    collectionPath: process.env.COLLECTION_PATH,
-    location: process.env.LOCATION,
-    shortUrlFieldName: process.env.SHORT_URL_FIELD_NAME,
-    urlFieldName: process.env.URL_FIELD_NAME
+  location: process.env.LOCATION,
+  inputFieldName: process.env.INPUT_FIELD_NAME,
+  outputFieldName: process.env.OUTPUT_FIELD_NAME,
 };

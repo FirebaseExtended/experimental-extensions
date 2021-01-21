@@ -1,0 +1,153 @@
+# Learn detailed information about the fields of an extension.yaml file in the docs:
+# https://firebase.google.com/docs/extensions/alpha/ref-extension-yaml
+
+name: firestore-schedule-writes # Identifier for your extension
+version: 0.0.2 # Follow semver versioning
+specVersion: v1beta # Version of the Firebase Extensions specification
+
+author:
+  authorName: Firebase
+  url: https://firebase.google.com
+
+contributors:
+  - authorName: Michael Bleigh
+    email: bleigh@google.com
+    url: https://github.com/mbleigh
+
+# Friendly display name for your extension (~3-5 words)
+displayName: Schedule Firestore Writes
+
+# Brief description of the task your extension performs (~1 sentence)
+description: >-
+  Write documents to Firestore at an arbitrary time in the future.
+
+license: Apache-2.0 # https://spdx.org/licenses/
+
+# Public URL for the source code of your extension
+sourceUrl: https://github.com/FirebaseExtended/experimental-extensions/tree/main/firestore-schedule-writes
+
+# Specify whether a paid-tier billing plan is required to use your extension.
+# Learn more in the docs: https://firebase.google.com/docs/extensions/alpha/ref-extension-yaml#billing-required-field
+billingRequired: true
+
+# In a `roles` field, list any IAM access roles required for your extension to operate.
+# Learn more in the docs: https://firebase.google.com/docs/extensions/alpha/ref-extension-yaml#roles-field
+roles:
+  - role: datastore.user
+    reason: Allows this extension to fetch and process messages in the queue.
+
+# In the `resources` field, list each of your extension's functions, including the trigger for each function.
+# Learn more in the docs: https://firebase.google.com/docs/extensions/alpha/ref-extension-yaml#resources-field
+resources:
+  - name: deliverWrites
+    type: firebaseextensions.v1beta.function
+    description: >-
+      Function that runs periodically to find queued writes and deliver them to
+      their intended destination.
+    properties:
+      # LOCATION is a user-configured parameter value specified by the user during installation.
+      location: ${LOCATION}
+      scheduleTrigger:
+        schedule: "${SCHEDULE}"
+      runtime: "nodejs12"
+
+# In the `params` field, set up your extension's user-configured parameters.
+# Learn more in the docs: https://firebase.google.com/docs/extensions/alpha/ref-extension-yaml#params-field
+params:
+  - param: LOCATION
+    label: Cloud Functions location
+    description: >-
+      Where do you want to deploy the functions created for this extension?
+      You usually want a location close to your database. For help selecting a
+      location, refer to the [location selection
+      guide](https://firebase.google.com/docs/functions/locations).
+    type: select
+    options:
+      - label: Iowa (us-central1)
+        value: us-central1
+      - label: South Carolina (us-east1)
+        value: us-east1
+      - label: Northern Virginia (us-east4)
+        value: us-east4
+      - label: Los Angeles (us-west2)
+        value: us-west2
+      - label: Salt Lake City (us-west3)
+        value: us-west3
+      - label: Las Vegas (us-west4)
+        value: us-west4
+      - label: Belgium (europe-west1)
+        value: europe-west1
+      - label: London (europe-west2)
+        value: europe-west2
+      - label: Frankfurt (europe-west3)
+        value: europe-west3
+      - label: Zurich (europe-west6)
+        value: europe-west6
+      - label: Hong Kong (asia-east2)
+        value: asia-east2
+      - label: Tokyo (asia-northeast1)
+        value: asia-northeast1
+      - label: Osaka (asia-northeast2)
+        value: asia-northeast2
+      - label: Seoul (asia-northeast3)
+        value: asia-northeast3
+      - label: Mumbai (asia-south1)
+        value: asia-south1
+      - label: Jakarta (asia-southeast2)
+        value: asia-southeast2
+      - label: Montreal (northamerica-northeast1)
+        value: northamerica-northeast1
+      - label: Sao Paulo (southamerica-east1)
+        value: southamerica-east1
+      - label: Sydney (australia-southeast1)
+        value: australia-southeast1
+    default: us-central1
+    required: true
+    immutable: true
+  - param: QUEUE_COLLECTION
+    label: Message Queue Collection
+    type: string
+    description: >-
+      The name of the Firestore collection in which queued messages will be
+      stored.
+    default: queued_writes
+  - param: TARGET_COLLECTION
+    label: Target Collection
+    type: string
+    description: >-
+      The collection into which queued writes should be delivered when
+      processed. If specified, no writes will be performed outside of the target
+      collection. If blank, each scheduled write can specify its own target
+      collection.
+  - param: MERGE_WRITE
+    label: Merge Writes
+    type: boolean
+    description: >-
+      When true, writes to existing documents are merged with existing data.
+      When false, writes to existing documents overwrite existing data.
+    default: false
+  - param: STALENESS_THRESHOLD_SECONDS
+    label: Staleness Threshold (in minutes)
+    description: >-
+      The duration (in minutes) after which a scheduled message should be
+      abandoned as stale. Considered indefinite if "0" or blank.
+    type: string
+    default: "0"
+  - param: CLEANUP
+    label: Cleanup Policy
+    description: >-
+      How to handle messages in the queue collection once successfully
+      delivered.
+    type: select
+    options:
+      - label: Delete after processing
+        value: DELETE
+      - label: Keep after processing
+        value: KEEP
+    default: DELETE
+  - param: SCHEDULE
+    label: Processing Schedule
+    description: >-
+      The schedule (in [cron syntax](https://cloud.google.com/scheduler/docs/configuring/cron-job-schedules)) at which messages should be evaluated for
+      delivery. Defaults to every minute.
+    default: "every 1 minutes"
