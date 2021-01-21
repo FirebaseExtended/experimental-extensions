@@ -15,7 +15,7 @@
 name: firestore-shorten-urls-dynamic-links
 displayName: Shorten URLs with Dynamic Links
 specVersion: v1beta
-version: 0.1.0
+version: 0.1.1
 
 description: >
   Shortens URLs written to a specified Cloud Firestore collection using
