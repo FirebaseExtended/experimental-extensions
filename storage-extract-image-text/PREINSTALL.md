@@ -1,4 +1,4 @@
-This extension will extract text from any `jpg` or `png` images uploaded to Firebae Storage and write the extracted text to Firestore.
+This extension will extract text from any `jpg` or `png` images uploaded to Cloud Storage and write the extracted text to Firestore.
 
 # Billing
 
