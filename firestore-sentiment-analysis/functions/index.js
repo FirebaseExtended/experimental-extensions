@@ -116,7 +116,6 @@ const getSentiment = async input_value => {
 };
 
 const updateSentiment = async (snapshot, sentiment) => {
-  snapshot.ref.set({ sentiment }, { merge: true });
   await admin.firestore().runTransaction(transaction => {
     transaction.update(
       snapshot.ref,
