@@ -23,7 +23,7 @@ description: >
 
 license: Apache-2.0
 billingRequired: true
-sourceUrl: https://github.com/FirebaseExtended/experimental-extensions/tree/next/firestore-shorten-urls-dynamic-links
+sourceUrl: https://github.com/FirebaseExtended/experimental-extensions/tree/main/firestore-shorten-urls-dynamic-links
 releaseNotesUrl: https://github.com/FirebaseExtended/experimental-extensions/commits/next
 
 author:

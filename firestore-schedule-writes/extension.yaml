@@ -24,7 +24,7 @@ description: >-
 license: Apache-2.0 # https://spdx.org/licenses/
 
 # Public URL for the source code of your extension
-sourceUrl: https://github.com/FirebaseExtended/experimental-extensions/tree/next/firestore-schedule-writes
+sourceUrl: https://github.com/FirebaseExtended/experimental-extensions/tree/main/firestore-schedule-writes
 
 # Specify whether a paid-tier billing plan is required to use your extension.
 # Learn more in the docs: https://firebase.google.com/docs/extensions/alpha/ref-extension-yaml#billing-required-field
