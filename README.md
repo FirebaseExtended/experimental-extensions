@@ -6,6 +6,30 @@ This repository contains the source for experimental extensions. Created by Fire
 
 Each directory in this repo contains the source code for an extension and a README to explain how the extension works, including information about the APIs enabled, resources created, and the access granted to the extension.
 
+## List of experimental extensions
+
+> Want to install one of these? Visit each extension's linked README for installation instructions.
+
+### [Set Auth claims with Firestore](/firestore-auth-claims#set-auth-claims-with-firestore)
+
+Set custom claims for Firebase Auth users from values set in Firestore.
+
+### [Schedule Firestore writes](/firestore-schedule-writes#schedule-firestore-writes)
+
+Write documents to Firestore at an arbitrary time in the future.
+
+### [Sentiment analysis](/firestore-schedule-writes#schedule-firestore-writes)
+
+Determines the sentiment magnitude and score for given text values in Firestore.
+
+### [Shorten URLs with Dynamic Links](/firestore-shorten-urls-dynamic-links#shorten-urls-with-dynamic-links)
+
+Shortens URLs written to a specified Cloud Firestore collection using Firebase Dynamic Links.
+
+### [Image text extraction](/storage-extract-image-text#image-text-extraction)
+
+Extracts text from images uploaded to a Cloud Storage bucket and writes extracted text to Firestore.
+
 ## Status
 
 ![Status: Experimental](https://img.shields.io/badge/Status-Experimental-blue)
