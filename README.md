@@ -28,7 +28,7 @@ Shortens URLs written to a specified Cloud Firestore collection using Firebase D
 
 ### [Image text extraction](/storage-extract-image-text#image-text-extraction)
 
-Extracts text from images uploaded to storage and writes extracted text to Firestore.
+Extracts text from images uploaded to a Cloud Storage bucket and writes extracted text to Firestore.
 
 ## Status
 
