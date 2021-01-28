@@ -18,7 +18,7 @@ Set custom claims for Firebase Auth users from values set in Firestore.
 
 Write documents to Firestore at an arbitrary time in the future.
 
-### [Sentiment analysis](/firestore-schedule-writes#schedule-firestore-writes)
+### [Sentiment analysis](/firestore-sentiment-analysis#sentiment-analysis)
 
 Determines the sentiment magnitude and score for given text values in Firestore.
 
