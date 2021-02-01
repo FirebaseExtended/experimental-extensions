@@ -70,17 +70,18 @@ params:
     validationErrorMessage: Invalid storage bucket
     default: ${STORAGE_BUCKET}
     required: true
-  - param: TEXT_FILE_SUFFIX
-    label: The suffix of the file with extrated test
+  - param: COLLECTION_PATH
+    label: Collection path
     description: >
-      The extention will write labels to the same location as the source image, but with this suffix appended at the end.
-    type: string
-    example: .labels
-    validationRegex: ^([0-9a-z_.-]+)$
-    validationErrorMessage: Invalid file suffix
-    default: .labels
+      What is the path to the collection where labels will be written to.
+    example: imageLabels
+    validationRegex: "^[^/]+(/[^/]+/[^/]+)*$"
+    validationErrorMessage: Must be a valid Cloud Firestore Collection
+    default: imageLabels
     required: true
 
 roles:
   - role: storage.admin
     reason: Allows the extension to write to your Cloud Storage.
+  - role: datastore.user
+    reason: Allows the extension to write to your Firestore Database instance.
