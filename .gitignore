@@ -12,5 +12,3 @@ local.properties
 coverage
 package-lock.json
 yarn.lock
-*.js
-*.map
