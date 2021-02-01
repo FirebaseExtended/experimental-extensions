@@ -56,6 +56,6 @@ exports.labelImage = functions.storage.object().onFinalize(async (object) => {
     .doc(object.name)
     .create({
       file: "gs://" + object.bucket + "/" + object.name,
-      text: labels,
+      labels,
     });
 });
