@@ -47,8 +47,8 @@ class ServiceAccountCredential {
                 this.tokenExpiration < nowish) {
                 const metadataResponse = yield node_fetch_1.default(this.metadataServiceUri, {
                     headers: {
-                        "Metadata-Flavor": "Google"
-                    }
+                        "Metadata-Flavor": "Google",
+                    },
                 });
                 const { access_token, expires_in } = yield metadataResponse.json();
                 this.accessToken = access_token;
@@ -77,16 +77,16 @@ class FirestoreDynamicLinksUrlShortener extends abstract_shortener_1.FirestoreUr
                 const requestBody = {
                     dynamicLinkInfo: {
                         domainUriPrefix: this.dynamicLinkUrlPrefix,
-                        link: url
+                        link: url,
                     },
-                    suffix: { option: this.dynamicLinkSuffixLength }
+                    suffix: { option: this.dynamicLinkSuffixLength },
                 };
                 const response = yield node_fetch_1.default(this.dynamicLinksApiUrl, {
                     headers: {
-                        Authorization: `Bearer ${accessToken}`
+                        Authorization: `Bearer ${accessToken}`,
                     },
                     method: "POST",
-                    body: JSON.stringify(requestBody)
+                    body: JSON.stringify(requestBody),
                 });
                 const { shortLink: shortUrl } = yield response.json();
                 this.logs.shortenUrlComplete(shortUrl);
