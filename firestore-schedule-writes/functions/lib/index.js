@@ -23,7 +23,7 @@ async function fetchAndProcess() {
         functions.logger.info("No writes to process.");
         return;
     }
-    const promises = toProcess.docs.map(doc => {
+    const promises = toProcess.docs.map((doc) => {
         return processWrite(doc.ref, doc.data());
     });
     const results = await Promise.all(promises);
@@ -62,7 +62,7 @@ async function processWrite(ref, write) {
                 state: "PROCESSING",
                 attempts: admin.firestore.FieldValue.increment(1),
                 startTime: admin.firestore.FieldValue.serverTimestamp(),
-                updateTime: admin.firestore.FieldValue.serverTimestamp()
+                updateTime: admin.firestore.FieldValue.serverTimestamp(),
             });
         });
         if (isStale(write)) {
@@ -79,7 +79,7 @@ async function processWrite(ref, write) {
             state: "FAILED",
             error: { message: e.message },
             updateTime: admin.firestore.FieldValue.serverTimestamp(),
-            endTime: admin.firestore.FieldValue.serverTimestamp()
+            endTime: admin.firestore.FieldValue.serverTimestamp(),
         });
     }
     if (!error) {
@@ -90,7 +90,7 @@ async function processWrite(ref, write) {
                 await ref.update({
                     state: "DELIVERED",
                     updateTime: admin.firestore.FieldValue.serverTimestamp(),
-                    endTime: admin.firestore.FieldValue.serverTimestamp()
+                    endTime: admin.firestore.FieldValue.serverTimestamp(),
                 });
         }
     }
@@ -107,7 +107,7 @@ async function resetStuck() {
         await doc.ref.update({
             state: "PENDING",
             timeouts: admin.firestore.FieldValue.increment(1),
-            lastTimeoutTime: admin.firestore.FieldValue.serverTimestamp()
+            lastTimeoutTime: admin.firestore.FieldValue.serverTimestamp(),
         });
         functions.logger.error(`Write "${QUEUE_COLLECTION}/${doc.id}" was still PROCESSING after lease expired. Reset to PENDING.`);
     }));
