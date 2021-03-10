@@ -27,11 +27,13 @@ const db = admin.firestore();
 
 exports.labelImage = functions.storage.object().onFinalize(async (object) => {
   // TODO: allow configuration.
-  if (
-    !object.name?.toLowerCase().endsWith(".jpg") &&
-    !object.name?.toLowerCase().endsWith(".jpeg") &&
-    !object.name?.toLowerCase().endsWith(".png")
-  ) {
+  const { contentType } = object; // This is the image MIME type
+  if (!contentType) {
+    functions.logger.log(`Ignoring file "${object.name}" unable to determine content type`);
+    return;
+  }
+  if (!contentType.startsWith("image/")) {
+    functions.logger.log(`Ignoring file "${object.name}" because it's not an image'`);
     return;
   }
   const bucket = admin.storage().bucket(object.bucket);

@@ -23,11 +23,15 @@ admin.initializeApp();
 const client = new vision_1.default.ImageAnnotatorClient();
 const db = admin.firestore();
 exports.labelImage = functions.storage.object().onFinalize(async (object) => {
-    var _a, _b, _c, _d, _e;
+    var _a, _b;
     // TODO: allow configuration.
-    if (!((_a = object.name) === null || _a === void 0 ? void 0 : _a.toLowerCase().endsWith(".jpg")) &&
-        !((_b = object.name) === null || _b === void 0 ? void 0 : _b.toLowerCase().endsWith(".jpeg")) &&
-        !((_c = object.name) === null || _c === void 0 ? void 0 : _c.toLowerCase().endsWith(".png"))) {
+    const { contentType } = object; // This is the image MIME type
+    if (!contentType) {
+        functions.logger.log(`Ignoring file "${object.name}" unable to determine content type`);
+        return;
+    }
+    if (!contentType.startsWith("image/")) {
+        functions.logger.log(`Ignoring file "${object.name}" because it's not an image'`);
         return;
     }
     const bucket = admin.storage().bucket(object.bucket);
@@ -44,7 +48,7 @@ exports.labelImage = functions.storage.object().onFinalize(async (object) => {
         ],
     };
     const results = await client.annotateImage(request);
-    const labels = (_e = (_d = results === null || results === void 0 ? void 0 : results[0]) === null || _d === void 0 ? void 0 : _d.labelAnnotations) === null || _e === void 0 ? void 0 : _e.map((label) => label.description);
+    const labels = (_b = (_a = results === null || results === void 0 ? void 0 : results[0]) === null || _a === void 0 ? void 0 : _a.labelAnnotations) === null || _b === void 0 ? void 0 : _b.map((label) => label.description);
     await db
         .collection(config_1.default.collectionPath)
         .doc(object.name)
