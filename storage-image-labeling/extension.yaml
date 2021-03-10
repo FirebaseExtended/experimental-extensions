@@ -1,11 +1,12 @@
-name: storage-label-image
+name: storage-image-labeling
 version: 0.0.1
 specVersion: v1beta
 
-displayName: Image Labelling
-description: Performs image labelling on images uploaded to Storage and writes labels to storage.
+displayName: Image Labeling
+description: Performs image labeling on images uploaded to Storage and writes labels to storage.
 
 license: Apache-2.0  # The license you want for the extension
+sourceUrl: https://github.com/FirebaseExtended/experimental-extensions/tree/main/storage-image-labeling
 
 author:
   authorName: Firebase
@@ -21,7 +22,7 @@ resources:
   - name: labelImage
     type: firebaseextensions.v1beta.function
     description:
-      Listens to incoming Storage documents, executes image labelling on them and writes labels back to Storage into a preconfigured location.
+      Listens to incoming Storage documents, executes image labeling on them and writes labels back to Storage into a preconfigured location.
     properties:
       location: ${param:LOCATION}
       availableMemoryMb: 1024
