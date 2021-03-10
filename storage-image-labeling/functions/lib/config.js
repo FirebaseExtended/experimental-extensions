@@ -16,6 +16,6 @@
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = {
-    collectionPath: process.env.COLLECTION_PATH || "imageLabels",
+  collectionPath: process.env.COLLECTION_PATH || "imageLabels",
 };
 //# sourceMappingURL=config.js.map

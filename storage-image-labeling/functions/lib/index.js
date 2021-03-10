@@ -23,38 +23,49 @@ admin.initializeApp();
 const client = new vision_1.default.ImageAnnotatorClient();
 const db = admin.firestore();
 exports.labelImage = functions.storage.object().onFinalize(async (object) => {
-    var _a, _b;
-    // TODO: allow configuration.
-    const { contentType } = object; // This is the image MIME type
-    if (!contentType) {
-        functions.logger.log(`Ignoring file "${object.name}" unable to determine content type`);
-        return;
-    }
-    if (!contentType.startsWith("image/")) {
-        functions.logger.log(`Ignoring file "${object.name}" because it's not an image'`);
-        return;
-    }
-    const bucket = admin.storage().bucket(object.bucket);
-    const imageContents = await bucket.file(object.name).download();
-    const imageBase64 = Buffer.from(imageContents[0]).toString("base64");
-    const request = {
-        image: {
-            content: imageBase64,
-        },
-        features: [
-            {
-                type: "LABEL_DETECTION",
-            },
-        ],
-    };
-    const results = await client.annotateImage(request);
-    const labels = (_b = (_a = results === null || results === void 0 ? void 0 : results[0]) === null || _a === void 0 ? void 0 : _a.labelAnnotations) === null || _b === void 0 ? void 0 : _b.map((label) => label.description);
-    await db
-        .collection(config_1.default.collectionPath)
-        .doc(object.name)
-        .create({
-        file: "gs://" + object.bucket + "/" + object.name,
-        labels,
+  var _a, _b;
+  // TODO: allow configuration.
+  const { contentType } = object; // This is the image MIME type
+  if (!contentType) {
+    functions.logger.log(
+      `Ignoring file "${object.name}" unable to determine content type`
+    );
+    return;
+  }
+  if (!contentType.startsWith("image/")) {
+    functions.logger.log(
+      `Ignoring file "${object.name}" because it's not an image'`
+    );
+    return;
+  }
+  const bucket = admin.storage().bucket(object.bucket);
+  const imageContents = await bucket.file(object.name).download();
+  const imageBase64 = Buffer.from(imageContents[0]).toString("base64");
+  const request = {
+    image: {
+      content: imageBase64,
+    },
+    features: [
+      {
+        type: "LABEL_DETECTION",
+      },
+    ],
+  };
+  const results = await client.annotateImage(request);
+  const labels =
+    (_b =
+      (_a = results === null || results === void 0 ? void 0 : results[0]) ===
+        null || _a === void 0
+        ? void 0
+        : _a.labelAnnotations) === null || _b === void 0
+      ? void 0
+      : _b.map((label) => label.description);
+  await db
+    .collection(config_1.default.collectionPath)
+    .doc(object.name)
+    .create({
+      file: "gs://" + object.bucket + "/" + object.name,
+      labels,
     });
 });
 //# sourceMappingURL=index.js.map
