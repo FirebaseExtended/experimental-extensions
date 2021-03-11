@@ -1,0 +1,120 @@
+# Learn detailed information about the fields of an extension.yaml file in the docs
+
+name: firestore-bundle-server
+specVersion: v1beta
+version: 0.1.0
+license: Apache-2.0
+
+displayName: Firestore Bundle Server
+
+description: >-
+  Provides cached serving of Firestore bundles.
+
+billingRequired: true
+
+# For your extension to interact with other Google APIs (like Firestore, Cloud Storage, or Cloud Translation),
+# set the `apis` field. In addition, set the `roles` field to grant appropriate IAM access to interact with these products.
+# Learn about these fields in the docs
+
+roles:
+- role: datastore.user
+  reason:
+    Allows the extension to read configuration and build bundles from Firestore.
+- role: storage.objectAdmin
+  reason:
+    Allows the extension to save built bundles in Cloud Storage
+
+# Learn about the `resources` field in the docs
+resources:
+  - name: serve
+    type: firebaseextensions.v1beta.function
+    description: >-
+      HTTPS function that serves bundled content from Cloud Storage cache or by dynamically building.
+    properties:
+      location: ${LOCATION}
+      httpsTrigger: {}
+      runtime: "nodejs12"
+
+# Learn about the `params` field in the docs
+params:
+  - param: LOCATION
+    label: Cloud Functions location
+    description: >-
+      Where do you want to deploy the functions created for this extension?
+      You usually want a location close to your database or Storage bucket.
+      For help selecting a location, refer to the [location selection
+      guide](https://firebase.google.com/docs/functions/locations).
+    type: select
+    options:
+    - label: Iowa (us-central1)
+      value: us-central1
+    - label: South Carolina (us-east1)
+      value: us-east1
+    - label: Northern Virginia (us-east4)
+      value: us-east4
+    - label: Los Angeles (us-west2)
+      value: us-west2
+    - label: Salt Lake City (us-west3)
+      value: us-west3
+    - label: Las Vegas (us-west4)
+      value: us-west4
+    - label: Belgium (europe-west1)
+      value: europe-west1
+    - label: London (europe-west2)
+      value: europe-west2
+    - label: Frankfurt (europe-west3)
+      value: europe-west3
+    - label: Zurich (europe-west6)
+      value: europe-west6
+    - label: Hong Kong (asia-east2)
+      value: asia-east2
+    - label: Tokyo (asia-northeast1)
+      value: asia-northeast1
+    - label: Osaka (asia-northeast2)
+      value: asia-northeast2
+    - label: Seoul (asia-northeast3)
+      value: asia-northeast3
+    - label: Mumbai (asia-south1)
+      value: asia-south1
+    - label: Jakarta (asia-southeast2)
+      value: asia-southeast2
+    - label: Montreal (northamerica-northeast1)
+      value: northamerica-northeast1
+    - label: Sao Paulo (southamerica-east1)
+      value: southamerica-east1
+    - label: Sydney (australia-southeast1)
+      value: australia-southeast1
+    default: us-central1
+    required: true
+    immutable: true
+
+  - param: BUNDLESPEC_COLLECTION
+    type: string
+    label: Collection to store bundle specification documents
+    description: >-
+      Path to the Firestore collection whose documents are specifications of
+      bundles the extension will build.
+    default: bundles
+    required: true
+    immutable: false
+
+  - param: BUNDLE_STORAGE_BUCKET
+    type: string
+    label: Google Cloud Storage bucket to save the built bundle files
+    description: >-
+      The Cloud Storage bucket to save the built bundle files. This applies when
+      the bundle specification has `fileCache` enabled.
+    validationRegex: ^([0-9a-z_.-]*)$
+    validationErrorMessage: Invalid storage bucket
+    default: ${param:STORAGE_BUCKET}
+    required: false
+    immutable: false
+
+  - param: STORAGE_PREFIX
+    type: string
+    label: Prefix to use for bundle files saved in Google Cloud Storage.
+    description: >-
+      The prefix for all the bundle files built and saved in Cloud Storage.
+      This applies when the bundle specification has `fileCache` enabled.
+    required: false
+    immutable: false
