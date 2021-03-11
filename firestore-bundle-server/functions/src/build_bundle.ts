@@ -1,5 +1,10 @@
 import { firestore } from "firebase-admin";
-import { Firestore, Query, Timestamp } from "@google-cloud/firestore";
+import {
+  BundleBuilder,
+  Firestore,
+  Query,
+  Timestamp,
+} from "@google-cloud/firestore";
 
 /**
  * Specification of a condition associated to a Firestore query.
@@ -17,7 +22,8 @@ export interface QueryConditionSpec {
       | "array-contains"
       | "in"
       | "not-in"
-      | "array-contains-any"),
+      | "array-contains-any"
+    ),
     any
   ];
   orderBy?: [string, ("asc" | "desc")?];
@@ -72,7 +78,7 @@ export function parameterize(
   params: ParamsSpec,
   paramValues: { [key: string]: any }
 ): any {
-  if (typeof value !== "string" || !(value as string).startsWith("$")) {
+  if (typeof value !== "string" || !value.startsWith("$")) {
     return value;
   }
 
@@ -164,10 +170,8 @@ export async function build(
   bundleId: string,
   bundleSpec: BundleSpec,
   paramValues: { [key: string]: any }
-): Promise<any> {
-  // TODO(wuandy): remove the any cast and return Promise<BundleBuilder> when
-  // bundle is public on Node.
-  const bundle = (db as any)._bundle(bundleId);
+): Promise<BundleBuilder> {
+  const bundle = db.bundle(bundleId);
   const promises: Promise<void>[] = [];
 
   const docs = bundleSpec.docs || [];
@@ -182,7 +186,9 @@ export async function build(
       db
         .doc(resolvedDocName)
         .get()
-        .then((snap) => bundle.add(snap))
+        .then((snap) => {
+          bundle.add(snap);
+        })
     );
   }
 
@@ -192,7 +198,9 @@ export async function build(
     promises.push(
       buildQuery(db, queries[qName], bundleSpec.params || {}, paramValues)
         .get()
-        .then((snap) => bundle.add(qName, snap))
+        .then((snap) => {
+          bundle.add(qName, snap);
+        })
     );
   }
 
@@ -212,14 +220,15 @@ export function buildQuery(
     params,
     paramValues
   );
-  const ref = !!qSpec.collectionGroupQuery
+  let result: Query = !!qSpec.collectionGroupQuery
     ? db.collectionGroup(parameterizedPath)
     : db.collection(parameterizedPath);
 
-  return (qSpec.conditions || []).reduce(
-    (r, c) => handleCondition(r, c, params, paramValues),
-    ref
-  );
+  (qSpec.conditions || []).forEach((c) => {
+    result = handleCondition(result, c, params, paramValues);
+  });
+
+  return result;
 }
 
 function handleCondition(

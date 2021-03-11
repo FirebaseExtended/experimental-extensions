@@ -33,6 +33,7 @@ let _specsReady = false;
 function specsReady() {
   _specsReady = true;
   while (_waits && _waits.length > 0) {
+    // tslint:disable-next-line:no-empty
     (_waits.pop() || (() => {}))();
   }
 }
@@ -99,6 +100,7 @@ async function fileCacheStream(
       (options.notBefore && createTime < options.notBefore.toMillis()) ||
       Date.now() > createTime + options.ttlSec * 1000
     ) {
+      // tslint:disable-next-line:no-floating-promises
       file.delete(); // fire and forget
       return null;
     }
@@ -132,9 +134,12 @@ db.collection(BUNDLESPEC_COLLECTION).onSnapshot((snap) => {
  */
 export const serve = functions.handler.https.onRequest(
   async (req, res): Promise<any> => {
-    functions.logger.debug("accept-encoding:", req.get("accept-encoding"), req.headers);
-    const canGzip =
-      req.get("accept-encoding")?.includes("gzip") || false;
+    functions.logger.debug(
+      "accept-encoding:",
+      req.get("accept-encoding"),
+      req.headers
+    );
+    const canGzip = req.get("accept-encoding")?.includes("gzip") || false;
     if (canGzip) {
       res.set("content-encoding", "gzip");
     }
