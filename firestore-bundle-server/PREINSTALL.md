@@ -1,16 +1,17 @@
-**IMPORTANT: This extension is part of the Firebase Alpha program. [Alpha extensions](https://accounts.google.com/AccountChooser?service=gerritcodereview&continue=https://dev-partners.googlesource.com/login/samples/firebase/extensions-alpha/) are confidential, and their functionality might change in backward-incompatible ways before official, public release. We do not recommend installing Alpha extensions in production apps.**
+Use this extension to build Firestore data bundle files via HTTP requests to a Cloud Function instance, and manage the caching strategy for the built bundle files. Firestore data bundles are static data files built from Firestore documents and query snapshots.
 
-Use this extension to build Firestore Bundle files via HTTP requests to a Cloud Function instance, and manage the caching strategy for the built bundle files.
+This extension requires your project to be upgraded to the Blaze plan.
 
 #### How it works
 
 The extension sets up a Cloud Function instance serving HTTP requests. The Function instance listens to a specified Firestore collection, whose documents are
-specifications of Firestore Bundle files.
+specifications for assembly of Firestore data bundle files.
 
-The clients send HTTP requests specifying what bundle specification to build, along with what values (via HTTP request query) to parameterize the specifications.
+Clients send HTTP requests specifying what bundle specification to build, along with values (via HTTP request query parameters) to parameterize the
+specifications.
 
-Depending on the bundle specification, the requested bundle might be returned from client's cache, Firebase Hosting cache or a Cloud Storage file.
-When no cache is found, queries will run against Firestore to get the data and build the bundle.
+Depending on the bundle specification, the requested bundle might be returned from client's cache, Firebase Hosting cache or a Cloud Storage file. When no
+cache is found, queries will run against the Firestore back-end to get the data and build the bundle.
 
 #### Additional setup
 
