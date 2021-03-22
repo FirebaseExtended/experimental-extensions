@@ -1,8 +1,8 @@
 # Analyze Toxicity with Perspective API
 
-**Author**: Perspective API (**[https://perspectiveapi.com](https://perspectiveapi.com/)**)
+**Author**: Jigsaw's Perspective API (**[https://perspectiveapi.com](https://perspectiveapi.com/)**)
 
-**Description**: We’ve partnered with the Perspective team to build the Analyze Toxicity extension, which leverages Google’s ML to classify the level of toxicity, threat and profanity of your user comments. The Perspective team uses the power of Google’s machine learning to help mitigate toxicity and ensure healthy dialogue online. It is trusted by sites like the New York Times or the Wall Street Journal. Please check it out [here](https://github.com/conversationai/firestore-perspective-toxicity).
+**Description**: We’ve partnered with the Jigsaw team to build the Analyze Toxicity extension, which leverages machine learning to classify the level of toxicity, threat and profanity of your user comments. The Perspective API uses the power of machine learning to help mitigate toxicity and ensure healthy dialogue online. It is trusted by sites like the New York Times or the Wall Street Journal. Please check it out [here](https://github.com/conversationai/firestore-perspective-toxicity).
 
 ---
 
