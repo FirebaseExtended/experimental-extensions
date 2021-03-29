@@ -15,14 +15,13 @@
  */
 
 import * as functions from "firebase-functions";
-import videoIntelligence from "@google-cloud/video-intelligence";
-
+import * as videoIntelligence from "@google-cloud/video-intelligence";
 import config from "./config";
+
+const { Feature } = videoIntelligence.protos.google.cloud.videointelligence.v1;
 
 const admin = require("firebase-admin");
 admin.initializeApp();
-
-const db = admin.firestore();
 
 const validMediaTypes = [".mp4"];
 
@@ -33,26 +32,24 @@ exports.analyse = functions.storage.object().onFinalize(async object => {
 
   const [operation] = await client.annotateVideo({
     inputUri: config.inputUri,
-    features: config.labelDetection as any,
+    outputUri: config.outputUri,
+    locationId: config.locationId,
+    features: [Feature.LABEL_DETECTION],
     videoContext: {
-      labelDetectionMode: 1,
-      videoConfidenceThreshold: 0.5,
-    } as any,
+      labelDetectionConfig: {
+        labelDetectionMode: config.labelDetectionMode,
+        videoConfidenceThreshold: config.videoConfidenceThreshold,
+        frameConfidenceThreshold: config.frameConfidenceThreshold,
+        model: config.model,
+        stationaryCamera: config.stationaryCamera,
+      },
+    },
   });
 
-  const [operationResult] = await operation.promise();
-
-  if (!operationResult || !operationResult.annotationResults) {
+  if (operation.error) {
+    // log error
     return;
   }
 
-  const text = operationResult.annotationResults[0];
-
-  await db
-    .collection(config.collectionPath)
-    .doc(object.name)
-    .create({
-      file: "gs://" + object.bucket + "/" + object.name,
-      text,
-    });
+  //TODO: Add logger to confirm annotation, include input uri / output uri
 });

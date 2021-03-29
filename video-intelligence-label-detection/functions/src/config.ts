@@ -14,8 +14,35 @@
  * limitations under the License.
  */
 
+import * as videoIntelligence from "@google-cloud/video-intelligence";
+
+const {
+  LabelDetectionMode,
+} = videoIntelligence.protos.google.cloud.videointelligence.v1;
+
 export default {
-  collectionPath: process.env.COLLECTION_PATH || "extractedMeta",
-  labelDetection: process.env.LABEL_DETECTION || [],
-  inputUri: process.env.STORAGE_BUCKET,
+  labelDetectionMode: parseDetectionMode(process.env.LABEL_DETECTION_MODE),
+  videoConfidenceThreshold: parseFloat(process.env.VIDEO_CONFIDENCE_THRESHOLD!),
+  frameConfidenceThreshold: parseFloat(process.env.FRAME_CONFIDENCE_THRESHOLD!),
+  inputUri: process.env.INPUT_STORAGE_URI,
+  outputUri: process.env.OUTPUT_STORAGE_URI,
+  model: process.env.MODEL || null,
+  stationaryCamera: process.env.STATIONARY_CAMERA === "true",
+  locationId: process.env.LOCATION_ID,
 };
+
+function parseDetectionMode(value?: string): number {
+  switch (value) {
+    case "SHOT_MODE":
+      return LabelDetectionMode.SHOT_MODE;
+
+    case "FRAME_MODE":
+      return LabelDetectionMode.FRAME_MODE;
+
+    case "SHOT_AND_FRAME_MODE":
+      return LabelDetectionMode.SHOT_AND_FRAME_MODE;
+
+    default:
+      return LabelDetectionMode.SHOT_MODE;
+  }
+}
