@@ -15,7 +15,28 @@
  * limitations under the License.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
+const videoIntelligence = require("@google-cloud/video-intelligence");
+const { LabelDetectionMode, } = videoIntelligence.protos.google.cloud.videointelligence.v1;
 exports.default = {
-    collectionPath: process.env.COLLECTION_PATH || "extractedText",
+    locationId: process.env.LOCATION_ID,
+    outputUri: process.env.OUTPUT_STORAGE_URI,
+    labelDetectionMode: parseDetectionMode(process.env.LABEL_DETECTION_MODE),
+    videoConfidenceThreshold: parseFloat(process.env.VIDEO_CONFIDENCE_THRESHOLD),
+    frameConfidenceThreshold: parseFloat(process.env.FRAME_CONFIDENCE_THRESHOLD),
+    model: process.env.MODEL || null,
+    stationaryCamera: process.env.STATIONARY_CAMERA === "true" &&
+        process.env.LABEL_DETECTION_MODE !== "SHOT_AND_FRAME_MODE",
 };
+function parseDetectionMode(value) {
+    switch (value) {
+        case "SHOT_MODE":
+            return LabelDetectionMode.SHOT_MODE;
+        case "FRAME_MODE":
+            return LabelDetectionMode.FRAME_MODE;
+        case "SHOT_AND_FRAME_MODE":
+            return LabelDetectionMode.SHOT_AND_FRAME_MODE;
+        default:
+            return LabelDetectionMode.SHOT_MODE;
+    }
+}
 //# sourceMappingURL=config.js.map

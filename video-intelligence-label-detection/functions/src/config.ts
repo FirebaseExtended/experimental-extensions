@@ -21,14 +21,15 @@ const {
 } = videoIntelligence.protos.google.cloud.videointelligence.v1;
 
 export default {
+  locationId: process.env.LOCATION_ID,
+  outputUri: process.env.OUTPUT_STORAGE_URI,
   labelDetectionMode: parseDetectionMode(process.env.LABEL_DETECTION_MODE),
   videoConfidenceThreshold: parseFloat(process.env.VIDEO_CONFIDENCE_THRESHOLD!),
   frameConfidenceThreshold: parseFloat(process.env.FRAME_CONFIDENCE_THRESHOLD!),
-  inputUri: process.env.INPUT_STORAGE_URI,
-  outputUri: process.env.OUTPUT_STORAGE_URI,
   model: process.env.MODEL || null,
-  stationaryCamera: process.env.STATIONARY_CAMERA === "true",
-  locationId: process.env.LOCATION_ID,
+  stationaryCamera:
+    process.env.STATIONARY_CAMERA === "true" &&
+    process.env.LABEL_DETECTION_MODE !== "SHOT_AND_FRAME_MODE",
 };
 
 function parseDetectionMode(value?: string): number {

@@ -20,7 +20,7 @@ apis:
     reason: Powers all Video Intelligence tasks performed by the extension.
 
 resources:
-  - name: extractMeta
+  - name: analyse
     type: firebaseextensions.v1beta.function
     description: Listens to incoming Storage documents, executes Video Intelligence on them and writes extracted text to Firestore into a preconfigured collection.
     properties:
@@ -28,16 +28,14 @@ resources:
       availableMemoryMb: 1024
       eventTrigger:
         eventType: google.storage.object.finalize
-        resource: projects/_/buckets/${param:STORAGE_BUCKET}
+        resource: projects/_/buckets/${param:INPUT_STORAGE_URI}
       runtime: "nodejs10"
 
 params:
   - param: LOCATION
     label: Cloud Functions location
     description: >-
-      Where do you want to deploy the functions created for this extension?
-      You usually want a location close to your database. Realtime Database
-      instances are located in `us-central1`. For help selecting a
+      Cloud region where annotation should take place. For help selecting a
       location, refer to the [location selection
       guide](https://firebase.google.com/docs/functions/locations).
     type: select
@@ -55,24 +53,88 @@ params:
     default: us-east1
     required: true
     immutable: true
-  - param: STORAGE_BUCKET
-    label: Cloud Storage bucket for images
+
+  - param: INPUT_STORAGE_URI
+    label: Input storage uri
     description: >
-      To which Cloud Storage bucket will you upload images from which you want to extract text?
+      Input video location. A video URI may include wildcards in object-id, and thus identify multiple videos. Supported wildcards: '*' to match 0 or more characters; '?' to match 1 character.
     type: string
-    example: my-project-12345.appspot.com
-    validationRegex: ^([0-9a-z_.-]*)$
-    validationErrorMessage: Invalid storage bucket
-    default: ${STORAGE_BUCKET}
+    example: ${STORAGE_BUCKET}/video_annotations_input/*
+    validationRegex: ^([\/0-9a-z_.-*]*)$
+    validationErrorMessage: Invalid storage folder name
+    default: ${STORAGE_BUCKET}/video_annotations_input/*
     required: true
-  - param: COLLECTION_PATH
-    label: Collection path
+
+  - param: OUTPUT_STORAGE_URI
+    label: Output storage uri
     description: >
-      What is the path to the collection where extracted text will be written to.
-    example: extractedText
-    validationRegex: "^[^/]+(/[^/]+/[^/]+)*$"
-    validationErrorMessage: Must be a valid Cloud Firestore Collection
-    default: extractedText
+      Optional. Location where the output (in JSON format) should be stored
+    type: string
+    example: ${STORAGE_BUCKET}/video_annotations_output/
+    validationRegex: ^([\/0-9a-z_.-]*)$
+    validationErrorMessage: Invalid storage folder name
+    default: ${STORAGE_BUCKET}/video_annotations_output
+    required: true
+
+  - param: LABEL_DETECTION_MODE
+    label: Label detection mode
+    description: >
+      What labels should be detected with LABEL_DETECTION, in addition to video-level labels or segment-level labels. If unspecified, defaults to SHOT_MODE.
+    type: select
+    options:
+      - label: Shot mode
+        value: SHOT_MODE
+      - label: Frame mode
+        value: FRAME_MODE
+      - label: Shot and frame mode
+        value: SHOT_AND_FRAME_MODE
+    default: SHOT_MODE
+    required: true
+
+  - param: VIDEO_CONFIDENCE_THRESHOLD
+    label: Video confidence threshold
+    description: >
+      The confidence threshold we perform filtering on the labels from video-level and shot-level detections. If not set, it is set to 0.3 by default. The valid range for this threshold is [0.1, 0.9]. Any value set outside of this range will be clipped. Note: for best results please follow the default threshold. We will update the default threshold everytime when we release a new model.
+    example: 0.3
+    validationRegex: ^[01]\.[0-9]
+    validationErrorMessage: Must be a value between 0.1 and 0.9
+    default: 0.3
+    required: true
+
+  - param: FRAME_CONFIDENCE_THRESHOLD
+    label: Frame confidence threshold
+    description: >
+      The confidence threshold we perform filtering on the labels from frame-level detection. If not set, it is set to 0.4 by default. The valid range for this threshold is [0.1, 0.9]. Any value set outside of this range will be clipped. Note: for best results please follow the default threshold. We will update the default threshold everytime when we release a new model.
+    example: 0.4
+    validationRegex: ^[01]\.[0-9]
+    validationErrorMessage: Must be a value between 0.1 and 0.9
+    default: 0.4
+    required: true
+
+  - param: MODEL
+    label: Model
+    description: >
+      Model to use for label detection.
+    example: builtin/stable
+    options:
+      - label: builtin/stable
+        value: builtin/stable
+      - label: builtin/latest
+        value: builtin/latest
+    default: builtin/latest
+    required: true
+
+  - param: STATIONARY_CAMERA
+    label: Stationary Camera
+    description: >
+      Whether the video has been shot from a stationary (i.e. non-moving) camera. When set to true, might improve detection accuracy for moving objects. Will default to false if SHOT_AND_FRAME_MODE enabled.
+    type: select
+    options:
+      - label: Yes
+        value: true
+      - label: No
+        value: false
+    default: true
     required: true
 
 roles:

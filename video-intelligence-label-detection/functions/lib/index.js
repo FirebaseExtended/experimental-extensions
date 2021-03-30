@@ -16,41 +16,46 @@
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 const functions = require("firebase-functions");
-const vision_1 = require("@google-cloud/vision");
+const videoIntelligence = require("@google-cloud/video-intelligence");
 const config_1 = require("./config");
+const path = require("path");
+const { logger } = require("firebase-functions");
+const { Feature } = videoIntelligence.protos.google.cloud.videointelligence.v1;
 const admin = require("firebase-admin");
 admin.initializeApp();
-const client = new vision_1.default.ImageAnnotatorClient();
-const db = admin.firestore();
-exports.extractText = functions.storage.object().onFinalize(async (object) => {
-    var _a, _b, _c, _d, _e, _f;
-    // TODO: allow configuration.
-    if (!((_a = object.name) === null || _a === void 0 ? void 0 : _a.toLowerCase().endsWith(".jpg")) &&
-        !((_b = object.name) === null || _b === void 0 ? void 0 : _b.toLowerCase().endsWith(".jpeg")) &&
-        !((_c = object.name) === null || _c === void 0 ? void 0 : _c.toLowerCase().endsWith(".png"))) {
+const validMediaTypes = [".mp4"];
+function isValidFile(objectName) {
+    if (!objectName)
+        return false;
+    for (const type of validMediaTypes) {
+        if (objectName.endsWith(type))
+            return true;
+    }
+    return false;
+}
+exports.analyse = functions.storage.object().onFinalize(async (object) => {
+    if (!isValidFile(object.name))
+        return;
+    const client = new videoIntelligence.VideoIntelligenceServiceClient();
+    const [operation] = await client.annotateVideo({
+        inputUri: `gs://${object.bucket}/${object.name}`,
+        outputUri: `gs://${config_1.default.outputUri}/${path.basename(object.name, path.extname(object.name))}.json`,
+        locationId: config_1.default.locationId,
+        features: [Feature.LABEL_DETECTION],
+        videoContext: {
+            labelDetectionConfig: {
+                labelDetectionMode: config_1.default.labelDetectionMode,
+                videoConfidenceThreshold: config_1.default.videoConfidenceThreshold,
+                frameConfidenceThreshold: config_1.default.frameConfidenceThreshold,
+                model: config_1.default.model,
+                stationaryCamera: config_1.default.stationaryCamera,
+            },
+        },
+    });
+    if (operation.error) {
+        logger.error(`Found error ${operation.error}`);
         return;
     }
-    const bucket = admin.storage().bucket(object.bucket);
-    const imageContents = await bucket.file(object.name).download();
-    const imageBase64 = Buffer.from(imageContents[0]).toString("base64");
-    const request = {
-        image: {
-            content: imageBase64,
-        },
-        features: [
-            {
-                type: "TEXT_DETECTION",
-            },
-        ],
-    };
-    const results = await client.annotateImage(request);
-    const extractedText = (_f = (_e = (_d = results === null || results === void 0 ? void 0 : results[0]) === null || _d === void 0 ? void 0 : _d.textAnnotations) === null || _e === void 0 ? void 0 : _e[0]) === null || _f === void 0 ? void 0 : _f.description;
-    await db
-        .collection(config_1.default.collectionPath)
-        .doc(object.name)
-        .create({
-        file: "gs://" + object.bucket + "/" + object.name,
-        text: extractedText,
-    });
+    logger.log(`Successfully uploading for annotation`);
 });
 //# sourceMappingURL=index.js.map
