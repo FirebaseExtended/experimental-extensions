@@ -2,7 +2,7 @@ name: sgtm
 version: 0.0.3
 specVersion: v1beta
 
-displayName: Video Intelligence Label Detection
+displayName: storage-label-videos
 description: Extracts labels from your videos uploaded to Storage and writes the extracted labels to Storage as a JSON file.
 
 license: Apache-2.0
