@@ -131,7 +131,7 @@ params:
     description: >
       TODO
     example: preset/web-hd
-    validationRegex: ^[a-zA-Z0-9\/-_]*$
+    validationRegex: ^[a-zA-Z0-9\/\-_]+$
     validationErrorMessage: Must be an alphanumeric string. Dashes, underscores and forward slashes are also allowed
     default: preset/web-hd
     required: true
