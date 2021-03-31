@@ -1,5 +1,7 @@
 # storage-transcode-videos
 
+**Author**: Firebase (**[https://firebase.google.com](https://firebase.google.com)**)
+
 **Description**: Transcode video files into formats suitable for consumer distribution.
 
 ---
@@ -49,6 +51,8 @@ firebase ext:install storage-transcode-videos --project=<your-project-id>
 **Access Required**:
 
 This extension will operate with the following project IAM roles:
+
+- transcoder.admin (Reason: Allows the extension create video transcoding jobs.)
 
 - storage.admin (Reason: Allows the extension to write to your Cloud Storage.)
 

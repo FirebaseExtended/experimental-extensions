@@ -110,5 +110,7 @@ params:
     required: true
 
 roles:
+  - role: transcoder.admin
+    reason: Allows the extension create video transcoding jobs.
   - role: storage.admin
     reason: Allows the extension to write to your Cloud Storage.
