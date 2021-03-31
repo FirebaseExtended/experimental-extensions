@@ -22,7 +22,51 @@ import * as path from "path";
 const { logger } = require("firebase-functions");
 const { Feature } = videoIntelligence.protos.google.cloud.videointelligence.v1;
 
-const validMediaTypes = [".mp4"];
+// A curated list of supported file extensions based on https://cloud.google.com/video-intelligence/docs/supported-formats
+const validMediaExtensions = [
+  ".3g2",
+  ".3gp",
+  ".264",
+  ".265",
+  ".a64",
+  ".apng",
+  ".asf",
+  ".avi",
+  ".avs",
+  ".avs2",
+  ".cavs",
+  ".f4v",
+  ".flm",
+  ".flv",
+  ".gif",
+  ".gxf",
+  ".h261",
+  ".h263",
+  ".h264",
+  ".h265",
+  ".hevc",
+  ".ismv",
+  ".ivf",
+  ".m1v",
+  ".m2v",
+  ".m4v",
+  ".mjpeg",
+  ".mjpg",
+  ".mkv",
+  ".mov",
+  ".mp4",
+  ".mpeg",
+  ".mpeg4",
+  ".mpg",
+  ".ogv",
+  ".rm",
+  ".vc1",
+  ".vc2",
+  ".vob",
+  ".webm",
+  ".wmv",
+  ".y4m",
+];
 
 function isValidFile(objectName?: string) {
   if (!objectName) return false;
