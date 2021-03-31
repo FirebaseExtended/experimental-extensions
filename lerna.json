@@ -5,7 +5,8 @@
     "firestore-schedule-writes/functions",
     "firestore-sentiment-analysis/functions",
     "storage-extract-image-text/functions",
-    "storage-label-videos/functions"
+    "storage-label-videos/functions",
+    "storage-image-labeling/functions"
   ],
   "version": "0.0.0"
 }
