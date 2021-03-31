@@ -1,0 +1,141 @@
+name: storage-transcode-videos
+version: 0.0.1
+specVersion: v1beta
+
+displayName: storage-transcode-videos
+description: Transcode video files into formats suitable for consumer distribution.
+
+license: Apache-2.0
+
+author:
+  authorName: Firebase
+  url: https://firebase.google.com
+
+sourceUrl: https://github.com/FirebaseExtended/experimental-extensions/tree/main/storage-transcode-videos
+
+billingRequired: true
+
+apis:
+  - apiName: transcoder.googleapis.com
+    reason: Powers all Video Transcoding tasks performed by the extension.
+
+resources:
+  - name: transcode-video
+    type: firebaseextensions.v1beta.function
+    description: Listens to incoming Storage documents that are videos and executes a video transcoding job on them.
+    properties:
+      location: ${param:LOCATION}
+      availableMemoryMb: 128
+      eventTrigger:
+        eventType: google.storage.object.finalize
+        resource: projects/_/buckets/${param:INPUT_VIDEOS_BUCKET}
+      runtime: "nodejs10"
+
+params:
+  - param: LOCATION
+    label: Cloud Functions location
+    description: >
+      Cloud region where transcoding should take place. For help selecting a
+      location, refer to the [location selection
+      guide](https://firebase.google.com/docs/functions/locations).
+    type: select
+    options:
+      - label: Iowa (us-central1)
+        value: us-central1
+      - label: South Carolina (us-east1)
+        value: us-east1
+      - label: Northern Virginia (us-east4)
+        value: us-east4
+      - label: Los Angeles (us-west2)
+        value: us-west2
+      - label: Salt Lake City (us-west3)
+        value: us-west3
+      - label: Las Vegas (us-west4)
+        value: us-west4
+      - label: Belgium (europe-west1)
+        value: europe-west1
+      - label: London (europe-west2)
+        value: europe-west2
+      - label: Frankfurt (europe-west3)
+        value: europe-west3
+      - label: Zurich (europe-west6)
+        value: europe-west6
+      - label: Hong Kong (asia-east2)
+        value: asia-east2
+      - label: Tokyo (asia-northeast1)
+        value: asia-northeast1
+      - label: Osaka (asia-northeast2)
+        value: asia-northeast2
+      - label: Seoul (asia-northeast3)
+        value: asia-northeast3
+      - label: Mumbai (asia-south1)
+        value: asia-south1
+      - label: Jakarta (asia-southeast2)
+        value: asia-southeast2
+      - label: Montreal (northamerica-northeast1)
+        value: northamerica-northeast1
+      - label: Sao Paulo (southamerica-east1)
+        value: southamerica-east1
+      - label: Sydney (australia-southeast1)
+        value: australia-southeast1
+    default: us-central1
+    required: true
+    immutable: true
+
+  - param: INPUT_VIDEOS_BUCKET
+    label: Cloud Storage bucket where videos should be picked up and processed.
+    description: >
+      TODO
+    type: string
+    example: my-project-12345.appspot.com
+    validationRegex: ^([0-9a-z_.-]*)$
+    validationErrorMessage: Invalid storage bucket
+    default: ${STORAGE_BUCKET}
+    required: true
+
+  - param: OUTPUT_VIDEOS_BUCKET
+    label: Cloud Storage bucket where processed videos should be output to.
+    description: >
+      TODO
+    type: string
+    example: my-project-12345.appspot.com
+    validationRegex: ^([0-9a-z_.-]*)$
+    validationErrorMessage: Invalid storage bucket
+    default: ${STORAGE_BUCKET}
+    required: true
+
+  - param: INPUT_VIDEOS_PATH
+    label: Input videos path
+    description: >
+      A Storage path in the input video bucket that the extension should process videos from.
+    type: string
+    example: /video_transcoding_input/
+    validationRegex: ^\/[\/0-9a-z_.-]\/*$
+    validationErrorMessage: Invalid storage folder name
+    default: /video_transcoding_input/
+    required: true
+
+  - param: OUTPUT_VIDEOS_PATH
+    label: Output videos path
+    description: >
+      A Storage path in the output video bucket that the processed videos should be output to.
+    type: string
+    example: /video_transcoding_output/
+    validationRegex: ^\/[\/0-9a-z_.-]\/*$
+    validationErrorMessage: Invalid storage folder name
+    default: /video_transcoding_output/
+    required: true
+
+  - param: DEFAULT_TEMPLATE_ID
+    label: The default transcoding template ID to use for transcoding jobs.
+    description: >
+      TODO
+    example: 0.3
+    validationRegex: ^[a-zA-Z0-9\/-_]*$
+    validationErrorMessage: Must be an alphanumeric string. Dashes, underscores and forward slashes are also allowed
+    default: preset/web-hd
+    required: true
+
+roles:
+  - role: storage.admin
+    reason: Allows the extension to write to your Cloud Storage.
