@@ -1,5 +1,5 @@
 {
-  "name": "storage-extract-image-text",
+  "name": "storage-label-videos",
   "scripts": {
     "format": "prettier --write \"**/*.{js,md,yml,ts,json,yaml}\"",
     "lint": "eslint \"src/**/*\"",
