@@ -29,55 +29,57 @@ const videoTranscoderServiceClient = new videoTranscoder.TranscoderServiceClient
 
 logs.init();
 
-exports.analyse = functions.storage.object().onFinalize(async (object) => {
-  if (!object.name) return;
-  if (!shouldProcessStorageObject(object.name)) return;
+exports.transcodevideo = functions.storage
+  .object()
+  .onFinalize(async (object) => {
+    if (!object.name) return;
+    if (!shouldProcessStorageObject(object.name)) return;
 
-  // `videoTranscoderTemplateId` can be specified on the storage objects metadata to override
-  // the template that is used to transcode the incoming video. Defaults to `DEFAULT_TEMPLATE_ID`
-  // from the Firebase Extension parameters.
-  const templateId: string =
-    object.metadata?.videoTranscoderTemplateId || config.defaultTemplateId;
+    // `videoTranscoderTemplateId` can be specified on the storage objects metadata to override
+    // the template that is used to transcode the incoming video. Defaults to `DEFAULT_TEMPLATE_ID`
+    // from the Firebase Extension parameters.
+    const templateId: string =
+      object.metadata?.videoTranscoderTemplateId || config.defaultTemplateId;
 
-  // Output to a folder named the same as the original file, minus the file extension.
-  const outputUri = `gs://${config.outputVideosBucket}${
-    config.outputVideosPath
-  }${path.basename(object.name)}/`;
+    // Output to a folder named the same as the original file, minus the file extension.
+    const outputUri = `gs://${config.outputVideosBucket}${
+      config.outputVideosPath
+    }${path.basename(object.name)}/`;
 
-  // Ensure the template exists if not using the known web-hd preset.
-  if (templateId !== "preset/web-hd") {
-    const [jobTemplate] = await videoTranscoderServiceClient.getJobTemplate({
-      name: videoTranscoderServiceClient.jobTemplatePath(
+    // Ensure the template exists if not using the known web-hd preset.
+    if (templateId !== "preset/web-hd") {
+      const [jobTemplate] = await videoTranscoderServiceClient.getJobTemplate({
+        name: videoTranscoderServiceClient.jobTemplatePath(
+          config.projectId,
+          config.location,
+          templateId
+        ),
+      });
+      if (!jobTemplate || !jobTemplate.name) {
+        logs.templateDoesNotExist(object.name, templateId);
+        return;
+      }
+    }
+
+    const jobRequest: ICreateJobRequest = {
+      parent: videoTranscoderServiceClient.locationPath(
         config.projectId,
-        config.locationId,
-        templateId
+        config.location
       ),
-    });
-    if (!jobTemplate || !jobTemplate.name) {
-      logs.templateDoesNotExist(object.name, templateId);
+      job: {
+        inputUri: `gs://${object.bucket}/${object.name}`,
+        outputUri,
+        templateId,
+      },
+    };
+
+    logs.transcodeVideo(object.name, jobRequest);
+
+    const [job] = await videoTranscoderServiceClient.createJob(jobRequest);
+    if (job.state === Job.ProcessingState.FAILED) {
+      logs.jobFailed(object.name, job.failureReason, job.failureDetails);
       return;
     }
-  }
 
-  const jobRequest: ICreateJobRequest = {
-    parent: videoTranscoderServiceClient.locationPath(
-      config.projectId,
-      config.locationId
-    ),
-    job: {
-      inputUri: `gs://${object.bucket}/${object.name}`,
-      outputUri,
-      templateId,
-    },
-  };
-
-  logs.transcodeVideo(object.name, jobRequest);
-
-  const [job] = await videoTranscoderServiceClient.createJob(jobRequest);
-  if (job.state === Job.ProcessingState.FAILED) {
-    logs.jobFailed(object.name, job.failureReason, job.failureDetails);
-    return;
-  }
-
-  logs.queued(object.name, outputUri);
-});
+    logs.queued(object.name, outputUri);
+  });

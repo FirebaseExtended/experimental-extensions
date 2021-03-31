@@ -20,7 +20,7 @@ apis:
     reason: Powers all Video Transcoding tasks performed by the extension.
 
 resources:
-  - name: transcode-video
+  - name: transcodevideo
     type: firebaseextensions.v1beta.function
     description: Listens to incoming Storage documents that are videos and executes a video transcoding job on them.
     properties:

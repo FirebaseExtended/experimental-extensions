@@ -40,7 +40,7 @@ firebase ext:install storage-transcode-videos --project=<your-project-id>
 
 **Cloud Functions:**
 
-- **transcode-video:** Listens to incoming Storage documents that are videos and executes a video transcoding job on them.
+- **transcodevideo:** Listens to incoming Storage documents that are videos and executes a video transcoding job on them.
 
 **APIs Used**:
 

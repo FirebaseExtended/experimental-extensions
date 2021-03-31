@@ -25,7 +25,9 @@ const utils_1 = require("./utils");
 var Job = protos_1.google.cloud.video.transcoder.v1beta1.Job;
 const videoTranscoderServiceClient = new videoTranscoder.TranscoderServiceClient();
 logs.init();
-exports.analyse = functions.storage.object().onFinalize(async (object) => {
+exports.transcodevideo = functions.storage
+    .object()
+    .onFinalize(async (object) => {
     var _a;
     if (!object.name)
         return;
@@ -40,7 +42,7 @@ exports.analyse = functions.storage.object().onFinalize(async (object) => {
     // Ensure the template exists if not using the known web-hd preset.
     if (templateId !== "preset/web-hd") {
         const [jobTemplate] = await videoTranscoderServiceClient.getJobTemplate({
-            name: videoTranscoderServiceClient.jobTemplatePath(config_1.default.projectId, config_1.default.locationId, templateId),
+            name: videoTranscoderServiceClient.jobTemplatePath(config_1.default.projectId, config_1.default.location, templateId),
         });
         if (!jobTemplate || !jobTemplate.name) {
             logs.templateDoesNotExist(object.name, templateId);
@@ -48,7 +50,7 @@ exports.analyse = functions.storage.object().onFinalize(async (object) => {
         }
     }
     const jobRequest = {
-        parent: videoTranscoderServiceClient.locationPath(config_1.default.projectId, config_1.default.locationId),
+        parent: videoTranscoderServiceClient.locationPath(config_1.default.projectId, config_1.default.location),
         job: {
             inputUri: `gs://${object.bucket}/${object.name}`,
             outputUri,
