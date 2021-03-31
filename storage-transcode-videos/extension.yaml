@@ -110,7 +110,7 @@ params:
       A Storage path in the input video bucket that the extension should process videos from.
     type: string
     example: /video_transcoding_input/
-    validationRegex: ^\/[\/0-9a-z_.-]\/*$
+    validationRegex: ^\/([0-9a-zA-Z_\/\-]*\/){0,1}$
     validationErrorMessage: Invalid storage folder name
     default: /video_transcoding_input/
     required: true
@@ -121,7 +121,7 @@ params:
       A Storage path in the output video bucket that the processed videos should be output to.
     type: string
     example: /video_transcoding_output/
-    validationRegex: ^\/[\/0-9a-z_.-]\/*$
+    validationRegex: ^\/([0-9a-zA-Z_\/\-]*\/){0,1}$
     validationErrorMessage: Invalid storage folder name
     default: /video_transcoding_output/
     required: true
