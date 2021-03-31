@@ -1,11 +1,11 @@
-name: storage-extract-video-intelligence
+name: sgtm
 version: 0.0.3
 specVersion: v1beta
 
 displayName: Video Intelligence Label Detection
-description: Extracts video intelligence from media uploaded to storage and writes extracted text to Firestore.
+description: Extracts labels from your videos uploaded to Storage and writes the extracted labels to Storage as a JSON file.
 
-license: Apache-2.0 # The license you want for the extension
+license: Apache-2.0
 
 author:
   authorName: Firebase
@@ -22,7 +22,7 @@ apis:
 resources:
   - name: analyse
     type: firebaseextensions.v1beta.function
-    description: Listens to incoming Storage documents, executes Video Intelligence on them and writes extracted text to Firestore into a preconfigured collection.
+    description: Listens to incoming Storage documents that are videos and executes video labelling detection on them.
     properties:
       location: ${param:LOCATION}
       availableMemoryMb: 1024
@@ -57,7 +57,7 @@ params:
   - param: INPUT_STORAGE_URI
     label: Input storage uri
     description: >
-      Input video location. A video URI may include wildcards in object-id, and thus identify multiple videos. Supported wildcards: '*' to match 0 or more characters; '?' to match 1 character.
+      A Storage location the extension should process videos from.
     type: string
     example: ${STORAGE_BUCKET}/video_annotations_input/*
     validationRegex: ^([\/0-9a-z_.-*]*)$
@@ -97,7 +97,7 @@ params:
       The confidence threshold we perform filtering on the labels from video-level and shot-level detections. If not set, it is set to 0.3 by default. The valid range for this threshold is [0.1, 0.9]. Any value set outside of this range will be clipped. Note: for best results please follow the default threshold. We will update the default threshold everytime when we release a new model.
     example: 0.3
     validationRegex: ^[01]\.[0-9]
-    validationErrorMessage: Must be a value between 0.1 and 0.9
+    validationErrorMessage: Must be a value >= 0.0 and <= 1.0
     default: 0.3
     required: true
 
@@ -107,7 +107,7 @@ params:
       The confidence threshold we perform filtering on the labels from frame-level detection. If not set, it is set to 0.4 by default. The valid range for this threshold is [0.1, 0.9]. Any value set outside of this range will be clipped. Note: for best results please follow the default threshold. We will update the default threshold everytime when we release a new model.
     example: 0.4
     validationRegex: ^[01]\.[0-9]
-    validationErrorMessage: Must be a value between 0.1 and 0.9
+    validationErrorMessage: Must be a value >= 0.0 and <= 1.0
     default: 0.4
     required: true
 
@@ -127,7 +127,7 @@ params:
   - param: STATIONARY_CAMERA
     label: Stationary Camera
     description: >
-      Whether the video has been shot from a stationary (i.e. non-moving) camera. When set to true, might improve detection accuracy for moving objects. Will default to false if SHOT_AND_FRAME_MODE enabled.
+      Whether the video has been shot from a stationary (i.e. non-moving) camera. When set to true this might improve detection accuracy for moving objects. Will default to false if LABEL_DETECTION_MODE has been set to SHOT_AND_FRAME_MODE.
     type: select
     options:
       - label: Yes
@@ -140,5 +140,3 @@ params:
 roles:
   - role: storage.admin
     reason: Allows the extension to write to your Cloud Storage.
-  - role: datastore.user
-    reason: Allows the extension to write to your Firestore Database instance.

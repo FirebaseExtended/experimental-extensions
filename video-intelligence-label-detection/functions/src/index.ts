@@ -22,9 +22,6 @@ import * as path from "path";
 const { logger } = require("firebase-functions");
 const { Feature } = videoIntelligence.protos.google.cloud.videointelligence.v1;
 
-const admin = require("firebase-admin");
-admin.initializeApp();
-
 const validMediaTypes = [".mp4"];
 
 function isValidFile(objectName?: string) {
@@ -40,7 +37,7 @@ exports.analyse = functions.storage.object().onFinalize(async object => {
 
   const client = new videoIntelligence.VideoIntelligenceServiceClient();
 
-  const [operation] = await client.annotateVideo({
+  const annotateConfig = {
     inputUri: `gs://${object.bucket}/${object.name}`,
     outputUri: `gs://${config.outputUri}/${path.basename(
       object.name!,
@@ -57,12 +54,22 @@ exports.analyse = functions.storage.object().onFinalize(async object => {
         stationaryCamera: config.stationaryCamera,
       },
     },
-  });
+  };
+
+  logger.log(
+    `Annotating video ${object.name} with configuration ${JSON.stringify(
+      annotateConfig
+    )}`
+  );
+
+  const [operation] = await client.annotateVideo(annotateConfig);
 
   if (operation.error) {
     logger.error(`Found error ${operation.error}`);
     return;
   }
 
-  logger.log(`Successfully uploading for annotation`);
+  logger.log(
+    `Video '${object.name}' has been successfully queued for label detection.`
+  );
 });

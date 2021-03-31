@@ -21,8 +21,6 @@ const config_1 = require("./config");
 const path = require("path");
 const { logger } = require("firebase-functions");
 const { Feature } = videoIntelligence.protos.google.cloud.videointelligence.v1;
-const admin = require("firebase-admin");
-admin.initializeApp();
 const validMediaTypes = [".mp4"];
 function isValidFile(objectName) {
     if (!objectName)
@@ -37,7 +35,7 @@ exports.analyse = functions.storage.object().onFinalize(async (object) => {
     if (!isValidFile(object.name))
         return;
     const client = new videoIntelligence.VideoIntelligenceServiceClient();
-    const [operation] = await client.annotateVideo({
+    const annotateConfig = {
         inputUri: `gs://${object.bucket}/${object.name}`,
         outputUri: `gs://${config_1.default.outputUri}/${path.basename(object.name, path.extname(object.name))}.json`,
         locationId: config_1.default.locationId,
@@ -51,11 +49,13 @@ exports.analyse = functions.storage.object().onFinalize(async (object) => {
                 stationaryCamera: config_1.default.stationaryCamera,
             },
         },
-    });
+    };
+    logger.log(`Annotating video ${object.name} with configuration ${JSON.stringify(annotateConfig)}`);
+    const [operation] = await client.annotateVideo(annotateConfig);
     if (operation.error) {
         logger.error(`Found error ${operation.error}`);
         return;
     }
-    logger.log(`Successfully uploading for annotation`);
+    logger.log(`Video '${object.name}' has been successfully queued for label detection.`);
 });
 //# sourceMappingURL=index.js.map
