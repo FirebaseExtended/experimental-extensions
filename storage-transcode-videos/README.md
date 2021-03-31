@@ -1,4 +1,4 @@
-# storage-transcode-videos
+# Transcode Videos on Google Cloud Storage
 
 **Author**: Firebase (**[https://firebase.google.com](https://firebase.google.com)**)
 

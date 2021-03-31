@@ -2,7 +2,7 @@ name: storage-transcode-videos
 version: 0.0.1
 specVersion: v1beta
 
-displayName: storage-transcode-videos
+displayName: Transcode Videos on Google Cloud Storage
 description: Transcode video files into formats suitable for consumer distribution.
 
 license: Apache-2.0
