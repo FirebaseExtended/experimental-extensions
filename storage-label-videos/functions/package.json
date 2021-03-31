@@ -1,6 +1,7 @@
 {
   "name": "storage-extract-image-text",
   "scripts": {
+    "format": "prettier --write \"**/*.{js,md,yml,ts,json,yaml}\"",
     "lint": "eslint \"src/**/*\"",
     "build": "tsc",
     "build-watch": "tsc --watch",

@@ -32,7 +32,7 @@ function isValidFile(objectName?: string) {
   return false;
 }
 
-exports.analyse = functions.storage.object().onFinalize(async object => {
+exports.analyse = functions.storage.object().onFinalize(async (object) => {
   if (!isValidFile(object.name)) return;
 
   const client = new videoIntelligence.VideoIntelligenceServiceClient();
