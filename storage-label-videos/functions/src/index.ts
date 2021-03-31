@@ -14,74 +14,29 @@
  * limitations under the License.
  */
 
+import * as path from "path";
 import * as functions from "firebase-functions";
 import * as videoIntelligence from "@google-cloud/video-intelligence";
+
+import { google } from "@google-cloud/video-intelligence/build/protos/protos";
+import IAnnotateVideoRequest = google.cloud.videointelligence.v1.IAnnotateVideoRequest;
+import Feature = google.cloud.videointelligence.v1.Feature;
+
 import config from "./config";
-import * as path from "path";
+import * as logs from "./logs";
+import { shouldProcessStorageObject } from "./utils";
 
-const { logger } = require("firebase-functions");
-const { Feature } = videoIntelligence.protos.google.cloud.videointelligence.v1;
+const videoIntelligenceServiceClient = new videoIntelligence.VideoIntelligenceServiceClient();
 
-// A curated list of supported file extensions based on https://cloud.google.com/video-intelligence/docs/supported-formats
-const validMediaExtensions = [
-  ".3g2",
-  ".3gp",
-  ".264",
-  ".265",
-  ".a64",
-  ".apng",
-  ".asf",
-  ".avi",
-  ".avs",
-  ".avs2",
-  ".cavs",
-  ".f4v",
-  ".flm",
-  ".flv",
-  ".gif",
-  ".gxf",
-  ".h261",
-  ".h263",
-  ".h264",
-  ".h265",
-  ".hevc",
-  ".ismv",
-  ".ivf",
-  ".m1v",
-  ".m2v",
-  ".m4v",
-  ".mjpeg",
-  ".mjpg",
-  ".mkv",
-  ".mov",
-  ".mp4",
-  ".mpeg",
-  ".mpeg4",
-  ".mpg",
-  ".ogv",
-  ".rm",
-  ".vc1",
-  ".vc2",
-  ".vob",
-  ".webm",
-  ".wmv",
-  ".y4m",
-];
-
-function isValidFile(objectName?: string) {
-  if (!objectName) return false;
-  for (const type of validMediaTypes) {
-    if (objectName.endsWith(type)) return true;
-  }
-  return false;
-}
+logs.init();
 
 exports.analyse = functions.storage.object().onFinalize(async (object) => {
-  if (!isValidFile(object.name)) return;
+  if (!shouldProcessStorageObject(object.name)) {
+    logs.skip(object.name);
+    return;
+  }
 
-  const client = new videoIntelligence.VideoIntelligenceServiceClient();
-
-  const annotateConfig = {
+  const annotateConfig: IAnnotateVideoRequest = {
     inputUri: `gs://${object.bucket}/${object.name}`,
     outputUri: `gs://${config.outputUri}/${path.basename(
       object.name!,
@@ -91,29 +46,25 @@ exports.analyse = functions.storage.object().onFinalize(async (object) => {
     features: [Feature.LABEL_DETECTION],
     videoContext: {
       labelDetectionConfig: {
-        labelDetectionMode: config.labelDetectionMode,
-        videoConfidenceThreshold: config.videoConfidenceThreshold,
         frameConfidenceThreshold: config.frameConfidenceThreshold,
+        labelDetectionMode: config.labelDetectionMode,
         model: config.model,
         stationaryCamera: config.stationaryCamera,
+        videoConfidenceThreshold: config.videoConfidenceThreshold,
       },
     },
   };
 
-  logger.log(
-    `Annotating video ${object.name} with configuration ${JSON.stringify(
-      annotateConfig
-    )}`
+  logs.annotateVideo(object.name!, annotateConfig);
+
+  const [operation] = await videoIntelligenceServiceClient.annotateVideo(
+    annotateConfig
   );
 
-  const [operation] = await client.annotateVideo(annotateConfig);
-
   if (operation.error) {
-    logger.error(`Found error ${operation.error}`);
+    logs.operationError(object.name!, operation.error);
     return;
   }
 
-  logger.log(
-    `Video '${object.name}' has been successfully queued for label detection.`
-  );
+  logs.queued(object.name!);
 });

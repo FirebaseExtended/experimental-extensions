@@ -4,7 +4,8 @@
     "firestore-auth-claims/functions",
     "firestore-schedule-writes/functions",
     "firestore-sentiment-analysis/functions",
-    "storage-extract-image-text/functions"
+    "storage-extract-image-text/functions",
+    "storage-label-videos/functions"
   ],
   "version": "0.0.0"
 }

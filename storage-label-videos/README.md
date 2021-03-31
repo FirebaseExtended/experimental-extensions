@@ -1,8 +1,6 @@
 # storage-label-videos
 
-**Author**: Firebase (**[https://firebase.google.com](https://firebase.google.com)**)
-
-**Description**: Extracts text from images uploaded to storage and writes extracted text to Firestore.
+**Description**: Extracts labels from your videos uploaded to Storage and writes the extracted labels to Storage as a JSON file.
 
 ---
 
@@ -12,54 +10,49 @@
 
 ### Console
 
-[![Install this extension in your Firebase project](../install-extension.png?raw=true "Install this extension in your Firebase project")](https://console.firebase.google.com/project/_/extensions/install?sourceName=projects/firebasemods/sources/fd8d6bc7-782e-4896-bce8-4636e8dc0151)
+[![Install this extension in your Firebase project](../install-extension.png?raw=true "Install this extension in your Firebase project")](https://console.firebase.google.com/project/_/extensions/install?sourceName=NOT_YET_DEPLOYED)
 
 ### Firebase CLI
 
 ```bash
-firebase ext:install storage-extract-image-text --project=<your-project-id>
+firebase ext:install storage-label-videos --project=<your-project-id>
 ```
 
 > Learn more about installing extensions in the Firebase Extensions documentation: [console](https://firebase.google.com/docs/extensions/install-extensions?platform=console), [CLI](https://firebase.google.com/docs/extensions/install-extensions?platform=cli)
 
 ---
 
-**Details**: This extension will extract text from any `jpg` or `png` images uploaded to Cloud Storage and write the extracted text to Firestore.
-
-# Billing
-
-This extension uses other Firebase or Google Cloud Platform services which may have associated charges:
-
-<!-- List all products the extension interacts with -->
-
-- Cloud Functions
-- Cloud Vision API
-- Cloud Storage
-- Cloud Firestore
-
-When you use Firebase Extensions, you're only charged for the underlying resources that you use. A paid-tier (Blaze) billing plan is required because the extension uses Cloud Vision API.
+**Details**: ### TODO
 
 **Configuration Parameters:**
 
-- Cloud Functions location: Where do you want to deploy the functions created for this extension? You usually want a location close to your database. Realtime Database instances are located in `us-central1`. For help selecting a location, refer to the [location selection guide](https://firebase.google.com/docs/functions/locations).
+- Cloud Functions location: Cloud region where annotation should take place. For help selecting a location, refer to the [location selection guide](https://firebase.google.com/docs/functions/locations).
 
-- Cloud Storage bucket for images: To which Cloud Storage bucket will you upload images from which you want to extract text?
+- Input storage uri: A Storage location the extension should process videos from.
 
-- Collection path: What is the path to the collection where extracted text will be written to.
+- Output storage uri: Optional. Location where the output (in JSON format) should be stored.
+
+- Label detection mode: What labels should be detected with LABEL_DETECTION, in addition to video-level labels or segment-level labels. If unspecified, defaults to SHOT_MODE.
+
+- Video confidence threshold: The confidence threshold we perform filtering on the labels from video-level and shot-level detections. If not set, it is set to 0.3 by default. The valid range for this threshold is [0.1, 0.9]. Any value set outside of this range will be clipped. Note: for best results please follow the default threshold. We will update the default threshold everytime when we release a new model.
+
+- Frame confidence threshold: The confidence threshold we perform filtering on the labels from frame-level detection. If not set, it is set to 0.4 by default. The valid range for this threshold is [0.1, 0.9]. Any value set outside of this range will be clipped. Note: for best results please follow the default threshold. We will update the default threshold everytime when we release a new model.
+
+- Model: Model to use for label detection.
+
+- Stationary Camera: Whether the video has been shot from a stationary (i.e. non-moving) camera. When set to true this might improve detection accuracy for moving objects. Will default to false if LABEL_DETECTION_MODE has been set to SHOT_AND_FRAME_MODE.
 
 **Cloud Functions:**
 
-- **extractText:** Listens to incoming Storage documents, executes OCR on them and writes extracted text to Firestore into a preconfigured collection.
+- **analyse:** Listens to incoming Storage documents that are videos and executes video labelling detection on them.
 
 **APIs Used**:
 
-- vision.googleapis.com (Reason: Powers all Vision tasks performed by the extension.)
+- videointelligence.googleapis.com (Reason: Powers all Video Intelligence tasks performed by the extension.)
 
 **Access Required**:
 
 This extension will operate with the following project IAM roles:
 
 - storage.admin (Reason: Allows the extension to write to your Cloud Storage.)
-
-- datastore.user (Reason: Allows the extension to write to your Firestore Database instance.)
 

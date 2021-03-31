@@ -15,26 +15,21 @@
  * limitations under the License.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
+const path = require("path");
 const functions = require("firebase-functions");
 const videoIntelligence = require("@google-cloud/video-intelligence");
+const protos_1 = require("@google-cloud/video-intelligence/build/protos/protos");
+var Feature = protos_1.google.cloud.videointelligence.v1.Feature;
 const config_1 = require("./config");
-const path = require("path");
-const { logger } = require("firebase-functions");
-const { Feature } = videoIntelligence.protos.google.cloud.videointelligence.v1;
-const validMediaTypes = [".mp4"];
-function isValidFile(objectName) {
-    if (!objectName)
-        return false;
-    for (const type of validMediaTypes) {
-        if (objectName.endsWith(type))
-            return true;
-    }
-    return false;
-}
+const logs = require("./logs");
+const utils_1 = require("./utils");
+const videoIntelligenceServiceClient = new videoIntelligence.VideoIntelligenceServiceClient();
+logs.init();
 exports.analyse = functions.storage.object().onFinalize(async (object) => {
-    if (!isValidFile(object.name))
+    if (!utils_1.shouldProcessStorageObject(object.name)) {
+        logs.skip(object.name);
         return;
-    const client = new videoIntelligence.VideoIntelligenceServiceClient();
+    }
     const annotateConfig = {
         inputUri: `gs://${object.bucket}/${object.name}`,
         outputUri: `gs://${config_1.default.outputUri}/${path.basename(object.name, path.extname(object.name))}.json`,
@@ -42,20 +37,20 @@ exports.analyse = functions.storage.object().onFinalize(async (object) => {
         features: [Feature.LABEL_DETECTION],
         videoContext: {
             labelDetectionConfig: {
-                labelDetectionMode: config_1.default.labelDetectionMode,
-                videoConfidenceThreshold: config_1.default.videoConfidenceThreshold,
                 frameConfidenceThreshold: config_1.default.frameConfidenceThreshold,
+                labelDetectionMode: config_1.default.labelDetectionMode,
                 model: config_1.default.model,
                 stationaryCamera: config_1.default.stationaryCamera,
+                videoConfidenceThreshold: config_1.default.videoConfidenceThreshold,
             },
         },
     };
-    logger.log(`Annotating video ${object.name} with configuration ${JSON.stringify(annotateConfig)}`);
-    const [operation] = await client.annotateVideo(annotateConfig);
+    logs.annotateVideo(object.name, annotateConfig);
+    const [operation] = await videoIntelligenceServiceClient.annotateVideo(annotateConfig);
     if (operation.error) {
-        logger.error(`Found error ${operation.error}`);
+        logs.operationError(object.name, operation.error);
         return;
     }
-    logger.log(`Video '${object.name}' has been successfully queued for label detection.`);
+    logs.queued(object.name);
 });
 //# sourceMappingURL=index.js.map

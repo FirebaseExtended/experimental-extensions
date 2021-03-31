@@ -14,11 +14,7 @@
  * limitations under the License.
  */
 
-import * as videoIntelligence from "@google-cloud/video-intelligence";
-
-const {
-  LabelDetectionMode,
-} = videoIntelligence.protos.google.cloud.videointelligence.v1;
+import { parseDetectionMode } from "./utils";
 
 export default {
   locationId: process.env.LOCATION_ID,
@@ -31,19 +27,3 @@ export default {
     process.env.STATIONARY_CAMERA === "true" &&
     process.env.LABEL_DETECTION_MODE !== "SHOT_AND_FRAME_MODE",
 };
-
-function parseDetectionMode(value?: string): number {
-  switch (value) {
-    case "SHOT_MODE":
-      return LabelDetectionMode.SHOT_MODE;
-
-    case "FRAME_MODE":
-      return LabelDetectionMode.FRAME_MODE;
-
-    case "SHOT_AND_FRAME_MODE":
-      return LabelDetectionMode.SHOT_AND_FRAME_MODE;
-
-    default:
-      return LabelDetectionMode.SHOT_MODE;
-  }
-}

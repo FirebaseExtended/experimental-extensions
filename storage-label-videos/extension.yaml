@@ -1,5 +1,5 @@
 name: storage-label-videos
-version: 0.0.3
+version: 0.0.1
 specVersion: v1beta
 
 displayName: storage-label-videos
@@ -11,7 +11,7 @@ author:
   authorName: Firebase
   url: https://firebase.google.com
 
-sourceUrl: https://github.com/FirebaseExtended/experimental-extensions/tree/main/storage-extract-video-intelligence
+sourceUrl: https://github.com/FirebaseExtended/experimental-extensions/tree/main/storage-label-videos
 
 billingRequired: true
 
@@ -25,7 +25,7 @@ resources:
     description: Listens to incoming Storage documents that are videos and executes video labelling detection on them.
     properties:
       location: ${param:LOCATION}
-      availableMemoryMb: 1024
+      availableMemoryMb: 128
       eventTrigger:
         eventType: google.storage.object.finalize
         resource: projects/_/buckets/${param:INPUT_STORAGE_URI}
@@ -39,7 +39,8 @@ params:
       location, refer to the [location selection
       guide](https://firebase.google.com/docs/functions/locations).
     type: select
-    # Only these locations are available see https://cloud.google.com/video-intelligence/docs/reference/rpc/google.cloud.videointelligence.v1#annotatevideorequest
+    # Only these locations are available see:
+    # https://cloud.google.com/video-intelligence/docs/reference/rpc/google.cloud.videointelligence.v1#annotatevideorequest
     options:
       - label: South Carolina (us-east1)
         value: us-east1
@@ -68,7 +69,7 @@ params:
   - param: OUTPUT_STORAGE_URI
     label: Output storage uri
     description: >
-      Optional. Location where the output (in JSON format) should be stored
+      Optional. Location where the output (in JSON format) should be stored.
     type: string
     example: ${STORAGE_BUCKET}/video_annotations_output/
     validationRegex: ^([\/0-9a-z_.-]*)$
@@ -79,14 +80,15 @@ params:
   - param: LABEL_DETECTION_MODE
     label: Label detection mode
     description: >
-      What labels should be detected with LABEL_DETECTION, in addition to video-level labels or segment-level labels. If unspecified, defaults to SHOT_MODE.
+      What labels should be detected with LABEL_DETECTION, in addition to video-level labels or segment-level labels.
+      If unspecified, defaults to SHOT_MODE.
     type: select
     options:
-      - label: Shot mode
+      - label: Detect shot-level labels
         value: SHOT_MODE
-      - label: Frame mode
+      - label: Detect frame-level labels
         value: FRAME_MODE
-      - label: Shot and frame mode
+      - label: Detect both shot-level and frame-level labels
         value: SHOT_AND_FRAME_MODE
     default: SHOT_MODE
     required: true
@@ -94,7 +96,10 @@ params:
   - param: VIDEO_CONFIDENCE_THRESHOLD
     label: Video confidence threshold
     description: >
-      The confidence threshold we perform filtering on the labels from video-level and shot-level detections. If not set, it is set to 0.3 by default. The valid range for this threshold is [0.1, 0.9]. Any value set outside of this range will be clipped. Note: for best results please follow the default threshold. We will update the default threshold everytime when we release a new model.
+      The confidence threshold we perform filtering on the labels from video-level and shot-level detections.
+      If not set, it is set to 0.3 by default. The valid range for this threshold is [0.1, 0.9]. Any value set
+      outside of this range will be clipped. Note: for best results please follow the default threshold. We will
+      update the default threshold everytime when we release a new model.
     example: 0.3
     validationRegex: ^[01]\.[0-9]
     validationErrorMessage: Must be a value >= 0.0 and <= 1.0
@@ -104,7 +109,10 @@ params:
   - param: FRAME_CONFIDENCE_THRESHOLD
     label: Frame confidence threshold
     description: >
-      The confidence threshold we perform filtering on the labels from frame-level detection. If not set, it is set to 0.4 by default. The valid range for this threshold is [0.1, 0.9]. Any value set outside of this range will be clipped. Note: for best results please follow the default threshold. We will update the default threshold everytime when we release a new model.
+      The confidence threshold we perform filtering on the labels from frame-level detection. If not set, it is set
+      to 0.4 by default. The valid range for this threshold is [0.1, 0.9]. Any value set outside of this range will
+      be clipped. Note: for best results please follow the default threshold. We will update the default threshold
+      everytime when we release a new model.
     example: 0.4
     validationRegex: ^[01]\.[0-9]
     validationErrorMessage: Must be a value >= 0.0 and <= 1.0
@@ -117,17 +125,19 @@ params:
       Model to use for label detection.
     example: builtin/stable
     options:
-      - label: builtin/stable
+      - label: Stable
         value: builtin/stable
-      - label: builtin/latest
+      - label: Latest
         value: builtin/latest
-    default: builtin/latest
+    default: builtin/stable
     required: true
 
   - param: STATIONARY_CAMERA
     label: Stationary Camera
     description: >
-      Whether the video has been shot from a stationary (i.e. non-moving) camera. When set to true this might improve detection accuracy for moving objects. Will default to false if LABEL_DETECTION_MODE has been set to SHOT_AND_FRAME_MODE.
+      Whether the video has been shot from a stationary (i.e. non-moving) camera. When set to true this might improve
+      detection accuracy for moving objects. Will default to false if LABEL_DETECTION_MODE has been set to
+      SHOT_AND_FRAME_MODE.
     type: select
     options:
       - label: Yes
