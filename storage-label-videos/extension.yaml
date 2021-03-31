@@ -20,7 +20,7 @@ apis:
     reason: Powers all Video Intelligence tasks performed by the extension.
 
 resources:
-  - name: analyse
+  - name: process-video
     type: firebaseextensions.v1beta.function
     description: Listens to incoming Storage documents that are videos and executes video labelling detection on them.
     properties:

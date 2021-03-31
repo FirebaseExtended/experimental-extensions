@@ -22,7 +22,7 @@ firebase ext:install storage-label-videos --project=<your-project-id>
 
 ---
 
-**Details**: ### TODO
+**Details**: TODO
 
 **Configuration Parameters:**
 
@@ -44,7 +44,7 @@ firebase ext:install storage-label-videos --project=<your-project-id>
 
 **Cloud Functions:**
 
-- **analyse:** Listens to incoming Storage documents that are videos and executes video labelling detection on them.
+- **process-video:** Listens to incoming Storage documents that are videos and executes video labelling detection on them.
 
 **APIs Used**:
 
