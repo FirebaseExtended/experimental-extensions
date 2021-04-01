@@ -31,27 +31,12 @@ resources:
     description: >-
       HTTPS function that serves bundled content from Cloud Storage cache or by dynamically building.
     properties:
-      location: ${LOCATION}
+      location: us-central1
       httpsTrigger: {}
       runtime: "nodejs12"
 
 # Learn about the `params` field in the docs
 params:
-  - param: LOCATION
-    label: Cloud Functions location
-    description: >-
-      Where do you want to deploy the functions created for this extension?
-      You usually want a location close to your database or Storage bucket.
-      For help selecting a location, refer to the [location selection
-      guide](https://firebase.google.com/docs/functions/locations).
-    type: select
-    options:
-    - label: Iowa (us-central1)
-      value: us-central1
-    default: us-central1
-    required: true
-    immutable: true
-
   - param: BUNDLESPEC_COLLECTION
     type: string
     label: Collection to store bundle specification documents

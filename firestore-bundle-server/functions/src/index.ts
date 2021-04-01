@@ -124,7 +124,7 @@ db.collection(BUNDLESPEC_COLLECTION).onSnapshot((snap) => {
 /**
  * Cloud Function to serve bundle building http requests.
  *
- * The last segment of the http request will be the bundle ID to look for, and the
+ * The last path segment of the http request will be the bundle ID to look for, and the
  * request query parameters will be the values to use to parameterize the bundle
  * specification.
  *
