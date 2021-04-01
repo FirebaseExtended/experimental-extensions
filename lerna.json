@@ -4,6 +4,7 @@
     "firestore-auth-claims/functions",
     "firestore-schedule-writes/functions",
     "firestore-sentiment-analysis/functions",
+    "firestore-bundle-server/functions",
     "storage-extract-image-text/functions"
   ],
   "version": "0.0.0"

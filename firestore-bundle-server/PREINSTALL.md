@@ -1,6 +1,5 @@
-Use this extension to build Firestore data bundle files via HTTP requests to a Cloud Function instance, and manage the caching strategy for the built bundle files. Firestore data bundles are static data files built from Firestore documents and query snapshots.
-
-This extension requires your project to be upgraded to the Blaze plan.
+Use this extension to build Firestore data bundle files via HTTP requests to a Cloud Function instance, and manage the caching strategy for the built bundle files. Firestore data bundles are static data files built from Firestore documents and query snapshots;
+learn more about Firestore data bundles in the [Firestore guides](https://firebase.google.com/docs/firestore/bundles).
 
 #### How it works
 
