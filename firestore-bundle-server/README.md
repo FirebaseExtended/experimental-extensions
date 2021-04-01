@@ -1,4 +1,4 @@
-# Set up Firestore Bundle Server
+# Firestore Bundle Server
 
 **Author**: Firebase (**[https://firebase.google.com](https://firebase.google.com)**)
 
