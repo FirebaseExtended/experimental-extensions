@@ -6,7 +6,7 @@ data and build the bundle.
 
 If you use Firebase Hosting or Cloud Storage for Firebase in your projects, you can stream
 bundles from Hosting cache or a Cloud Storage bucket to your client-side apps. Firebase client
-SDKs provide a [data bundles API](https://firebase.devsite.corp.google.com/docs/firestore/bundles)
+SDKs provide a [data bundles API](https://firebase.google.com/docs/firestore/bundles)
 your apps can use to unpack documents and queries from the bundle.
 
 To learn more about HTTP functions, visit the [functions documentation](https://firebase.google.com/docs/functions/http-events).
