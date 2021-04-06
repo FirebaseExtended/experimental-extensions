@@ -14,6 +14,10 @@ Each directory in this repo contains the source code for an extension and a READ
 
 Set custom claims for Firebase Auth users from values set in Firestore.
 
+### [Analyze Toxicity with Perspective API](/firestore-perspective-toxicity#analyze-toxicity-with-perspective-api)
+
+Use this extension to get toxicity scores from Perspective API for comments written to a Cloud Firestore collection.
+
 ### [Schedule Firestore writes](/firestore-schedule-writes#schedule-firestore-writes)
 
 Write documents to Firestore at an arbitrary time in the future.
