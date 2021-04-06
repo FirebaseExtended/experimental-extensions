@@ -30,7 +30,7 @@ const videoIntelligenceServiceClient = new videoIntelligence.VideoIntelligenceSe
 
 logs.init();
 
-exports.labelVideo = functions.storage.object().onFinalize(async object => {
+exports.labelVideo = functions.storage.object().onFinalize(async (object) => {
   if (!object.name) return;
   if (!shouldProcessStorageObject(object.name)) return;
 
