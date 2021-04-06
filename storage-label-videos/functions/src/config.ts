@@ -18,7 +18,10 @@ import { parseDetectionMode } from "./utils";
 
 export default {
   locationId: process.env.LOCATION_ID,
+  inputVideosPath: process.env.INPUT_VIDEOS_PATH!,
   outputUri: process.env.OUTPUT_STORAGE_URI,
+  outputVideosBucket: process.env.OUTPUT_VIDEOS_BUCKET!,
+  outputVideosPath: process.env.OUTPUT_VIDEOS_PATH!,
   labelDetectionMode: parseDetectionMode(process.env.LABEL_DETECTION_MODE),
   videoConfidenceThreshold: parseFloat(process.env.VIDEO_CONFIDENCE_THRESHOLD!),
   frameConfidenceThreshold: parseFloat(process.env.FRAME_CONFIDENCE_THRESHOLD!),

@@ -28,7 +28,7 @@ resources:
       availableMemoryMb: 128
       eventTrigger:
         eventType: google.storage.object.finalize
-        resource: projects/_/buckets/${param:INPUT_STORAGE_URI}
+        resource: projects/_/buckets/${param:INPUT_VIDEOS_BUCKET}
       runtime: "nodejs10"
 
 params:
@@ -55,26 +55,48 @@ params:
     required: true
     immutable: true
 
-  - param: INPUT_STORAGE_URI
-    label: Input storage uri
+- param: INPUT_VIDEOS_BUCKET
+    label: Cloud Storage bucket where videos should be picked up and processed.
     description: >
-      A Storage location the extension should process videos from.
+      TODO
     type: string
-    example: ${STORAGE_BUCKET}/video_annotations_input/*
-    validationRegex: ^([\/0-9a-z_.-*]*)$
-    validationErrorMessage: Invalid storage folder name
-    default: ${STORAGE_BUCKET}/video_annotations_input/*
+    example: my-project-12345.appspot.com
+    validationRegex: ^([0-9a-z_.-]*)$
+    validationErrorMessage: Invalid storage bucket
+    default: ${STORAGE_BUCKET}
     required: true
 
-  - param: OUTPUT_STORAGE_URI
-    label: Output storage uri
+  - param: OUTPUT_VIDEOS_BUCKET
+    label: Cloud Storage bucket where processed videos should be output to.
     description: >
-      Optional. Location where the output (in JSON format) should be stored.
+      TODO
     type: string
-    example: ${STORAGE_BUCKET}/video_annotations_output/
-    validationRegex: ^([\/0-9a-z_.-]*)$
+    example: my-project-12345.appspot.com
+    validationRegex: ^([0-9a-z_.-]*)$
+    validationErrorMessage: Invalid storage bucket
+    default: ${STORAGE_BUCKET}
+    required: true
+
+  - param: INPUT_VIDEOS_PATH
+    label: Input videos path
+    description: >
+      A Storage path in the input video bucket that the extension should process videos from.
+    type: string
+    example: /video_transcoding_input/
+    validationRegex: ^\/([0-9a-zA-Z_\/\-]*\/){0,1}$
     validationErrorMessage: Invalid storage folder name
-    default: ${STORAGE_BUCKET}/video_annotations_output
+    default: /video_transcoding_input/
+    required: true
+
+  - param: OUTPUT_VIDEOS_PATH
+    label: Output videos path
+    description: >
+      A Storage path in the output video bucket that the processed videos should be output to.
+    type: string
+    example: /video_transcoding_output/
+    validationRegex: ^\/([0-9a-zA-Z_\/\-]*\/){0,1}$
+    validationErrorMessage: Invalid storage folder name
+    default: /video_transcoding_output/
     required: true
 
   - param: LABEL_DETECTION_MODE

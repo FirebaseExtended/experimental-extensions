@@ -30,18 +30,18 @@ const videoIntelligenceServiceClient = new videoIntelligence.VideoIntelligenceSe
 
 logs.init();
 
-exports.analyse = functions.storage.object().onFinalize(async (object) => {
-  if (!shouldProcessStorageObject(object.name)) {
-    logs.skip(object.name);
-    return;
-  }
+exports.analyse = functions.storage.object().onFinalize(async object => {
+  if (!object.name) return;
+  if (!shouldProcessStorageObject(object.name)) return;
+
+  // Output to a folder named the same as the original file, minus the file extension.
+  const outputUri = `gs://${config.outputVideosBucket}${
+    config.outputVideosPath
+  }${path.basename(object.name)}/`;
 
   const annotateConfig: IAnnotateVideoRequest = {
     inputUri: `gs://${object.bucket}/${object.name}`,
-    outputUri: `gs://${config.outputUri}/${path.basename(
-      object.name!,
-      path.extname(object.name!)
-    )}.json`,
+    outputUri,
     locationId: config.locationId,
     features: [Feature.LABEL_DETECTION],
     videoContext: {
