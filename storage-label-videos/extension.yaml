@@ -20,7 +20,7 @@ apis:
     reason: Powers all Video Intelligence tasks performed by the extension.
 
 resources:
-  - name: process-video
+  - name: labelVideo
     type: firebaseextensions.v1beta.function
     description: Listens to incoming Storage documents that are videos and executes video labelling detection on them.
     properties:
@@ -55,7 +55,7 @@ params:
     required: true
     immutable: true
 
-- param: INPUT_VIDEOS_BUCKET
+  - param: INPUT_VIDEOS_BUCKET
     label: Cloud Storage bucket where videos should be picked up and processed.
     description: >
       TODO
@@ -82,10 +82,10 @@ params:
     description: >
       A Storage path in the input video bucket that the extension should process videos from.
     type: string
-    example: /video_transcoding_input/
+    example: /video_annotation_input/
     validationRegex: ^\/([0-9a-zA-Z_\/\-]*\/){0,1}$
     validationErrorMessage: Invalid storage folder name
-    default: /video_transcoding_input/
+    default: /video_annotation_input/
     required: true
 
   - param: OUTPUT_VIDEOS_PATH
@@ -93,10 +93,10 @@ params:
     description: >
       A Storage path in the output video bucket that the processed videos should be output to.
     type: string
-    example: /video_transcoding_output/
+    example: /video_annotation_output/
     validationRegex: ^\/([0-9a-zA-Z_\/\-]*\/){0,1}$
     validationErrorMessage: Invalid storage folder name
-    default: /video_transcoding_output/
+    default: /video_annotation_output/
     required: true
 
   - param: LABEL_DETECTION_MODE

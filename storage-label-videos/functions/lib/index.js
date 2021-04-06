@@ -25,14 +25,16 @@ const logs = require("./logs");
 const utils_1 = require("./utils");
 const videoIntelligenceServiceClient = new videoIntelligence.VideoIntelligenceServiceClient();
 logs.init();
-exports.analyse = functions.storage.object().onFinalize(async (object) => {
-    if (!utils_1.shouldProcessStorageObject(object.name)) {
-        logs.skip(object.name);
+exports.labelVideo = functions.storage.object().onFinalize(async (object) => {
+    if (!object.name)
         return;
-    }
+    if (!utils_1.shouldProcessStorageObject(object.name))
+        return;
+    // Output to a folder named the same as the original file, minus the file extension.
+    const outputUri = `gs://${config_1.default.outputVideosBucket}${config_1.default.outputVideosPath}${path.basename(object.name)}.json`;
     const annotateConfig = {
         inputUri: `gs://${object.bucket}/${object.name}`,
-        outputUri: `gs://${config_1.default.outputUri}/${path.basename(object.name, path.extname(object.name))}.json`,
+        outputUri,
         locationId: config_1.default.locationId,
         features: [Feature.LABEL_DETECTION],
         videoContext: {
