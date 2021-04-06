@@ -54,3 +54,9 @@ export const annotateVideo = (
     annotateConfig
   );
 };
+
+export const skipPath = (objectName: string): void => {
+  logger.log(
+    `Skipping file '${objectName}' as it is not located in the configured input videos path '${config.inputVideosPath}'.`
+  );
+};

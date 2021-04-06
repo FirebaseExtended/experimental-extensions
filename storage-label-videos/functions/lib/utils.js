@@ -17,6 +17,8 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.parseDetectionMode = exports.shouldProcessStorageObject = void 0;
 const videoIntelligence = require("@google-cloud/video-intelligence");
+const config_1 = require("./config");
+const logs = require("./logs");
 const { LabelDetectionMode, } = videoIntelligence.protos.google.cloud.videointelligence.v1;
 // A curated list of supported file extensions based on:
 // https://cloud.google.com/video-intelligence/docs/supported-formats
@@ -67,6 +69,11 @@ const validMediaExtensions = [
 function shouldProcessStorageObject(objectName) {
     if (!objectName)
         return false;
+    // Is the file located in INPUT_VIDEOS_PATH.
+    if (!`/${objectName}`.startsWith(config_1.default.inputVideosPath)) {
+        logs.skipPath(objectName);
+        return false;
+    }
     for (const type of validMediaExtensions) {
         if (objectName.endsWith(type))
             return true;

@@ -15,6 +15,8 @@
  */
 
 import * as videoIntelligence from "@google-cloud/video-intelligence";
+import config from "./config";
+import * as logs from "./logs";
 
 const {
   LabelDetectionMode,
@@ -69,6 +71,13 @@ const validMediaExtensions = [
 
 export function shouldProcessStorageObject(objectName?: string): boolean {
   if (!objectName) return false;
+
+  // Is the file located in INPUT_VIDEOS_PATH.
+  if (!`/${objectName}`.startsWith(config.inputVideosPath)) {
+    logs.skipPath(objectName);
+    return false;
+  }
+
   for (const type of validMediaExtensions) {
     if (objectName.endsWith(type)) return true;
   }

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.annotateVideo = exports.operationError = exports.queued = exports.skip = exports.init = void 0;
+exports.skipPath = exports.annotateVideo = exports.operationError = exports.queued = exports.skip = exports.init = void 0;
 const firebase_functions_1 = require("firebase-functions");
 const config_1 = require("./config");
 const init = () => {
@@ -38,4 +38,8 @@ const annotateVideo = (objectName, annotateConfig) => {
     firebase_functions_1.logger.log(`Creating annotate video request for ${objectName} with configuration`, annotateConfig);
 };
 exports.annotateVideo = annotateVideo;
+const skipPath = (objectName) => {
+    firebase_functions_1.logger.log(`Skipping file '${objectName}' as it is not located in the configured input videos path '${config_1.default.inputVideosPath}'.`);
+};
+exports.skipPath = skipPath;
 //# sourceMappingURL=logs.js.map
