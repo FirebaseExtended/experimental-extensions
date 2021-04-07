@@ -25,9 +25,7 @@ const utils_1 = require("./utils");
 var Job = protos_1.google.cloud.video.transcoder.v1beta1.Job;
 const videoTranscoderServiceClient = new videoTranscoder.TranscoderServiceClient();
 logs.init();
-exports.transcodevideo = functions.storage
-    .object()
-    .onFinalize(async (object) => {
+exports.transcodevideo = functions.storage.object().onFinalize(async (object) => {
     var _a;
     if (!object.name)
         return;
@@ -41,10 +39,12 @@ exports.transcodevideo = functions.storage
     const outputUri = `gs://${config_1.default.outputVideosBucket}${config_1.default.outputVideosPath}${path.basename(object.name)}/`;
     // Ensure the template exists if not using the known web-hd preset.
     if (templateId !== "preset/web-hd") {
-        const [jobTemplate] = await videoTranscoderServiceClient.getJobTemplate({
-            name: videoTranscoderServiceClient.jobTemplatePath(config_1.default.projectId, config_1.default.location, templateId),
-        });
-        if (!jobTemplate || !jobTemplate.name) {
+        try {
+            await videoTranscoderServiceClient.getJobTemplate({
+                name: videoTranscoderServiceClient.jobTemplatePath(config_1.default.projectId, config_1.default.location, templateId),
+            });
+        }
+        catch (ex) {
             logs.templateDoesNotExist(object.name, templateId);
             return;
         }
@@ -54,13 +54,20 @@ exports.transcodevideo = functions.storage
         job: {
             inputUri: `gs://${object.bucket}/${object.name}`,
             outputUri,
-            templateId,
+            templateId: "fdsfffsff",
         },
     };
     logs.transcodeVideo(object.name, jobRequest);
-    const [job] = await videoTranscoderServiceClient.createJob(jobRequest);
-    if (job.state === Job.ProcessingState.FAILED) {
-        logs.jobFailed(object.name, job.failureReason, job.failureDetails);
+    try {
+        const [job] = await videoTranscoderServiceClient.createJob(jobRequest);
+        console.log("job >>>>", JSON.stringify(job));
+        if (job.state === Job.ProcessingState.FAILED) {
+            logs.jobFailed(object.name, job.failureReason, job.failureDetails);
+            return;
+        }
+    }
+    catch (ex) {
+        console.log("catch >>>>", ex.message);
         return;
     }
     logs.queued(object.name, outputUri);

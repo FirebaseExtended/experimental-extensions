@@ -12,7 +12,7 @@
 
 ### Console
 
-[![Install this extension in your Firebase project](../install-extension.png?raw=true "Install this extension in your Firebase project")](https://console.firebase.google.com/project/_/extensions/install?sourceName=NOT_YET_DEPLOYED)
+[![Install this extension in your Firebase project](../install-extension.png?raw=true "Install this extension in your Firebase project")](https://console.firebase.google.com/project/_/extensions/install?sourceName=)
 
 ### Firebase CLI
 
@@ -24,7 +24,11 @@ firebase ext:install storage-transcode-videos --project=<your-project-id>
 
 ---
 
-**Details**: TODO
+**Details**: # Templates
+
+By default the extension suggests using [preset/web-hd](https://cloud.google.com/transcoder/docs/concepts/overview#job_template) for transcoding.
+
+Custom templates can be created [here](https://cloud.google.com/transcoder/docs/how-to/job-templates).
 
 **Configuration Parameters:**
 
@@ -38,7 +42,7 @@ firebase ext:install storage-transcode-videos --project=<your-project-id>
 
 - Output videos path: A Storage path in the output video bucket that the processed videos should be output to.
 
-- The default transcoding template ID to use for transcoding jobs.: TODO
+- The default transcoding template ID to use for transcoding jobs.: A template id for populating a job configuration.
 
 **Cloud Functions:**
 

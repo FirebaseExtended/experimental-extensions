@@ -102,7 +102,7 @@ params:
   - param: DEFAULT_TEMPLATE_ID
     label: The default transcoding template ID to use for transcoding jobs.
     description: >
-      TODO
+       A template id for populating a job configuration.
     example: preset/web-hd
     validationRegex: ^[a-zA-Z0-9\/\-_]+$
     validationErrorMessage: Must be an alphanumeric string. Dashes, underscores and forward slashes are also allowed
