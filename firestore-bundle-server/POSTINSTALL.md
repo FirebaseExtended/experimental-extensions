@@ -27,7 +27,26 @@ A data bundle specification document may contain these fields:
 - **docs** an array of strings. Each string is the full path to a document to add to the bundle.
 - **queries** a map of maps. Defines named queries to package into the bundle. The key of each inner map (in the following example, “scores”) corresponds to the name of one named query.
     
-    ![Queries Example](queries-example.png)
+    - Queries Example
+    <div style="margin-left: 50px;">
+    &#9660;&nbsp;queries
+    <br/>
+    &nbsp;&nbsp;&nbsp;&#9660;&nbsp;scores
+    <br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;collection: "scores"
+    <br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#9660;&nbsp;conditions
+    <br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#9660;&nbsp;0
+    <br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#9660;&nbsp;where
+    <br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0&nbsp;"sport"
+    <br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1&nbsp;"=="
+    <br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2&nbsp;"$sport"
+    </div>
 
     - The inner map has the following fields:
 
@@ -37,8 +56,17 @@ A data bundle specification document may contain these fields:
 
 - **params** a map of maps. Defines allowed URL query parameters the client can pass to parameterize how data bundles are built. Each inner map is the definition of one parameter, here the “sport” parameter, with a `required` (boolean) field and `type` (string) field.
   
-  ![Params Example](params-example.png)
-  
+  - Params Example
+  <div style="margin-left: 50px;">
+  &#9660;&nbsp;params
+  <br/>
+  &nbsp;&nbsp;&nbsp;&#9660;&nbsp;sport
+  <br/>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;required: "true"
+  <br/>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;type: "string"
+  </div>
+
 - **clientCache** a string value. Specifies how long to keep the bundle in the client's cache, in seconds. If not defined, client-side cache is disabled.
 - **serverCache** a string value. Only use in combination with Firebase Hosting. Specifies how long to keep the bundle in Firebase Hosting's CDN cache, in seconds.  If not defined, Hosting CDN cache is accessed.
 - **fileCache** a string value. Specifies how long to keep the bundle in a Cloud Storage bucket, in seconds. If not defined, Cloud Storage bucket is not accessed.
