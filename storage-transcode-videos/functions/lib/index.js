@@ -18,11 +18,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const path = require("path");
 const functions = require("firebase-functions");
 const videoTranscoder = require("@google-cloud/video-transcoder");
-const protos_1 = require("@google-cloud/video-transcoder/build/protos/protos");
 const config_1 = require("./config");
 const logs = require("./logs");
 const utils_1 = require("./utils");
-var Job = protos_1.google.cloud.video.transcoder.v1beta1.Job;
 const videoTranscoderServiceClient = new videoTranscoder.TranscoderServiceClient();
 logs.init();
 exports.transcodevideo = functions.storage.object().onFinalize(async (object) => {
@@ -54,20 +52,15 @@ exports.transcodevideo = functions.storage.object().onFinalize(async (object) =>
         job: {
             inputUri: `gs://${object.bucket}/${object.name}`,
             outputUri,
-            templateId: "fdsfffsff",
+            templateId,
         },
     };
     logs.transcodeVideo(object.name, jobRequest);
     try {
-        const [job] = await videoTranscoderServiceClient.createJob(jobRequest);
-        console.log("job >>>>", JSON.stringify(job));
-        if (job.state === Job.ProcessingState.FAILED) {
-            logs.jobFailed(object.name, job.failureReason, job.failureDetails);
-            return;
-        }
+        await videoTranscoderServiceClient.createJob(jobRequest);
     }
     catch (ex) {
-        console.log("catch >>>>", ex.message);
+        logs.jobFailed(object.name);
         return;
     }
     logs.queued(object.name, outputUri);
