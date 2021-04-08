@@ -22,7 +22,6 @@ import { google } from "@google-cloud/video-transcoder/build/protos/protos";
 import config from "./config";
 import * as logs from "./logs";
 import { shouldProcessStorageObject } from "./utils";
-import Job = google.cloud.video.transcoder.v1beta1.Job;
 import ICreateJobRequest = google.cloud.video.transcoder.v1beta1.ICreateJobRequest;
 
 const videoTranscoderServiceClient = new videoTranscoder.TranscoderServiceClient();

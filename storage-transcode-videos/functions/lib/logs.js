@@ -19,31 +19,49 @@ exports.jobFailed = exports.templateDoesNotExist = exports.transcodeVideo = expo
 const firebase_functions_1 = require("firebase-functions");
 const config_1 = require("./config");
 const init = () => {
-    firebase_functions_1.logger.log("Initializing extension with configuration", config_1.default);
+  firebase_functions_1.logger.log(
+    "Initializing extension with configuration",
+    config_1.default
+  );
 };
 exports.init = init;
 const skipPath = (objectName) => {
-    firebase_functions_1.logger.log(`Skipping file '${objectName}' as it is not located in the configured input videos path '${config_1.default.inputVideosPath}'.`);
+  firebase_functions_1.logger.log(
+    `Skipping file '${objectName}' as it is not located in the configured input videos path '${config_1.default.inputVideosPath}'.`
+  );
 };
 exports.skipPath = skipPath;
 const skipExtension = (objectName) => {
-    firebase_functions_1.logger.log(`Skipping file due to unsupported file extension: '${objectName}'.`);
+  firebase_functions_1.logger.log(
+    `Skipping file due to unsupported file extension: '${objectName}'.`
+  );
 };
 exports.skipExtension = skipExtension;
 const queued = (objectName, outputUri) => {
-    firebase_functions_1.logger.log(`Video '${objectName}' has been successfully queued for transcoding. Output will appear at '${outputUri}'.`);
+  firebase_functions_1.logger.log(
+    `Video '${objectName}' has been successfully queued for transcoding. Output will appear at '${outputUri}'.`
+  );
 };
 exports.queued = queued;
 function transcodeVideo(objectName, jobRequest) {
-    firebase_functions_1.logger.log(`Creating a transcode video request for '${objectName}' with configuration`, jobRequest);
+  firebase_functions_1.logger.log(
+    `Creating a transcode video request for '${objectName}' with configuration`,
+    jobRequest
+  );
 }
 exports.transcodeVideo = transcodeVideo;
 function templateDoesNotExist(objectName, templateId) {
-    firebase_functions_1.logger.error(`Error when processing storage object '${objectName}' - the specified template '${templateId}' does not exist.`);
+  firebase_functions_1.logger.error(
+    `Error when processing storage object '${objectName}' - the specified template '${templateId}' does not exist.`
+  );
 }
 exports.templateDoesNotExist = templateDoesNotExist;
 const jobFailed = (objectName, failureReason, failureDetails) => {
-    firebase_functions_1.logger.error(`Creating a transcode video request for '${objectName}' failed`, failureReason, failureDetails);
+  firebase_functions_1.logger.error(
+    `Creating a transcode video request for '${objectName}' failed`,
+    failureReason,
+    failureDetails
+  );
 };
 exports.jobFailed = jobFailed;
 //# sourceMappingURL=logs.js.map
