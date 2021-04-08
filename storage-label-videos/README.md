@@ -1,5 +1,7 @@
 # storage-label-videos
 
+**Author**: Firebase (**[https://firebase.google.com](https://firebase.google.com)**)
+
 **Description**: Extracts labels from your videos uploaded to Storage and writes the extracted labels to Storage as a JSON file.
 
 ---
@@ -10,7 +12,7 @@
 
 ### Console
 
-[![Install this extension in your Firebase project](../install-extension.png?raw=true "Install this extension in your Firebase project")](https://console.firebase.google.com/project/_/extensions/install?sourceName=NOT_YET_DEPLOYED)
+[![Install this extension in your Firebase project](../install-extension.png?raw=true "Install this extension in your Firebase project")](https://console.firebase.google.com/project/_/extensions/install?sourceName=)
 
 ### Firebase CLI
 
@@ -28,9 +30,13 @@ firebase ext:install storage-label-videos --project=<your-project-id>
 
 - Cloud Functions location: Cloud region where annotation should take place. For help selecting a location, refer to the [location selection guide](https://firebase.google.com/docs/functions/locations).
 
-- Input storage uri: A Storage location the extension should process videos from.
+- Cloud Storage bucket where videos should be picked up and processed.: Cloud Storage bucket where videos should be picked up and processed.
 
-- Output storage uri: Optional. Location where the output (in JSON format) should be stored.
+- Cloud Storage bucket where processed videos should be output to.: TODO
+
+- Input videos path: A Storage path in the input video bucket that the extension should process videos from.
+
+- Output videos path: A Storage path in the output video bucket that the processed videos should be output to.
 
 - Label detection mode: What labels should be detected with LABEL_DETECTION, in addition to video-level labels or segment-level labels. If unspecified, defaults to SHOT_MODE.
 
@@ -44,7 +50,7 @@ firebase ext:install storage-label-videos --project=<your-project-id>
 
 **Cloud Functions:**
 
-- **process-video:** Listens to incoming Storage documents that are videos and executes video labelling detection on them.
+- **labelVideo:** Listens to incoming Storage documents that are videos and executes video labelling detection on them.
 
 **APIs Used**:
 
