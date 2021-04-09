@@ -1,6 +1,6 @@
 # Using the extension
 
-This extension will transcode media that appear in the `${param:INPUT_VIDEOS_BUCKET}` storage bucket under the `${param:INPUT_VIDEOS_PATH}` folder.
+This extension will transcode media that appears in the `${param:INPUT_VIDEOS_BUCKET}` storage bucket under the `${param:INPUT_VIDEOS_PATH}` folder.
 
 Results of the transcoding will appear in the `${param:OUTPUT_VIDEOS_BUCKET}` storage bucket inside the `${param:OUTPUT_VIDEOS_PATH}` folder.
 
