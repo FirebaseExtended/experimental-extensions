@@ -30,6 +30,10 @@ Determines the sentiment magnitude and score for given text values in Firestore.
 
 Shortens URLs written to a specified Cloud Firestore collection using Firebase Dynamic Links.
 
+### [Serve Firestore Data Bundles](/firestore-bundle-server#firestore-bundle-server)
+
+Serves Firestore Data Bundles based on specs defined as Firestore Documents, with the ability to use Hosting and Storage as cache.
+
 ### [Image text extraction](/storage-extract-image-text#image-text-extraction)
 
 Extracts text from images uploaded to a Cloud Storage bucket and writes extracted text to Firestore.

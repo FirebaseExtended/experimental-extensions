@@ -2,6 +2,7 @@
   "packages": [
     "firestore-shorten-urls-dynamic-links/functions",
     "firestore-auth-claims/functions",
+    "firestore-bundle-server/functions",
     "firestore-schedule-writes/functions",
     "firestore-sentiment-analysis/functions",
     "storage-extract-image-text/functions",
