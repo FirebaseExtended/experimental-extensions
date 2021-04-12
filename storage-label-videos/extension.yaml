@@ -69,7 +69,7 @@ params:
   - param: OUTPUT_VIDEOS_BUCKET
     label: Cloud Storage bucket where processed videos should be output to.
     description: >
-      TODO
+      Cloud Storage bucket where videos should be process to.
     type: string
     example: my-project-12345.appspot.com
     validationRegex: ^([0-9a-z_.-]*)$
