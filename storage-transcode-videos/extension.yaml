@@ -58,7 +58,7 @@ params:
   - param: INPUT_VIDEOS_BUCKET
     label: Cloud Storage bucket where videos should be picked up and processed.
     description: >
-      TODO
+      A Storage bucket that the extension should process videos from.
     type: string
     example: my-project-12345.appspot.com
     validationRegex: ^([0-9a-z_.-]*)$
@@ -69,7 +69,7 @@ params:
   - param: OUTPUT_VIDEOS_BUCKET
     label: Cloud Storage bucket where processed videos should be output to.
     description: >
-      TODO
+      A Storage bucket that the extension should process videos to.
     type: string
     example: my-project-12345.appspot.com
     validationRegex: ^([0-9a-z_.-]*)$
