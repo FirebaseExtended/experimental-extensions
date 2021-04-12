@@ -6,7 +6,7 @@ Results of the transcoding will appear in the `${param:OUTPUT_VIDEOS_BUCKET}` st
 
 Please see [supported_inputs_outputs](https://cloud.google.com/video-intelligence/docs/supported-formats) for valid media formats.
 
-Please note: Depending on the file size, some media may take time to `annotate` and appear in inside the `${param:OUTPUT_VIDEOS_PATH}` folder.
+Please note: Depending on the file size, some media may take time to `annotate` and appear inside the `${param:OUTPUT_VIDEOS_PATH}` folder.
 
 <!-- We recommend keeping the following section to explain how to monitor extensions with Firebase -->
 
