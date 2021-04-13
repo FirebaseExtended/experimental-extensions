@@ -1,5 +1,5 @@
 {
-  "name": "functions",
+  "name": "storage-image-labeling",
   "scripts": {
     "lint": "eslint \"src/**/*\"",
     "build": "tsc",
@@ -7,7 +7,8 @@
     "shell": "npm run build && firebase functions:shell",
     "start": "npm run shell",
     "deploy": "firebase deploy --only functions",
-    "logs": "firebase functions:log"
+    "logs": "firebase functions:log",
+    "generate-readme": "node ../../generate-experimental-readme.js storage-image-labeling > ../README.md"
   },
   "engines": {
     "node": "12"
