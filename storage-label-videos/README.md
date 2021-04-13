@@ -12,7 +12,7 @@
 
 ### Console
 
-[![Install this extension in your Firebase project](../install-extension.png?raw=true "Install this extension in your Firebase project")](https://console.firebase.google.com/project/_/extensions/install?sourceName=)
+[![Install this extension in your Firebase project](../install-extension.png?raw=true "Install this extension in your Firebase project")](https://console.firebase.google.com/project/_/extensions/install?sourceName=undefined)
 
 ### Firebase CLI
 
@@ -24,7 +24,7 @@ firebase ext:install storage-label-videos --project=<your-project-id>
 
 ---
 
-**Details**: TODO
+**Details**: This extension will automatically annotate media from the specified `input` storage bucket and path. This will output a `.json` file with the resulting annotations into the specified `output` storage bucket and path.
 
 **Configuration Parameters:**
 
@@ -32,7 +32,7 @@ firebase ext:install storage-label-videos --project=<your-project-id>
 
 - Cloud Storage bucket where videos should be picked up and processed.: Cloud Storage bucket where videos should be picked up and processed.
 
-- Cloud Storage bucket where processed videos should be output to.: TODO
+- Cloud Storage bucket where processed videos should be output to.: Cloud Storage bucket where videos should be process to.
 
 - Input videos path: A Storage path in the input video bucket that the extension should process videos from.
 
