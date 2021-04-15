@@ -1,6 +1,6 @@
 # Firestore Bundle Server
 
-**Author**: undefined
+**Author**: Firebase (**[https://firebase.google.com](https://firebase.google.com)**)
 
 **Description**: Provides cached serving of Firestore bundles.
 
