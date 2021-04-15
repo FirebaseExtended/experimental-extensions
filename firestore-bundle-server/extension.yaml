@@ -10,6 +10,10 @@ displayName: Firestore Bundle Server
 description: >-
   Provides cached serving of Firestore bundles.
 
+author:
+  authorName: Firebase
+  url: https://firebase.google.com
+
 billingRequired: true
 
 # For your extension to interact with other Google APIs (like Firestore, Cloud Storage, or Cloud Translation),
