@@ -12,12 +12,12 @@
 
 ### Console
 
-[![Install this extension in your Firebase project](../install-extension.png?raw=true "Install this extension in your Firebase project")](https://console.firebase.google.com/project/_/extensions/install?sourceName=projects/firebasemods/sources/33387d07-e01d-4b40-b718-c935730bb9c6)
+[![Install this extension in your Firebase project](../install-extension.png?raw=true "Install this extension in your Firebase project")](https://console.firebase.google.com/project/_/extensions/install?ref=firebase/firestore-sentiment-analysis)
 
 ### Firebase CLI
 
 ```bash
-firebase ext:install firestore-sentiment-analysis --project=<your-project-id>
+firebase ext:install firebase/firestore-sentiment-analysis --project=<your-project-id>
 ```
 
 > Learn more about installing extensions in the Firebase Extensions documentation: [console](https://firebase.google.com/docs/extensions/install-extensions?platform=console), [CLI](https://firebase.google.com/docs/extensions/install-extensions?platform=cli)

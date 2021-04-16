@@ -1,8 +1,8 @@
-# Image Text Extraction
+# Image Labeling
 
 **Author**: Firebase (**[https://firebase.google.com](https://firebase.google.com)**)
 
-**Description**: Extracts text from images uploaded to storage and writes extracted text to Firestore.
+**Description**: Performs image labeling on images uploaded to Storage and writes labels to Firestore.
 
 ---
 
@@ -12,19 +12,19 @@
 
 ### Console
 
-[![Install this extension in your Firebase project](../install-extension.png?raw=true "Install this extension in your Firebase project")](https://console.firebase.google.com/project/_/extensions/install?ref=firebase/storage-extract-image-text)
+[![Install this extension in your Firebase project](../install-extension.png?raw=true "Install this extension in your Firebase project")](https://console.firebase.google.com/project/_/extensions/install?ref=firebase/storage-image-labeling)
 
 ### Firebase CLI
 
 ```bash
-firebase ext:install firebase/storage-extract-image-text --project=<your-project-id>
+firebase ext:install firebase/storage-image-labeling --project=<your-project-id>
 ```
 
 > Learn more about installing extensions in the Firebase Extensions documentation: [console](https://firebase.google.com/docs/extensions/install-extensions?platform=console), [CLI](https://firebase.google.com/docs/extensions/install-extensions?platform=cli)
 
 ---
 
-**Details**: This extension will extract text from any `jpg` or `png` images uploaded to Cloud Storage and write the extracted text to Firestore.
+**Details**: This extension will label (classify) from any `jpg` or `png` images uploaded to Cloud Storage and write the labels to Firestore.
 
 # Billing
 
@@ -43,13 +43,13 @@ When you use Firebase Extensions, you're only charged for the underlying resourc
 
 - Cloud Functions location: Where do you want to deploy the functions created for this extension? You usually want a location close to your database. Realtime Database instances are located in `us-central1`. For help selecting a location, refer to the [location selection guide](https://firebase.google.com/docs/functions/locations).
 
-- Cloud Storage bucket for images: To which Cloud Storage bucket will you upload images from which you want to extract text?
+- Cloud Storage bucket for images: To which Cloud Storage bucket will you upload images on which you want to perform labelling?
 
-- Collection path: What is the path to the collection where extracted text will be written to.
+- Collection path: What is the path to the collection where labels will be written to.
 
 **Cloud Functions:**
 
-- **extractText:** Listens to incoming Storage documents, executes OCR on them and writes extracted text to Firestore into a preconfigured collection.
+- **labelImage:** Listens to incoming Storage documents, executes image labeling on them and writes labels back to Storage into a preconfigured location.
 
 **APIs Used**:
 
