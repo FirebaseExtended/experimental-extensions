@@ -22,7 +22,7 @@ contributors:
   - authorName: Jeffrey Dallatezza
     url: https://github.com/jsdt
 
-billingRequired: false
+billingRequired: true
 
 apis:
   - apiName: storage-component.googleapis.com

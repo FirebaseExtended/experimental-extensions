@@ -38,6 +38,10 @@ Serves Firestore Data Bundles based on specs defined as Firestore Documents, wit
 
 Extracts text from images uploaded to a Cloud Storage bucket and writes extracted text to Firestore.
 
+### [Mirror GCS objects in Firestore collections](/storage-image-firestore#storage-image-firestore)
+
+Extension to store links to Google Cloud Storage objects in a Firestore collection.
+
 ## Status
 
 ![Status: Experimental](https://img.shields.io/badge/Status-Experimental-blue)

@@ -1,5 +1,5 @@
 {
-  "name": "storage-mirror-firestore-functions",
+  "name": "storage-mirror-firestore",
   "description": "Extension to store links to GCS objects in your Firestore database",
   "author": "Firebase",
   "license": "Apache-2.0",
@@ -15,7 +15,8 @@
     "logs": "firebase functions:log",
     "test": "jest",
     "test:watch": "jest --watch",
-    "coverage": "jest --coverage"
+    "coverage": "jest --coverage",
+    "generate-readme": "node ../../generate-experimental-readme.js storage-mirror-firestore > ../README.md"
   },
   "engines": {
     "node": "10"
