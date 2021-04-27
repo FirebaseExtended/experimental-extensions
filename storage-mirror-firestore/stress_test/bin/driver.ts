@@ -305,14 +305,8 @@ const writeCmd: commander.Command = new commander.Command("write")
         const avgQps =
           tasksPerSecond * config.setsPerTask * config.operationsPerSet;
         const secondsElapsed = secondsSinceTime(state.startTime);
-        await db
-          .ref()
-          .child("tasks")
-          .remove();
-        await db
-          .ref()
-          .child("errors")
-          .remove();
+        await db.ref().child("tasks").remove();
+        await db.ref().child("errors").remove();
         state.logger.info(
           `Pushed ${tasksTotal} tasks total at a rate of ${tasksPerSecond}/s over ${secondsElapsed} seconds with ${tasksNumErrors} task errors. Average QPS: ${avgQps}\n`
         );
@@ -339,9 +333,7 @@ const updateWriteSpinner = (state: WriteState) => {
     state.spinner.text += `Press 'q' to Force Quit, press any key to stop.\n`;
   } else if (state.mode === "waiting") {
     if (state.tasksInQueue > 0) {
-      state.spinner.text = `Waiting for tasks to finish... ${
-        state.tasksInQueue
-      } tasks left in queue.\n`;
+      state.spinner.text = `Waiting for tasks to finish... ${state.tasksInQueue} tasks left in queue.\n`;
     } else {
       state.spinner.text = "No tasks remaining.\n";
     }
@@ -493,16 +485,11 @@ const pushTasks = (config: WriteConfig, tasksInQueue: number): number => {
       config.setsPerTask,
       config.operationsPerSet
     );
-    const key = db
-      .ref()
-      .child("tasks")
-      .push().key;
+    const key = db.ref().child("tasks").push().key;
     if (key == null) break;
     updates[key] = task;
   }
-  db.ref()
-    .child("tasks")
-    .update(updates);
+  db.ref().child("tasks").update(updates);
   return numTasksToPush;
 };
 
@@ -790,9 +777,7 @@ const checkCmd = new commander.Command("check")
     state.spinner.stop();
     state.logger.info(`${state.numInconsistencies} Inconsistencies found.`);
     state.logger.info(
-      `${state.firestoreNumItemsChecked} Firestore Documents for ${
-        state.storageNumFilesChecked
-      } GCS Objects.`
+      `${state.firestoreNumItemsChecked} Firestore Documents for ${state.storageNumFilesChecked} GCS Objects.`
     );
     const secondsElapsed = secondsSinceTime(state.startTime);
     state.logger.info(`Consistency Check finished in ${secondsElapsed}s`);
@@ -806,36 +791,26 @@ const checkCmd = new commander.Command("check")
 const updateCheckSpinner = (state: CheckState) => {
   state.spinner.text = `Checking Consistency... \n`;
 
-  state.spinner.text += `Checking Firestore Documents for non-existent paths: ${
-    state.firestoreNumItemsChecked
-  }/${state.firestoreNumItems} Documents checked`;
+  state.spinner.text += `Checking Firestore Documents for non-existent paths: ${state.firestoreNumItemsChecked}/${state.firestoreNumItems} Documents checked`;
   if (
     state.firestorePrefixesRemaining > 0 ||
     state.firestoreNumItemsChecked <= state.firestoreNumItems
   ) {
-    state.spinner.text += `, Prefixes Remaining: ${
-      state.firestorePrefixesRemaining
-    }\n`;
+    state.spinner.text += `, Prefixes Remaining: ${state.firestorePrefixesRemaining}\n`;
   } else {
     state.spinner.text += `, Finished! ✔️\n`;
   }
 
-  state.spinner.text += `Checking GCS for corresponding Firestore Documents: ${
-    state.storageNumFilesChecked
-  }/${state.storageNumFiles} Files checked`;
+  state.spinner.text += `Checking GCS for corresponding Firestore Documents: ${state.storageNumFilesChecked}/${state.storageNumFiles} Files checked`;
   if (
     state.storagePrefixesRemaining > 0 ||
     state.storageNumFilesChecked <= state.storageNumFiles
   ) {
-    state.spinner.text += `, Prefixes Remaining: ${
-      state.storagePrefixesRemaining
-    }\n`;
+    state.spinner.text += `, Prefixes Remaining: ${state.storagePrefixesRemaining}\n`;
   } else {
     state.spinner.text += `, Finished! ✔️\n`;
   }
-  state.spinner.text += `${
-    state.numInconsistencies
-  } Inconsistencies found so far.\n`;
+  state.spinner.text += `${state.numInconsistencies} Inconsistencies found so far.\n`;
   state.spinner.text += `Running for ${secondsSinceTime(
     state.startTime
   )} seconds.\n`;
@@ -942,9 +917,7 @@ const checkFirestore = async (
               if (!exists) {
                 // The Item Document should correspond to a Object in GCS.
                 onInconsistency(
-                  `The Firestore Document(${
-                    doc.ref.path
-                  }) represents a non-existent GCS location: ${name}`
+                  `The Firestore Document(${doc.ref.path}) represents a non-existent GCS location: ${name}`
                 );
               }
             });
@@ -965,9 +938,7 @@ const checkFirestore = async (
     if (itemDocsLength === 0 && prefixDocsLength === 0) {
       if (currPrefix === rootPrefix) {
         onInconsistency(
-          `The Root Prefix Document(${currPrefix}) for ${
-            config.prefix
-          } does not exist or is empty.`
+          `The Root Prefix Document(${currPrefix}) for ${config.prefix} does not exist or is empty.`
         );
       }
       // The Prefix Document should contain members.
@@ -1031,9 +1002,7 @@ const checkStorage = async (
           if (!doc.exists && files.length > 0) {
             // GCS Prefix should have a corresponding Document in Firestore.
             onInconsistency(
-              `The Prefix Document(${
-                doc.ref.path
-              }) for ${path} is missing in Firestore even though the Prefix exists in GCS.`
+              `The Prefix Document(${doc.ref.path}) for ${path} is missing in Firestore even though the Prefix exists in GCS.`
             );
           }
         });
@@ -1089,17 +1058,13 @@ const validateDocument = (
 ): string | null => {
   if (!snapshot.exists) {
     // Item Document should exist for each GCS Object.
-    return `The Item Document(${snapshot.ref.path}) for ${
-      file.name
-    } is missing in Firestore even though it exists in GCS.`;
+    return `The Item Document(${snapshot.ref.path}) for ${file.name} is missing in Firestore even though it exists in GCS.`;
   } else if (
     snapshot.data()![constants.metadataField].size !==
     Number(file.metadata.size)
   ) {
     // Item Document should have correct size if the file was overwritten.
-    return `The Item Document(${snapshot.ref.path}) for ${
-      file.name
-    } is stale in Firestore. It contains the incorrect size.`;
+    return `The Item Document(${snapshot.ref.path}) for ${file.name} is stale in Firestore. It contains the incorrect size.`;
   } else if (
     !lodash.isEqual(
       snapshot.data()![constants.metadataField][constants.customMetadata],
@@ -1107,9 +1072,7 @@ const validateDocument = (
     )
   ) {
     // Item Document should have the correct custom metadata.
-    return `The Item Document(${snapshot.ref.path}) for ${
-      file.name
-    } is stale in Firestore. It contains out-of-date custom metadata.`;
+    return `The Item Document(${snapshot.ref.path}) for ${file.name} is stale in Firestore. It contains out-of-date custom metadata.`;
   }
   // No inconsistencies were found.
   return null;
@@ -1211,14 +1174,8 @@ const cleanCmd = new commander.Command("clean")
   });
 
 const updateCleanSpinner = (state: CleanState) => {
-  state.spinner.text = `Cleaning up Firestore: ${
-    state.firestoreNumItemsDeleted
-  }/${state.firestoreNumItems} Documents deleted. Prefixes Remaining: ${
-    state.firestorePrefixesRemaining
-  }\n`;
-  state.spinner.text += `Cleaning up GCS: ${state.storageNumItemsDeleted}/${
-    state.storageNumItems
-  } items deleted.\n`;
+  state.spinner.text = `Cleaning up Firestore: ${state.firestoreNumItemsDeleted}/${state.firestoreNumItems} Documents deleted. Prefixes Remaining: ${state.firestorePrefixesRemaining}\n`;
+  state.spinner.text += `Cleaning up GCS: ${state.storageNumItemsDeleted}/${state.storageNumItems} items deleted.\n`;
 };
 
 /**

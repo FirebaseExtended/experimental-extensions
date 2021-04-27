@@ -1,4 +1,4 @@
-module.exports = async function() {
+module.exports = async function () {
   process.env = Object.assign(process.env, {
     BUCKET: "test.appspot.com",
     LOCATION: "us-central1",

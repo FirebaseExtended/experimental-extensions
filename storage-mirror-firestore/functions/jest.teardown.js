@@ -1,4 +1,4 @@
-module.exports = async function() {
+module.exports = async function () {
   delete process.env.BUCKET;
   delete process.env.LOCATION;
   delete process.env.FIRESTORE_ROOT;

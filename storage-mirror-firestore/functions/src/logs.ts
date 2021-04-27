@@ -125,8 +125,6 @@ export const invalidPrefixDocument = (id: string) => {
 
 export const missingLastEventField = (id: string) => {
   console.log(
-    `Missing ${
-      Constants.lastEventField
-    } field in Document with id: ${id}, treating as stale.`
+    `Missing ${Constants.lastEventField} field in Document with id: ${id}, treating as stale.`
   );
 };

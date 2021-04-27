@@ -6,7 +6,8 @@ import * as functions from "firebase-functions";
 export type Operation = (
   | { type: "write"; size: number; metadata?: any }
   | { type: "update"; metadata: any }
-  | { type: "delete" }) & { path: string };
+  | { type: "delete" }
+) & { path: string };
 // A set of Operations to be performed sequentially.
 export type OperationSet = Operation[];
 // A group of Operation Sets that can be performed in parallel.

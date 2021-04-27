@@ -123,9 +123,6 @@ export function mirrorDocumentPathToTombstonePath(path: string): string {
  * @param path The Document path
  */
 export function pathHash(path: string): string {
-  const hash = crypto
-    .createHash("md5")
-    .update(path)
-    .digest("hex");
+  const hash = crypto.createHash("md5").update(path).digest("hex");
   return hash;
 }
