@@ -1,0 +1,193 @@
+name: storage-mirror-firestore
+version: 0.1.0
+specVersion: v1beta
+
+displayName: Store links to GCS files in Firestore
+description:
+  Writes Firestore Documents for GCS Objects with it's Metadata as Document
+  fields.
+
+license: Apache-2.0
+
+sourceUrl: https://google.com
+releaseNotesUrl: https://google.com
+
+author:
+  authorName: Firebase
+  url: https://firebase.google.com
+
+contributors:
+  - authorName: Kevin Leung
+    url: https://github.com/kevinleung987
+  - authorName: Jeffrey Dallatezza
+    url: https://github.com/jsdt
+
+billingRequired: false
+
+apis:
+  - apiName: storage-component.googleapis.com
+    reason: Needed to use Cloud Storage
+  - apiName: firestore.googleapis.com
+    reason: Needed to use Cloud Firestore
+
+roles:
+  - role: storage.objectViewer
+    reason: Allows the extension to read from Cloud Storage.
+  - role: datastore.user
+    reason: Allows the extension to read & write to Cloud Firestore.
+
+resources:
+  - name: mirrorObjectPathHttp
+    type: firebaseextensions.v1beta.function
+    description:
+      Mirrors the GCS state of an object path to Firestore.
+    properties:
+      location: ${LOCATION}
+      runtime: nodejs10
+      httpsTrigger: {}
+  - name: mirrorFinalize
+    type: firebaseextensions.v1beta.function
+    description:
+      Listens for changes in your specified Cloud Storage bucket, and updates
+      Firestore appropriately.
+    properties:
+      location: ${LOCATION}
+      runtime: nodejs10
+      eventTrigger:
+        eventType: google.storage.object.finalize
+        resource: projects/_/buckets/${BUCKET}
+  - name: mirrorDelete
+    type: firebaseextensions.v1beta.function
+    description:
+      Listens for changes in your specified Cloud Storage bucket, and updates
+      Firestore appropriately.
+    properties:
+      location: ${LOCATION}
+      runtime: nodejs10
+      eventTrigger:
+        eventType: google.storage.object.delete
+        resource: projects/_/buckets/${BUCKET}
+  - name: mirrorArchive
+    type: firebaseextensions.v1beta.function
+    description:
+      Listens for changes in your specified Cloud Storage bucket, and updates
+      Firestore appropriately.
+    properties:
+      location: ${LOCATION}
+      runtime: nodejs10
+      eventTrigger:
+        eventType: google.storage.object.archive
+        resource: projects/_/buckets/${BUCKET}
+  - name: mirrorMetadataUpdate
+    type: firebaseextensions.v1beta.function
+    description:
+      Listens for changes in your specified Cloud Storage bucket, and updates
+      Firestore appropriately.
+    properties:
+      location: ${LOCATION}
+      runtime: nodejs10
+      eventTrigger:
+        eventType: google.storage.object.metadataUpdate
+        resource: projects/_/buckets/${BUCKET}
+
+params:
+  - param: LOCATION
+    type: select
+    label: Cloud Functions location
+    description: >-
+      Where do you want to deploy the functions created for this extension?
+      You usually want a location close to your database. For help selecting a
+      location, refer to the [location selection
+      guide](https://firebase.google.com/docs/functions/locations).
+    options:
+      - label: Iowa (us-central1)
+        value: us-central1
+      - label: South Carolina (us-east1)
+        value: us-east1
+      - label: Northern Virginia (us-east4)
+        value: us-east4
+      - label: Belgium (europe-west1)
+        value: europe-west1
+      - label: London (europe-west2)
+        value: europe-west2
+      - label: Hong Kong (asia-east2)
+        value: asia-east2
+      - label: Tokyo (asia-northeast1)
+        value: asia-northeast1
+    default: us-central1
+    required: true
+    immutable: true
+
+  - param: BUCKET
+    type: string
+    label: Cloud Storage bucket to mirror
+    description: >
+      Which Cloud Storage bucket should we mirror?
+    default: ${STORAGE_BUCKET}
+    # validationRegex: (.)+\.(.)+\.(.)+
+    validationErrorMessage: Invalid storage bucket
+    example: my-project-12345.appspot.com
+    required: true
+
+  - param: FIRESTORE_ROOT
+    label: Root Document path
+    description: >
+      What is the path to the collection where documents references should be
+      stored?
+    validationRegex: "^[^/]+/[^/]+(/[^/]+/[^/]+)*$" # Must be a path to a document.
+    default: gcs-mirror/${STORAGE_BUCKET}
+    example: mybucket
+    required: true
+
+  - param: ITEMS_SUBCOLLECTION_NAME
+    label: Items Subcollection Name
+    description: >
+      What should we call subcollections representing GCS Objects?
+    default: items
+    example: items
+    required: true
+
+  - param: ITEMS_TOMBSTONES_NAME
+    label: Item Tombstones Subcollection Name
+    description: >
+      What should we call subcollections representing deleted GCS Objects?
+    default: items-tombstones
+    example: items-tombstones
+    required: true
+
+  - param: PREFIXES_SUBCOLLECTION_NAME
+    label: Prefixes Subcollection Name
+    description: >
+      What should we call subcollections representing Object Prefixes?
+    default: prefixes
+    example: prefixes
+    required: true
+
+  - param: PREFIXES_TOMBSTONES_NAME
+    label: Prefix Tombstones Subcollection Name
+    description: >
+      What should we call subcollections representing deleted Object Prefixes?
+    default: prefixes-tombstones
+    example: prefixes-tombstones
+    required: true
+
+  - param: CUSTOM_METADATA_FILTER
+    label: Custom Metadata Field filter
+    description: >
+      Regex describing which custom metadata fields should be mirrored.
+    default: ".*" # Make this filter out download tokens by default?
+    example: "^(?!firebaseStorageDownloadTokens).*"
+
+  - param: METADATA_FIELD_FILTER
+    label: Metadata Field filter
+    description: >
+      Regex describing which object metadata fields should be mirrored.
+    default: ".*"
+    example: "^(?!mediaLink).*"
+
+  - param: OBJECT_NAME_FILTER
+    label: Object Name filter
+    description: >
+      Regex describing which objects should be mirrored.
+    default: ".*"
+    example: "^specialPath/.*"
