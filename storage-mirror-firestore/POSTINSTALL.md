@@ -11,7 +11,7 @@ You can test out this extension right away:
 
 Any changes made in Cloud Storage will be reflected in the Firestore mirror. Each delimited path prefix segment in the Object path
 will be separated by `/${param:PREFIXES_SUBCOLLECTION_NAME}/` and the Object itself can be found in 
-the `${param:ITEMS_SUBCOLLECTION_NAME}}` in the Prefix Document representing the parent Prefix.
+the `${param:ITEMS_SUBCOLLECTION_NAME}` in the Prefix Document representing the parent Prefix.
 
 #### Path Mapping Example
 
