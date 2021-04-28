@@ -45,8 +45,7 @@ If you already have objects in GCS that should be mirrored to Firestore, you can
 
 ### (Optional) Cleaning Up Tombstones
 
-You can find instructions on how to use the Tombstone Cleanup tool to clean up all the Firestore Documents corresponding
-to deleted Objects [here](TODO: Tombstone tool url).
+*TODO*: Implement clean-up tool for tombstone documents
 
 ### Monitoring
 
