@@ -9,8 +9,7 @@ description:
 
 license: Apache-2.0
 
-sourceUrl: https://google.com
-releaseNotesUrl: https://google.com
+sourceUrl: https://github.com/FirebaseExtended/experimental-extensions/tree/main/storage-mirror-firestore
 
 author:
   authorName: Firebase
@@ -134,7 +133,7 @@ params:
     description: >
       What is the path to the collection where documents references should be
       stored?
-    validationRegex: "^[^/]+/[^/]+(/[^/]+/[^/]+)*$" # Must be a path to a document.
+    validationRegex: "^[^/]+/[^/]+(/[^/]+/[^/]+)*$" 
     default: gcs-mirror/${STORAGE_BUCKET}
     example: mybucket
     required: true
