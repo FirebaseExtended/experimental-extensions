@@ -1,5 +1,5 @@
 name: storage-mirror-firestore
-version: 0.1.0
+version: 0.1.1
 specVersion: v1beta
 
 displayName: Store links to GCS files in Firestore
@@ -9,7 +9,7 @@ description:
 
 license: Apache-2.0
 
-sourceUrl: https://github.com/FirebaseExtended/experimental-extensions/tree/main/storage-mirror-firestore
+sourceUrl: https://github.com/FirebaseExtended/experimental-extensions/tree/next/storage-mirror-firestore
 
 author:
   authorName: Firebase
@@ -121,7 +121,7 @@ params:
     type: string
     label: Cloud Storage bucket to mirror
     description: >
-      Which Cloud Storage bucket should we mirror?
+      Which Cloud Storage bucket should this extension mirror?
     default: ${STORAGE_BUCKET}
     # validationRegex: (.)+\.(.)+\.(.)+
     validationErrorMessage: Invalid storage bucket
@@ -129,9 +129,9 @@ params:
     required: true
 
   - param: FIRESTORE_ROOT
-    label: Root Document path
+    label: Root document path
     description: >
-      What is the path to the collection where documents references should be
+      What is the path to the collection where document references should be
       stored?
     validationRegex: "^[^/]+/[^/]+(/[^/]+/[^/]+)*$" 
     default: gcs-mirror/${STORAGE_BUCKET}
@@ -139,7 +139,7 @@ params:
     required: true
 
   - param: ITEMS_SUBCOLLECTION_NAME
-    label: Items Subcollection Name
+    label: Items' subcollection name
     description: >
       What should we call subcollections representing GCS Objects?
     default: items
@@ -147,15 +147,15 @@ params:
     required: true
 
   - param: ITEMS_TOMBSTONES_NAME
-    label: Item Tombstones Subcollection Name
+    label: Item tombstones subcollection name
     description: >
-      What should we call subcollections representing deleted GCS Objects?
+      What should we call the subcollections representing deleted GCS Objects?
     default: items-tombstones
     example: items-tombstones
     required: true
 
   - param: PREFIXES_SUBCOLLECTION_NAME
-    label: Prefixes Subcollection Name
+    label: Prefixes subcollection name
     description: >
       What should we call subcollections representing Object Prefixes?
     default: prefixes
@@ -163,7 +163,7 @@ params:
     required: true
 
   - param: PREFIXES_TOMBSTONES_NAME
-    label: Prefix Tombstones Subcollection Name
+    label: Prefix tombstones subcollection name
     description: >
       What should we call subcollections representing deleted Object Prefixes?
     default: prefixes-tombstones
@@ -171,21 +171,21 @@ params:
     required: true
 
   - param: CUSTOM_METADATA_FILTER
-    label: Custom Metadata Field filter
+    label: Custom metadata field filter
     description: >
       Regex describing which custom metadata fields should be mirrored.
     default: ".*" # Make this filter out download tokens by default?
     example: "^(?!firebaseStorageDownloadTokens).*"
 
   - param: METADATA_FIELD_FILTER
-    label: Metadata Field filter
+    label: Metadata field filter
     description: >
       Regex describing which object metadata fields should be mirrored.
     default: ".*"
     example: "^(?!mediaLink).*"
 
   - param: OBJECT_NAME_FILTER
-    label: Object Name filter
+    label: Object name filter
     description: >
       Regex describing which objects should be mirrored.
     default: ".*"
