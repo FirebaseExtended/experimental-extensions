@@ -134,16 +134,18 @@ async function processWrite(
     switch (CLEANUP) {
       case "DELETE":
         await ref.delete();
+        break;
       case "KEEP":
         await ref.update({
           state: "DELIVERED",
           updateTime: admin.firestore.FieldValue.serverTimestamp(),
           endTime: admin.firestore.FieldValue.serverTimestamp(),
         });
+        break;
     }
   }
 
-  return { success: !!error, error, id: ref.id };
+  return { success: !error, error, id: ref.id };
 }
 
 async function resetStuck(): Promise<void> {
