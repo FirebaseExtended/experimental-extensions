@@ -38,9 +38,17 @@ Serves Firestore Data Bundles based on specs defined as Firestore Documents, wit
 
 Extracts text from images uploaded to a Cloud Storage bucket and writes extracted text to Firestore.
 
+### [Label Videos with Video Intelligence API](/storage-label-videos#storage-label-videos)
+
+Extracts labels from your videos uploaded to Storage and writes the extracted labels to Storage as a JSON file.
+
 ### [Mirror GCS objects in Firestore collections](/storage-mirror-firestore#storage-mirror-firestore)
 
 Extension to store links to Google Cloud Storage objects in a Firestore collection.
+
+### [Transcode Videos with Transcoder API](/storage-transcode-videos#storage-transcode-videos)
+
+Transcode video files into formats suitable for consumer distribution.
 
 ## Status
 
