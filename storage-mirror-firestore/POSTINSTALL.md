@@ -22,10 +22,18 @@ Configuration Parameters:
 - Items Subcollection Name: `${param:ITEMS_SUBCOLLECTION_NAME}`
 - Prefixes Subcollection Name: `/${param:PREFIXES_SUBCOLLECTION_NAME}/`
 
-| Cloud Storage Path                | Firestore Document Path                                                                                                                                                                                                                                                                           |
-| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| gs://mybucket/root_photo.jpg      | `doc('${param:FIRESTORE_ROOT}').collection('${param:ITEMS_SUBCOLLECTION_NAME}').doc('root_photo.jpg')`                                                                                                                                                                                             |
-| gs://mybucket/2019/08/1/photo.jpg | `doc('${param:FIRESTORE_ROOT}').collection('/${param:PREFIXES_SUBCOLLECTION_NAME}/').doc('2019') .collection('/${param:PREFIXES_SUBCOLLECTION_NAME}/').doc('08') .collection('/${param:PREFIXES_SUBCOLLECTION_NAME}/').doc('1') .collection('${param:ITEMS_SUBCOLLECTION_NAME}').doc('photo.jpg')` |
+
+gs://mybucket/root_photo.jpg:
+
+```JavaScript
+doc(`${param:FIRESTORE_ROOT}`).collection(`${param:ITEMS_SUBCOLLECTION_NAME}`).doc('root_photo.jpg')
+```
+
+gs://mybucket/2019/08/1/photo.jpg:
+
+```JavaScript
+doc(`${param:FIRESTORE_ROOT}`).collection(`/${param:PREFIXES_SUBCOLLECTION_NAME}/`).doc('2019').collection(`/${param:PREFIXES_SUBCOLLECTION_NAME}/`).doc('08').collection(`/${param:PREFIXES_SUBCOLLECTION_NAME}/`).doc('1').collection(`${param:ITEMS_SUBCOLLECTION_NAME}').doc('photo.jpg`)
+```
 
 #### Firestore Query Example
 
