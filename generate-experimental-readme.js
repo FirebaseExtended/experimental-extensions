@@ -1,31 +1,14 @@
+/**
+ * A script to generate a special readme. Example use:
+ *
+ * node ../../generate-experimental-readme.js storage-image-labeling > ../README.md
+ */
+
 const { exec } = require("child_process");
 const { promisify } = require("util");
-const fetch = require("node-fetch");
 const prettier = require("prettier");
 
-const EXTENSIONS_REGISTRY_PROD =
-  "https://extensions-registry.firebaseapp.com/extensions.json";
-const EXTENSIONS_REGISTRY_STAGING =
-  "https://staging-extensions-registry.firebaseapp.com/extensions.json";
-
-function getLatestSource(extensionName) {
-  return fetch(EXTENSIONS_REGISTRY_PROD)
-    .then((res) => res.json())
-    .then((registry) => {
-      const extensionMetadata = registry.mods[extensionName];
-
-      if (!extensionMetadata) {
-        throw new Error(
-          `Could not find extension "${extensionName}" in registry`
-        );
-      }
-
-      const latestVersion = extensionMetadata.labels.latest;
-      return extensionMetadata.versions[latestVersion];
-    });
-}
-
-function getExperimentalBlurb(extensionName, source) {
+function getExperimentalBlurb(extensionId) {
   return `
 
 ---
@@ -36,12 +19,12 @@ function getExperimentalBlurb(extensionName, source) {
 
 ### Console
 
-[![Install this extension in your Firebase project](../install-extension.png?raw=true "Install this extension in your Firebase project")](https://console.firebase.google.com/project/_/extensions/install?sourceName=${source})
+[![Install this extension in your Firebase project](../install-extension.png?raw=true "Install this extension in your Firebase project")](https://console.firebase.google.com/project/_/extensions/install?ref=firebase/${extensionId})
 
 ### Firebase CLI
 
 \`\`\`bash
-firebase ext:install ${extensionName} --project=<your-project-id>
+firebase ext:install firebase/${extensionId} --project=<your-project-id>
 \`\`\`
 
 > Learn more about installing extensions in the Firebase Extensions documentation: [console](https://firebase.google.com/docs/extensions/install-extensions?platform=console), [CLI](https://firebase.google.com/docs/extensions/install-extensions?platform=cli)
@@ -61,11 +44,9 @@ async function generateReadme(extensionName) {
   const initialReadme = await runDefaultReadmeScript();
   const insertIndex = initialReadme.indexOf("**Details**:");
 
-  const extensionSource = await getLatestSource(extensionName);
-
   const fullReadme =
     initialReadme.slice(0, insertIndex) +
-    getExperimentalBlurb(extensionName, extensionSource) +
+    getExperimentalBlurb(extensionName) +
     initialReadme.slice(insertIndex);
 
   return prettier.format(fullReadme, { parser: "markdown" });

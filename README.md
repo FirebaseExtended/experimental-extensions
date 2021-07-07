@@ -14,6 +14,10 @@ Each directory in this repo contains the source code for an extension and a READ
 
 Set custom claims for Firebase Auth users from values set in Firestore.
 
+### [Analyze Toxicity with Perspective API](/firestore-perspective-toxicity#analyze-toxicity-with-perspective-api)
+
+Use this extension to get toxicity scores from Perspective API for comments written to a Cloud Firestore collection.
+
 ### [Schedule Firestore writes](/firestore-schedule-writes#schedule-firestore-writes)
 
 Write documents to Firestore at an arbitrary time in the future.
@@ -26,9 +30,25 @@ Determines the sentiment magnitude and score for given text values in Firestore.
 
 Shortens URLs written to a specified Cloud Firestore collection using Firebase Dynamic Links.
 
+### [Serve Firestore Data Bundles](/firestore-bundle-server#firestore-bundle-server)
+
+Serves Firestore Data Bundles based on specs defined as Firestore Documents, with the ability to use Hosting and Storage as cache.
+
 ### [Image text extraction](/storage-extract-image-text#image-text-extraction)
 
 Extracts text from images uploaded to a Cloud Storage bucket and writes extracted text to Firestore.
+
+### [Label Videos with Video Intelligence API](/storage-label-videos#storage-label-videos)
+
+Extracts labels from your videos uploaded to Storage and writes the extracted labels to Storage as a JSON file.
+
+### [Mirror GCS objects in Firestore collections](/storage-mirror-firestore#storage-mirror-firestore)
+
+Extension to store links to Google Cloud Storage objects in a Firestore collection.
+
+### [Transcode Videos with Transcoder API](/storage-transcode-videos#storage-transcode-videos)
+
+Transcode video files into formats suitable for consumer distribution.
 
 ## Status
 

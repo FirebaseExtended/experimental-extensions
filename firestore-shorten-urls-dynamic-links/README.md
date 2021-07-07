@@ -12,12 +12,12 @@
 
 ### Console
 
-[![Install this extension in your Firebase project](../install-extension.png?raw=true "Install this extension in your Firebase project")](https://console.firebase.google.com/project/_/extensions/install?sourceName=projects/firebasemods/sources/eb2b3e3a-4ef1-4998-93c7-8f541e8c918e)
+[![Install this extension in your Firebase project](../install-extension.png?raw=true "Install this extension in your Firebase project")](https://console.firebase.google.com/project/_/extensions/install?ref=firebase/firestore-shorten-urls-dynamic-links)
 
 ### Firebase CLI
 
 ```bash
-firebase ext:install firestore-shorten-urls-dynamic-links --project=<your-project-id>
+firebase ext:install firebase/firestore-shorten-urls-dynamic-links --project=<your-project-id>
 ```
 
 > Learn more about installing extensions in the Firebase Extensions documentation: [console](https://firebase.google.com/docs/extensions/install-extensions?platform=console), [CLI](https://firebase.google.com/docs/extensions/install-extensions?platform=cli)
