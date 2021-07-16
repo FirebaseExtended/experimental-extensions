@@ -797,9 +797,6 @@ const cleanTombstonesCommand = new commander.Command("clean-tombstones")
           document.exists &&
           document.ref.path.startsWith(instance.config.params.FIRESTORE_ROOT)
         ) {
-          console.log(
-            `Found item tombstone record at path '${document.ref.path}'`
-          );
           countOfTombstones++;
           writer.delete(document.ref);
         }
@@ -820,9 +817,6 @@ const cleanTombstonesCommand = new commander.Command("clean-tombstones")
           document.exists &&
           document.ref.path.startsWith(instance.config.params.FIRESTORE_ROOT)
         ) {
-          console.log(
-            `Found prefix tombstone record at path '${document.ref.path}'`
-          );
           countOfTombstones++;
           writer.delete(document.ref);
         }
