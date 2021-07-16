@@ -58,11 +58,12 @@ const itemsSnapshot = await firestore
 
 ### (Optional) Backfill
 
-If you already have objects in GCS that should be mirrored to Firestore, you can use the backfill tool in the stress_test subdirectory. If you application default credentials are set up, you can just run `npm run-script start -- backfill` from that directory.
+If you already have objects in GCS that should be mirrored to Firestore, you can use the backfill tool in the stress_test subdirectory. If your application default credentials are set up, you can just run `npm run-script start -- backfill` from that directory.
 
 ### (Optional) Cleaning Up Tombstones
 
-*TODO*: Implement clean-up tool for tombstone documents
+If you want to cleanup tombstone records, you can use the cleanup tool in the stress_test subdirectory. If your application default credentials are set up, you can just run `npm run-script start -- clean-tombstones` from that directory. You can optionally also specify the
+`--instance-id <extension_instance_id>` and `--project <project_id>` params for this script.
 
 ### Monitoring
 
