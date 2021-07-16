@@ -786,9 +786,8 @@ const cleanTombstonesCommand = new commander.Command("clean-tombstones")
     const itemTombstonesCollectionGroup = admin
       .firestore()
       .collectionGroup(instance.config.params.ITEMS_TOMBSTONES_NAME);
-    const itemTombstonesPartitions = itemTombstonesCollectionGroup.getPartitions(
-      42
-    );
+    const itemTombstonesPartitions =
+      itemTombstonesCollectionGroup.getPartitions(42);
     for await (const partition of itemTombstonesPartitions) {
       const partitionSnapshot = await partition.toQuery().get();
       const documents = partitionSnapshot.docs;
@@ -810,9 +809,8 @@ const cleanTombstonesCommand = new commander.Command("clean-tombstones")
     const prefixTombstonesCollectionGroup = admin
       .firestore()
       .collectionGroup(instance.config.params.PREFIXES_TOMBSTONES_NAME);
-    const prefixTombstonesPartitions = prefixTombstonesCollectionGroup.getPartitions(
-      42
-    );
+    const prefixTombstonesPartitions =
+      prefixTombstonesCollectionGroup.getPartitions(42);
     for await (const partition of prefixTombstonesPartitions) {
       const partitionSnapshot = await partition.toQuery().get();
       const documents = partitionSnapshot.docs;
