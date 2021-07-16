@@ -711,6 +711,137 @@ const backfillCmd = new commander.Command("backfill")
     spinner.succeed(`Mirrored ${succeeded} paths in ${elapsed}s.`);
   });
 
+const cleanTombstonesCommand = new commander.Command("clean-tombstones")
+  .allowUnknownOption(false)
+  .description("delete tombstone records from firestore")
+  .option(
+    "--project <project_id>",
+    "project id which has the extension installed"
+  )
+  .option(
+    "--instance-id <extension_instance_id>",
+    "instance id of the extension (which can be found with `firebase ext:list`).",
+    "storage-mirror-firestore"
+  )
+  .action(async (command: commander.Command) => {
+    interface CommandWithOpts extends commander.Command {
+      project?: string;
+      instanceId?: string;
+    }
+    interface ExtensionInstance {
+      state: string;
+      config: {
+        params: {
+          ITEMS_TOMBSTONES_NAME: string;
+          PREFIXES_TOMBSTONES_NAME: string;
+          FIRESTORE_ROOT: string;
+        };
+      };
+    }
+
+    const options = command as CommandWithOpts;
+    const auth = new GoogleAuth({
+      scopes: ["https://www.googleapis.com/auth/firebase.readonly"],
+    });
+    const authClient = await auth.getClient();
+    const projectId = options.project || (await auth.getProjectId());
+
+    let instance: ExtensionInstance;
+    let url = `https://firebaseextensions.googleapis.com/v1beta/projects/${projectId}/instances/${options.instanceId}`;
+    try {
+      const response = await authClient.request({ url });
+      instance = response.data as ExtensionInstance;
+    } catch (e) {
+      if (e.code === 404) {
+        console.error(
+          `Extension instance '${options.instanceId}' on project '${projectId}' was not found.`
+        );
+        process.exit(1);
+      }
+      throw e;
+    }
+
+    if (instance.state !== "ACTIVE") {
+      console.error(
+        `Extension instance '${options.instanceId}' on project '${projectId}' is not active.`
+      );
+      return;
+    }
+
+    const prompt = `Are you sure you want to delete tombstone records from Firestore for the project '${projectId}' and instance '${options.instanceId}'?`;
+    if (!(await confirm(prompt))) {
+      process.exit(0);
+    }
+
+    console.log("\nScanning project for tombstone records...\n");
+
+    admin.initializeApp({
+      credential: admin.credential.applicationDefault(),
+      projectId: projectId,
+    });
+
+    let countOfTombstones = 0;
+    const writer = admin.firestore().bulkWriter();
+
+    const itemTombstonesCollectionGroup = admin
+      .firestore()
+      .collectionGroup(instance.config.params.ITEMS_TOMBSTONES_NAME);
+    const itemTombstonesPartitions = itemTombstonesCollectionGroup.getPartitions(
+      42
+    );
+    for await (const partition of itemTombstonesPartitions) {
+      const partitionSnapshot = await partition.toQuery().get();
+      const documents = partitionSnapshot.docs;
+      for (const document of documents) {
+        // Only delete if the path matches the extensions configured Firestore root.
+        if (
+          document.exists &&
+          document.ref.path.startsWith(instance.config.params.FIRESTORE_ROOT)
+        ) {
+          console.log(
+            `Found item tombstone record at path '${document.ref.path}'`
+          );
+          countOfTombstones++;
+          writer.delete(document.ref);
+        }
+      }
+    }
+
+    const prefixTombstonesCollectionGroup = admin
+      .firestore()
+      .collectionGroup(instance.config.params.PREFIXES_TOMBSTONES_NAME);
+    const prefixTombstonesPartitions = prefixTombstonesCollectionGroup.getPartitions(
+      42
+    );
+    for await (const partition of prefixTombstonesPartitions) {
+      const partitionSnapshot = await partition.toQuery().get();
+      const documents = partitionSnapshot.docs;
+      for (const document of documents) {
+        // Only delete if the path matches the extensions configured Firestore root.
+        if (
+          document.exists &&
+          document.ref.path.startsWith(instance.config.params.FIRESTORE_ROOT)
+        ) {
+          console.log(
+            `Found prefix tombstone record at path '${document.ref.path}'`
+          );
+          countOfTombstones++;
+          writer.delete(document.ref);
+        }
+      }
+    }
+
+    if (countOfTombstones > 0) {
+      console.log(
+        `\n-- Found a total of ${countOfTombstones} tombstone records, deleting...\n`
+      );
+      await writer.close();
+      console.log(`Cleanup successful!`);
+    } else {
+      console.log(`No tombstone records found.`);
+    }
+  });
+
 const checkCmd = new commander.Command("check")
   .allowUnknownOption(false)
   .description("check for consistency between GCS and Firestore")
@@ -1249,7 +1380,7 @@ const cleanFirestore = async (
     while (prefixes.length > 0) {
       const currPrefix = prefixes.pop() as string;
       // Paginate requests to Firestore to preserve memory.
-      const prefixesPromise = new Promise(async (resolve, reject) => {
+      const prefixesPromise = new Promise<void>(async (resolve, reject) => {
         const prefixesSnapshot = await firestore
           .collection(`${currPrefix}/${constants.prefixes}`)
           .get();
@@ -1316,6 +1447,7 @@ const rootCmd = new commander.Command("driver")
   .addCommand(writeCmd)
   .addCommand(checkCmd)
   .addCommand(backfillCmd)
+  .addCommand(cleanTombstonesCommand)
   .addCommand(cleanCmd);
 rootCmd.parseAsync(process.argv).catch((e) => {
   console.error(e);
