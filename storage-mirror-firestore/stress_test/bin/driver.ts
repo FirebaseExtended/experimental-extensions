@@ -786,8 +786,11 @@ const cleanTombstonesCommand = new commander.Command("clean-tombstones")
     const itemTombstonesCollectionGroup = admin
       .firestore()
       .collectionGroup(instance.config.params.ITEMS_TOMBSTONES_NAME);
+    // Using a partition size that worked well in testing on other
+    // extension scripts (e.g. the BigQuery import script).
+    const partitionSize = 300;
     const itemTombstonesPartitions =
-      itemTombstonesCollectionGroup.getPartitions(42);
+      itemTombstonesCollectionGroup.getPartitions(partitionSize);
     for await (const partition of itemTombstonesPartitions) {
       const partitionSnapshot = await partition.toQuery().get();
       const documents = partitionSnapshot.docs;
