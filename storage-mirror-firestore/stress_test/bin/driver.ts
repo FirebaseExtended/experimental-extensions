@@ -828,7 +828,7 @@ const cleanTombstonesCommand = new commander.Command("clean-tombstones")
 
     if (countOfTombstones > 0) {
       console.log(
-        `\n-- Found a total of ${countOfTombstones} tombstone records, deleting...\n`
+        `Found a total of ${countOfTombstones} tombstone documents to remove. Cleaning up documents...`
       );
       await writer.close();
       console.log(`Cleanup successful!`);
