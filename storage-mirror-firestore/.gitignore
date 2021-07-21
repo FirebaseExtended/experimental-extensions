@@ -27,6 +27,3 @@ node_modules/
 .firebaserc
 credential*.json
 
-# Compiled Output
-stress_test/functions/lib
-stress_test/lib
