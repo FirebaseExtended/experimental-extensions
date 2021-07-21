@@ -56,11 +56,21 @@ const itemsSnapshot = await firestore
             .limit(5)
 ```
 
-### (Optional) Backfill
+## Scripts (Optional)
 
-If you already have objects in GCS that should be mirrored to Firestore, you can use the backfill tool in the stress_test subdirectory. If you application default credentials are set up, you can just run `npm run-script start -- backfill` from that directory.
+This project includes a number of utilities that can be ran from a terminal on your local machine.
 
-### (Optional) Cleaning Up Tombstones
+If application default credentials are set up, you can simply run the scripts below.
+
+Otherwise, please see [Application Default Credentials](https://cloud.google.com/docs/authentication/production) to setup your local environment.
+
+### Backfill
+
+If you already have objects in GCS that should be mirrored to Firestore, you can use the backfill tool in the storage-mirror-firestore-stress-test package.
+
+To run this function you can just run `npm run-script start -- backfill` from that directory
+
+### Cleaning Up Tombstones
 
 *TODO*: Implement clean-up tool for tombstone documents
 
