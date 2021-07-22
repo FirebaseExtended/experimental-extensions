@@ -60,6 +60,8 @@ const itemsSnapshot = await firestore
 
 This project includes a number of utilities that can be ran from a terminal on your local machine.
 
+To access these utilities, please [clone](https://www.npmjs.com/org/firebaseextensions) or run via `npx @firebaseextensions/storage-mirror-firestore-utilities`
+
 If application default credentials are set up, you can simply run the scripts below.
 
 Otherwise, please see [Application Default Credentials](https://cloud.google.com/docs/authentication/production) to setup your local environment.
