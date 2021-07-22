@@ -1,5 +1,5 @@
 {
-  "name": "storage-mirror-firestore-stress-test",
+  "name": "storage-mirror-firestore-utilities",
   "scripts": {
     "start": "ts-node --transpile-only bin/driver.ts",
     "local": "ts-node bin/driver.ts --test",
