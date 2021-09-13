@@ -45,7 +45,7 @@ class ServiceAccountCredential {
             if (typeof this.accessToken === "undefined" ||
                 typeof this.tokenExpiration === "undefined" ||
                 this.tokenExpiration < nowish) {
-                const metadataResponse = yield node_fetch_1.default(this.metadataServiceUri, {
+                const metadataResponse = yield (0, node_fetch_1.default)(this.metadataServiceUri, {
                     headers: {
                         "Metadata-Flavor": "Google",
                     },
@@ -81,7 +81,7 @@ class FirestoreDynamicLinksUrlShortener extends abstract_shortener_1.FirestoreUr
                     },
                     suffix: { option: this.dynamicLinkSuffixLength },
                 };
-                const response = yield node_fetch_1.default(this.dynamicLinksApiUrl, {
+                const response = yield (0, node_fetch_1.default)(this.dynamicLinksApiUrl, {
                     headers: {
                         Authorization: `Bearer ${accessToken}`,
                     },
