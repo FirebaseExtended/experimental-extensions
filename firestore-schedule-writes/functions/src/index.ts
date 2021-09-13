@@ -46,7 +46,7 @@ async function fetchAndProcess(): Promise<void> {
     return;
   }
 
-  const promises = toProcess.docs.map(doc => {
+  const promises = toProcess.docs.map((doc) => {
     return processWrite(doc.ref, doc.data() as QueuedWrite);
   });
 
@@ -96,7 +96,7 @@ async function processWrite(
       throw new Error("no target collection/doc was specified for this write");
     }
 
-    await admin.firestore().runTransaction(async txn => {
+    await admin.firestore().runTransaction(async (txn) => {
       const existingWrite = await txn.get(ref);
       if (existingWrite.get("state") !== "PENDING") {
         throw new Error(
@@ -157,7 +157,7 @@ async function resetStuck(): Promise<void> {
     .get();
 
   await Promise.all(
-    stuck.docs.map(async doc => {
+    stuck.docs.map(async (doc) => {
       await doc.ref.update({
         state: "PENDING",
         timeouts: admin.firestore.FieldValue.increment(1),
