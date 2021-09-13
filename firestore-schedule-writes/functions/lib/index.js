@@ -23,7 +23,7 @@ async function fetchAndProcess() {
         functions.logger.info("No writes to process.");
         return;
     }
-    const promises = toProcess.docs.map((doc) => {
+    const promises = toProcess.docs.map(doc => {
         return processWrite(doc.ref, doc.data());
     });
     const results = await Promise.all(promises);
@@ -86,15 +86,17 @@ async function processWrite(ref, write) {
         switch (CLEANUP) {
             case "DELETE":
                 await ref.delete();
+                break;
             case "KEEP":
                 await ref.update({
                     state: "DELIVERED",
                     updateTime: admin.firestore.FieldValue.serverTimestamp(),
                     endTime: admin.firestore.FieldValue.serverTimestamp(),
                 });
+                break;
         }
     }
-    return { success: !!error, error, id: ref.id };
+    return { success: !error, error, id: ref.id };
 }
 async function resetStuck() {
     const stuck = await queueRef
