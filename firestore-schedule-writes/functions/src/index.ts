@@ -120,11 +120,11 @@ async function processWrite(
       await deliver(write);
       functions.logger.info(`Delivered write "${QUEUE_COLLECTION}/${ref.id}"`);
     }
-  } catch (e) {
+  } catch (e: any) {
     error = e;
     await ref.update({
       state: "FAILED",
-      error: { message: e.message },
+      error: { message: e.message as string },
       updateTime: admin.firestore.FieldValue.serverTimestamp(),
       endTime: admin.firestore.FieldValue.serverTimestamp(),
     });
