@@ -9,7 +9,8 @@
     "clean": "lerna run --parallel clean && lerna clean",
     "build": "lerna run --parallel build",
     "generate-readmes": "lerna run --parallel generate-readme",
-    "postinstall": "lerna bootstrap --no-ci && lerna run --parallel clean && npm run build"
+    "postinstall": "lerna bootstrap --no-ci && lerna run --parallel clean && npm run build",
+    "prepare": "husky install"
   },
   "repository": {
     "type": "git",
@@ -22,8 +23,13 @@
   },
   "devDependencies": {
     "firebase-tools": "^9.9.0",
+    "husky": "^7.0.4",
     "lerna": "^3.4.3",
+    "lint-staged": "^12.4.0",
     "prettier": "^2.2.1",
     "typescript": "^4.1.3"
+  },
+  "lint-staged": {
+    "*.{js,md,yml,ts,json,yaml}": "prettier --write"
   }
 }
