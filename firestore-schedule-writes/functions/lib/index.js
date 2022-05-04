@@ -23,7 +23,7 @@ async function fetchAndProcess() {
         functions.logger.info("No writes to process.");
         return;
     }
-    const promises = toProcess.docs.map(doc => {
+    const promises = toProcess.docs.map((doc) => {
         return processWrite(doc.ref, doc.data());
     });
     const results = await Promise.all(promises);
