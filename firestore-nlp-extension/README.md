@@ -1,10 +1,12 @@
 # Firestore Natural Language Processing
 
-**Description**: Performs Natural Language Processing on strings written to a Cloud Firestore collection (uses Cloud Natural Language API).
+**Author**: Firebase (**[https://firebase.google.com](https://firebase.google.com)**)
+
+**Description**: Perform Natural Language Processing (NLP) tasks on strings written to Firestore.
 
 
 
-**Details**: Use this extension to perform NLP tasks on strings (for example, reviews) written to a Cloud Firestore collection. The tasks available are sentiment analysis, entity extraction and text classification.
+**Details**: Use this extension to perform natural language processing (NLP) tasks on strings (for example, reviews) written to a Cloud Firestore collection. The tasks available are sentiment analysis, entity extraction and text classification.
 
 This extension listens to your specified Cloud Firestore collection. If you add a string to a specified field in any document within that collection, this extension:
 
@@ -13,8 +15,7 @@ This extension listens to your specified Cloud Firestore collection. If you add 
 
 You specify the desired NLP tasks at configuration time. All tasks are powered by the Google [Cloud Natural Language API](https://cloud.google.com/natural-language/docs/). The options offered are:
 - Sentiment analysis.
-- Entity extraction.
-  - Entity extraction offers additional customization. You can specify the types of entities to save (for example, `LOCATION`, `PERSON`) and specify if the extension should save common noun entities.
+- Entity extraction. Additional customization is available for this task. You can specify the types of entities to save (for example, `LOCATION`, `PERSON`) and specify if the extension should save common noun entities.
 - Text classification.
 
 If the original input field of the document is updated, then the NLP data will be automatically updated, as well.
@@ -38,33 +39,34 @@ When you use Firebase Extensions, you're only charged for the underlying resourc
 
 **Configuration Parameters:**
 
-* Cloud Functions location: Where do you want to deploy the functions created for this extension? You usually want a location close to your database. For help selecting a location, refer to the [location selection guide](https://firebase.google.com/docs/functions/locations).
+* Cloud Functions location: Where do you want to deploy the functions created for this extension? For help selecting a location, refer to the [location selection guide](https://firebase.google.com/docs/functions/locations).
+
+* Collection path: What is the path of the collection that you would like to process? You may use `{wildcard}` notation to match a subcollection of all documents in a collection (for example: `travelLocations/{location_id}/reviews`).
 
 
-* Collection path: What is the path to the collection that contains the strings on which to perform NLP?
+* Input field name: What is the name of the field that contains the string that you want NLP to be performed on?
 
 
-* Input field name: What is the name of the field that contains the string on which to perform NLP?
+* Output field name: What is the name of the field that will contain the output(s) from NLP tasks?
 
 
-* Output field name: What is the name of the field where you want to store NLP data?
+* NLP task to perform on the input data.: Select one or more NLP tasks to perform on the input data.
 
 
-* Tasks: What NLP tasks do you want the extension to perform? One or more of: sentiment analysis, entity extraction and text classification.
+* Entities to filter.: If you perform entity extraction, which entity types are you interested in? (ignored if entity extraction is not performed)
 
 
-* Entities to filter: What types of entities do you want entity extraction to retain? 
-
-
-* Save common entities: Do you want entity extraction to also retain common names entities (for example, 'users')?
+* Do you want entities that are common nouns to be saved?: If you perform entity extraction, entities can either be "common" or "proper". Common entities can be numerous  so you can select "No" so that they are not saved.
 
 
 
 
 **Cloud Functions:**
 
-* **firestoreNlpDocCreate:** Listens for new documents in your specified Cloud Firestore collection, performs the configured NLP tasks on a specific string, then writes the output from the NLP tasks back to the same document.
-* **firestoreNlpDocUpdate:** Same functionality as `firestoreNlpDocCreate`, but listens for update on documents. Checks if input field has changed and, if so, overwrites old NLP data with new NLP data.
+* **firestoreNlpDocCreate:** Listens for new documents in your specified Cloud Firestore collection, performs the configured NLP tasks on a specific string, then writes the output from the NLP tasks back to the same document. The NLP tasks available are entity extraction, sentiment analysis and content classification.
+
+* **firestoreNlpDocUpdate:** Listens for updates to strings in your specified Cloud Firestore collection, performs the configured NLP tasks on the string, then writes the output from the NLP tasks back to the same document (overriding any previous data). The NLP tasks available are entity extraction, sentiment analysis and content classification.
+
 
 
 **APIs Used**:
@@ -79,4 +81,4 @@ When you use Firebase Extensions, you're only charged for the underlying resourc
 
 This extension will operate with the following project IAM roles:
 
-* datastore.user (Reason: Allows the extension to write NLP data to Cloud Firestore.)
+* datastore.user (Reason: Allows the extension to read input data from Cloud Firestore and write the NLP data to Cloud Firestore.)
