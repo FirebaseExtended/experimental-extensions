@@ -1,6 +1,6 @@
 import { File, Storage } from "@google-cloud/storage";
 import * as commander from "commander";
-import {Faker, faker} from "@faker-js/faker";
+import { Faker, faker } from "@faker-js/faker";
 import * as admin from "firebase-admin";
 import * as lodash from "lodash";
 import * as ora from "ora";

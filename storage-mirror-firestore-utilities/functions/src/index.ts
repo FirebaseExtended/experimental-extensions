@@ -94,7 +94,7 @@ const performOperations = async (
     console.error(
       `Task[${taskId}] Operation Set[${setId}] Operation[${i}]`,
       set[i],
-     String(e)
+      String(e)
     );
     throw e;
   }
