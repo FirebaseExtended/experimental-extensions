@@ -90,11 +90,11 @@ const performOperations = async (
       }
     }
     console.log(`Task[${taskId}] Operation Set[${setId}] Finished.`);
-  } catch (e) {
+  } catch (e: unknown) {
     console.error(
       `Task[${taskId}] Operation Set[${setId}] Operation[${i}]`,
       set[i],
-      e.toString()
+     String(e)
     );
     throw e;
   }

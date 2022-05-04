@@ -8,10 +8,17 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __asyncValues = (this && this.__asyncValues) || function (o) {
+    if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
+    var m = o[Symbol.asyncIterator], i;
+    return m ? m.call(o) : (o = typeof __values === "function" ? __values(o) : o[Symbol.iterator](), i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function () { return this; }, i);
+    function verb(n) { i[n] = o[n] && function (v) { return new Promise(function (resolve, reject) { v = o[n](v), settle(resolve, reject, v.done, v.value); }); }; }
+    function settle(resolve, reject, d, v) { Promise.resolve(v).then(function(v) { resolve({ value: v, done: d }); }, reject); }
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const storage_1 = require("@google-cloud/storage");
 const commander = require("commander");
-const faker = require("faker");
+const faker_1 = require("@faker-js/faker");
 const admin = require("firebase-admin");
 const lodash = require("lodash");
 const ora = require("ora");
@@ -282,7 +289,7 @@ const updateWriteSpinner = (state) => {
  */
 const createPath = (prefix) => {
     // Number added at the end to improve uniqueness.
-    const filePath = faker.system.filePath().substr(1) + faker.random.number().toString();
+    const filePath = faker_1.faker.system.filePath().substr(1) + faker_1.faker.datatype.number().toString();
     if (prefix.length > 0) {
         return `${prefix}/${filePath}`;
     }
@@ -309,7 +316,7 @@ const createOperation = (path, type, minFileSize, maxFileSize) => {
             return {
                 type: "update",
                 path,
-                metadata: { [faker.name.firstName()]: faker.name.lastName() },
+                metadata: { [faker_1.faker.name.firstName()]: faker_1.faker.name.lastName() },
             };
         case "delete":
             return { type: "delete", path };
@@ -555,6 +562,111 @@ const backfillCmd = new commander.Command("backfill")
     clearInterval(intervalId);
     const elapsed = Math.floor((Date.now() - startTime) / 1000);
     spinner.succeed(`Mirrored ${succeeded} paths in ${elapsed}s.`);
+}));
+const cleanTombstonesCommand = new commander.Command("clean-tombstones")
+    .allowUnknownOption(false)
+    .description("delete tombstone records from firestore")
+    .option("--project <project_id>", "project id which has the extension installed")
+    .option("--instance-id <extension_instance_id>", "instance id of the extension (which can be found with `firebase ext:list`).", "storage-mirror-firestore")
+    .action((command) => __awaiter(void 0, void 0, void 0, function* () {
+    var e_1, _a, e_2, _b;
+    const options = command;
+    const auth = new google_auth_library_1.GoogleAuth({
+        scopes: ["https://www.googleapis.com/auth/firebase.readonly"],
+    });
+    const authClient = yield auth.getClient();
+    const projectId = options.project || (yield auth.getProjectId());
+    let instance;
+    let url = `https://firebaseextensions.googleapis.com/v1beta/projects/${projectId}/instances/${options.instanceId}`;
+    try {
+        const response = yield authClient.request({ url });
+        instance = response.data;
+    }
+    catch (e) {
+        if ((e === null || e === void 0 ? void 0 : e.code) === 404) {
+            console.error(`Extension instance '${options.instanceId}' on project '${projectId}' was not found.`);
+            process.exit(1);
+        }
+        throw e;
+    }
+    if (instance.state !== "ACTIVE") {
+        console.error(`Extension instance '${options.instanceId}' on project '${projectId}' is not active.`);
+        return;
+    }
+    const prompt = `Are you sure you want to delete tombstone records from Firestore for the project '${projectId}' and instance '${options.instanceId}'?`;
+    if (!(yield confirm(prompt))) {
+        process.exit(0);
+    }
+    console.log("\nScanning project for tombstone records...\n");
+    admin.initializeApp({
+        credential: admin.credential.applicationDefault(),
+        projectId: projectId,
+    });
+    let countOfTombstones = 0;
+    const writer = admin.firestore().bulkWriter();
+    const itemTombstonesCollectionGroup = admin
+        .firestore()
+        .collectionGroup(instance.config.params.ITEMS_TOMBSTONES_NAME);
+    // Using a partition size that worked well in testing on other
+    // extension scripts (e.g. the BigQuery import script).
+    const partitionSize = 300;
+    const itemTombstonesPartitions = itemTombstonesCollectionGroup.getPartitions(partitionSize);
+    try {
+        for (var itemTombstonesPartitions_1 = __asyncValues(itemTombstonesPartitions), itemTombstonesPartitions_1_1; itemTombstonesPartitions_1_1 = yield itemTombstonesPartitions_1.next(), !itemTombstonesPartitions_1_1.done;) {
+            const partition = itemTombstonesPartitions_1_1.value;
+            const partitionSnapshot = yield partition.toQuery().get();
+            const documents = partitionSnapshot.docs;
+            for (const document of documents) {
+                // Only delete if the path matches the extensions configured Firestore root.
+                if (document.exists &&
+                    document.ref.path.startsWith(instance.config.params.FIRESTORE_ROOT)) {
+                    countOfTombstones++;
+                    writer.delete(document.ref);
+                }
+            }
+        }
+    }
+    catch (e_1_1) { e_1 = { error: e_1_1 }; }
+    finally {
+        try {
+            if (itemTombstonesPartitions_1_1 && !itemTombstonesPartitions_1_1.done && (_a = itemTombstonesPartitions_1.return)) yield _a.call(itemTombstonesPartitions_1);
+        }
+        finally { if (e_1) throw e_1.error; }
+    }
+    const prefixTombstonesCollectionGroup = admin
+        .firestore()
+        .collectionGroup(instance.config.params.PREFIXES_TOMBSTONES_NAME);
+    const prefixTombstonesPartitions = prefixTombstonesCollectionGroup.getPartitions(42);
+    try {
+        for (var prefixTombstonesPartitions_1 = __asyncValues(prefixTombstonesPartitions), prefixTombstonesPartitions_1_1; prefixTombstonesPartitions_1_1 = yield prefixTombstonesPartitions_1.next(), !prefixTombstonesPartitions_1_1.done;) {
+            const partition = prefixTombstonesPartitions_1_1.value;
+            const partitionSnapshot = yield partition.toQuery().get();
+            const documents = partitionSnapshot.docs;
+            for (const document of documents) {
+                // Only delete if the path matches the extensions configured Firestore root.
+                if (document.exists &&
+                    document.ref.path.startsWith(instance.config.params.FIRESTORE_ROOT)) {
+                    countOfTombstones++;
+                    writer.delete(document.ref);
+                }
+            }
+        }
+    }
+    catch (e_2_1) { e_2 = { error: e_2_1 }; }
+    finally {
+        try {
+            if (prefixTombstonesPartitions_1_1 && !prefixTombstonesPartitions_1_1.done && (_b = prefixTombstonesPartitions_1.return)) yield _b.call(prefixTombstonesPartitions_1);
+        }
+        finally { if (e_2) throw e_2.error; }
+    }
+    if (countOfTombstones > 0) {
+        console.log(`Found a total of ${countOfTombstones} tombstone documents to remove. Cleaning up documents...`);
+        yield writer.close();
+        console.log(`Cleanup successful!`);
+    }
+    else {
+        console.log(`No tombstone records found.`);
+    }
 }));
 const checkCmd = new commander.Command("check")
     .allowUnknownOption(false)
@@ -1026,6 +1138,7 @@ const rootCmd = new commander.Command("driver")
     .addCommand(writeCmd)
     .addCommand(checkCmd)
     .addCommand(backfillCmd)
+    .addCommand(cleanTombstonesCommand)
     .addCommand(cleanCmd);
 rootCmd.parseAsync(process.argv).catch((e) => {
     console.error(e);
