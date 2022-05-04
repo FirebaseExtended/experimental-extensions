@@ -1,6 +1,6 @@
 import { File, Storage } from "@google-cloud/storage";
 import * as commander from "commander";
-import * as faker from "faker";
+import { Faker, faker } from "@faker-js/faker";
 import * as admin from "firebase-admin";
 import * as lodash from "lodash";
 import * as ora from "ora";
@@ -350,7 +350,7 @@ const updateWriteSpinner = (state: WriteState) => {
 const createPath = (prefix: string): string => {
   // Number added at the end to improve uniqueness.
   const filePath =
-    faker.system.filePath().substr(1) + faker.random.number().toString();
+    faker.system.filePath().substr(1) + faker.datatype.number().toString();
   if (prefix.length > 0) {
     return `${prefix}/${filePath}`;
   }
@@ -751,8 +751,8 @@ const cleanTombstonesCommand = new commander.Command("clean-tombstones")
     try {
       const response = await authClient.request({ url });
       instance = response.data as ExtensionInstance;
-    } catch (e) {
-      if (e.code === 404) {
+    } catch (e: any) {
+      if (e?.code === 404) {
         console.error(
           `Extension instance '${options.instanceId}' on project '${projectId}' was not found.`
         );
