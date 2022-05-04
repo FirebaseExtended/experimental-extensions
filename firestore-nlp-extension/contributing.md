@@ -13,8 +13,6 @@
   <link crossorigin="anonymous" media="all" integrity="sha512-jFUBCdWOA1Ov3xo3oFMBwsdP4Up2K1bRnP4QYI5WqvpaIYxWVek89k2M0oyTbNhYMViGtxJB3Vdwcw8ln8hGQw==" rel="stylesheet" href="https://github.githubassets.com/assets/frameworks-8c550109d58e0353afdf1a37a05301c2.css" />
   
     <link crossorigin="anonymous" media="all" integrity="sha512-Ru9ULLhlXXO9j7ZjWJ/K08KQONH+52O4kVMrO9W0et0wOHA0xWLUu5FkVNyY95WhAN/00TZYJWW3XDdseIBmoA==" rel="stylesheet" href="https://github.githubassets.com/assets/github-46ef542cb8655d73bd8fb663589fcad3.css" />
-    
-    
 
 
   <meta name="viewport" content="width=device-width">
