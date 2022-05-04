@@ -30,7 +30,7 @@ exports.sync = functions.handler.firestore.document.onWrite(async (change) => {
     if (beforeData._synced) {
         delete beforeData._synced;
     }
-    if (util_1.isDeepStrictEqual(beforeData, data)) {
+    if ((0, util_1.isDeepStrictEqual)(beforeData, data)) {
         // don't persist identical claims
         return;
     }

@@ -10,7 +10,7 @@ You can test out this extension right away:
 ### Using the extension
 
 Any changes made in Cloud Storage will be reflected in the Firestore mirror. Each delimited path prefix segment in the Object path
-will be separated by `/${param:PREFIXES_SUBCOLLECTION_NAME}/` and the Object itself can be found in 
+will be separated by `/${param:PREFIXES_SUBCOLLECTION_NAME}/` and the Object itself can be found in
 the `${param:ITEMS_SUBCOLLECTION_NAME}` in the Prefix Document representing the parent Prefix.
 
 #### Path Mapping Example
@@ -18,10 +18,10 @@ the `${param:ITEMS_SUBCOLLECTION_NAME}` in the Prefix Document representing the 
 For these Cloud Storage paths, Documents will be generated in the following paths in Firestore.
 
 Configuration Parameters:
+
 - Firestore Root: `${param:FIRESTORE_ROOT}`
 - Items Subcollection Name: `${param:ITEMS_SUBCOLLECTION_NAME}`
 - Prefixes Subcollection Name: `/${param:PREFIXES_SUBCOLLECTION_NAME}/`
-
 
 gs://mybucket/root_photo.jpg:
 
@@ -60,6 +60,8 @@ const itemsSnapshot = await firestore
 
 This project includes a number of utilities that can be ran from a terminal on your local machine.
 
+If you already have objects in GCS that should be mirrored to Firestore, you can use the backfill tool in the stress_test subdirectory. If your application default credentials are set up, you can just run `npm run-script start -- backfill` from that directory.
+
 To access these utilities, please [clone](https://www.npmjs.com/org/firebaseextensions) or run via `npx @firebaseextensions/storage-mirror-firestore-utilities`
 
 If application default credentials are set up, you can simply run the scripts below.
@@ -74,7 +76,8 @@ To run this function you can just run `npm run-script start -- backfill` from th
 
 ### Cleaning Up Tombstones
 
-*TODO*: Implement clean-up tool for tombstone documents
+If you want to cleanup tombstone records, you can use the cleanup tool in the stress_test subdirectory. If your application default credentials are set up, you can just run `npm run-script start -- clean-tombstones` from that directory. You can optionally also specify the
+`--instance-id <extension_instance_id>` and `--project <project_id>` params for this script.
 
 ### Monitoring
 
