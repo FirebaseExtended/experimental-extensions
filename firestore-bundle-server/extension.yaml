@@ -59,7 +59,7 @@ params:
       the bundle specification has `fileCache` enabled.
     validationRegex: ^([0-9a-z_.-]*)$
     validationErrorMessage: Invalid storage bucket
-    default: ${param:STORAGE_BUCKET}
+    default: ${STORAGE_BUCKET}
     required: false
     immutable: false
 
