@@ -88,7 +88,12 @@ class FirestoreDynamicLinksUrlShortener extends abstract_shortener_1.FirestoreUr
                     method: "POST",
                     body: JSON.stringify(requestBody),
                 });
-                const { shortLink: shortUrl } = yield response.json();
+                const responseBody = yield response.json();
+                if (!response.ok) {
+                    this.logs.error(responseBody.error.message);
+                    return;
+                }
+                const shortUrl = responseBody.shortLink;
                 this.logs.shortenUrlComplete(shortUrl);
                 yield this.updateShortUrl(snapshot, shortUrl);
             }
