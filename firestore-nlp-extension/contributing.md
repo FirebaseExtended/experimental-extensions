@@ -14,7 +14,6 @@
   
     <link crossorigin="anonymous" media="all" integrity="sha512-Ru9ULLhlXXO9j7ZjWJ/K08KQONH+52O4kVMrO9W0et0wOHA0xWLUu5FkVNyY95WhAN/00TZYJWW3XDdseIBmoA==" rel="stylesheet" href="https://github.githubassets.com/assets/github-46ef542cb8655d73bd8fb663589fcad3.css" />
 
-
   <meta name="viewport" content="width=device-width">
   
   <title>new-project/contributing.md at master · google/new-project</title>
