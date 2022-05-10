@@ -1,5 +1,5 @@
 name: storage-extract-image-text
-version: 0.0.3
+version: 0.0.4
 specVersion: v1beta
 
 displayName: Image Text Extraction

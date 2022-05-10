@@ -1,5 +1,5 @@
 name: storage-image-labeling
-version: 0.0.1
+version: 0.0.2
 specVersion: v1beta
 
 displayName: Image Labeling
