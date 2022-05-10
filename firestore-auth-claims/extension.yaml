@@ -2,7 +2,7 @@
 # https://firebase.google.com/docs/extensions/alpha/ref-extension-yaml
 
 name: firestore-auth-claims # Identifier for your extension
-version: 0.1.2 # Follow semver versioning
+version: 0.1.1 # Follow semver versioning
 specVersion: v1beta # Version of the Firebase Extensions specification
 
 author:
