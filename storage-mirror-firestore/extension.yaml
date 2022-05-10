@@ -1,5 +1,5 @@
 name: storage-mirror-firestore
-version: 0.1.0
+version: 0.1.1
 specVersion: v1beta
 
 displayName: Store links to GCS files in Firestore
