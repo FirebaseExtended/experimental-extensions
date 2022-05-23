@@ -20,7 +20,7 @@ const genericHandler = (object, context) => __awaiter(void 0, void 0, void 0, fu
     logs.start();
     logs.metadata(object);
     logs.context(context);
-    yield mirror_1.onObjectChange(object, context.eventType);
+    yield (0, mirror_1.onObjectChange)(object, context.eventType);
 });
 exports.mirrorFinalize = functions.storage
     .object()
@@ -38,6 +38,6 @@ exports.mirrorObjectPathHttp = functions.handler.https.onRequest((req, res) => _
         return;
     }
     const path = req.body.path;
-    yield mirror_1.mirrorObjectPath(path);
+    yield (0, mirror_1.mirrorObjectPath)(path);
     res.sendStatus(200);
 }));
