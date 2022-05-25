@@ -66,7 +66,7 @@ async function getCurrentMetadata(
       gcsMetadata as functions.storage.ObjectMetadata,
       "google.storage.object.finalize"
     ) as ItemDocument;
-  } catch (e) {
+  } catch (e: any) {
     if (e.code === 404) {
       return undefined;
     } else {

@@ -60,12 +60,12 @@ function mirrorObjectPath(objectName) {
          * Note that this function is meant to handle dropped events, not necessarily arbirary modifications.
          * It is also not going to be able to called on a prefix path.
          */
-        if (!util_1.shouldMirrorObject(objectName)) {
+        if (!(0, util_1.shouldMirrorObject)(objectName)) {
             return logs.skippedObject(objectName);
         }
-        const paths = util_1.objectNameToFirestorePaths(objectName);
+        const paths = (0, util_1.objectNameToFirestorePaths)(objectName);
         // Check if the generated Item Document is valid.
-        if (!util_1.isValidDocumentName(paths.itemPath)) {
+        if (!(0, util_1.isValidDocumentName)(paths.itemPath)) {
             return logs.invalidObjectName(objectName);
         }
         // Check if every generated Firestore Document will have a valid id.
@@ -100,14 +100,14 @@ exports.mirrorObjectPath = mirrorObjectPath;
  */
 function onObjectChange(object, eventType) {
     return __awaiter(this, void 0, void 0, function* () {
-        const isDeletion = util_1.isDeletionEventType(eventType);
+        const isDeletion = (0, util_1.isDeletionEventType)(eventType);
         const objectName = object.name;
-        if (!util_1.shouldMirrorObject(objectName)) {
+        if (!(0, util_1.shouldMirrorObject)(objectName)) {
             return logs.skippedObject(objectName);
         }
-        const paths = util_1.objectNameToFirestorePaths(objectName);
+        const paths = (0, util_1.objectNameToFirestorePaths)(objectName);
         // Check if the generated Item Document is valid.
-        if (!util_1.isValidDocumentName(paths.itemPath)) {
+        if (!(0, util_1.isValidDocumentName)(paths.itemPath)) {
             return logs.invalidObjectName(objectName);
         }
         // Check if every generated Firestore Document will have a valid id.
@@ -157,7 +157,7 @@ function updateFirestore(paths, data, isDeletion) {
             // Read the Item Document and it's Tombstone under the Transaction.
             const itemTombstoneRef = admin
                 .firestore()
-                .doc(util_1.mirrorDocumentPathToTombstonePath(itemRef.path));
+                .doc((0, util_1.mirrorDocumentPathToTombstonePath)(itemRef.path));
             const [itemSnapshot, itemTombstoneSnapshot] = (yield Promise.all([
                 t.get(itemRef),
                 t.get(itemTombstoneRef),
@@ -191,7 +191,7 @@ function updateFirestore(paths, data, isDeletion) {
                 const prefixRef = references[i];
                 const prefixTombstoneRef = admin
                     .firestore()
-                    .doc(util_1.mirrorDocumentPathToTombstonePath(prefixRef.path));
+                    .doc((0, util_1.mirrorDocumentPathToTombstonePath)(prefixRef.path));
                 // Read the Prefix Document and it's Tombstone under the Transaction.
                 const [prefixSnapshot, prefixTombstoneSnapshot] = (yield Promise.all([
                     t.get(prefixRef),
@@ -217,7 +217,7 @@ function updateFirestore(paths, data, isDeletion) {
                     docsToWrite.push({
                         ref: prefixRef,
                         data: {
-                            [constants_1.Constants.childRefField]: util_1.pathHash(child.path),
+                            [constants_1.Constants.childRefField]: (0, util_1.pathHash)(child.path),
                             [constants_1.Constants.lastEventField]: timestamp,
                         },
                     });
@@ -235,7 +235,7 @@ function updateFirestore(paths, data, isDeletion) {
                     else if (prefixTombstoneSnapshot.exists)
                         break;
                     // This Document doesn't point to a child being deleted, can stop checking parents.
-                    else if (prefixSnapshot.data()[constants_1.Constants.childRefField] !== util_1.pathHash(child.path)) {
+                    else if (prefixSnapshot.data()[constants_1.Constants.childRefField] !== (0, util_1.pathHash)(child.path)) {
                         break;
                     }
                     // Reference points to Document being deleted, check if the Prefix Document should
@@ -288,7 +288,7 @@ function updateFirestore(paths, data, isDeletion) {
                         docsToWrite.push({
                             ref: prefixRef,
                             data: {
-                                [constants_1.Constants.childRefField]: util_1.pathHash(newChildPath),
+                                [constants_1.Constants.childRefField]: (0, util_1.pathHash)(newChildPath),
                                 [constants_1.Constants.lastEventField]: timestamp,
                             },
                         });
@@ -354,7 +354,7 @@ exports.isStaleEvent = isStaleEvent;
  */
 function firestoreDocumentData(metadata, eventType) {
     const timestamp = firestore_1.Timestamp.fromDate(new Date(metadata.updated));
-    if (util_1.isDeletionEventType(eventType)) {
+    if ((0, util_1.isDeletionEventType)(eventType)) {
         // Instead of deleting Documents when the corresponding Object is deleted, replace it
         // with a "Tombstone" to deal with out-of-order function execution.
         return {
@@ -365,13 +365,13 @@ function firestoreDocumentData(metadata, eventType) {
         [constants_1.Constants.lastEventField]: timestamp,
         [constants_1.Constants.gcsMetadataField]: {},
     };
-    const fields = util_1.filterObjectFields(metadata, config_1.default.metadataFieldFilter);
+    const fields = (0, util_1.filterObjectFields)(metadata, config_1.default.metadataFieldFilter);
     fields.forEach(({ key, value }) => {
         let fieldValue;
         if (key === constants_1.Constants.objectCustomMetadataField) {
             // Set custom metadata fields
             fieldValue = {};
-            util_1.filterObjectFields(value, config_1.default.customMetadataFieldFilter).forEach(({ key, value }) => {
+            (0, util_1.filterObjectFields)(value, config_1.default.customMetadataFieldFilter).forEach(({ key, value }) => {
                 fieldValue[key] = value;
             });
         }
