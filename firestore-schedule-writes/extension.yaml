@@ -121,7 +121,12 @@ params:
       collection.
   - param: MERGE_WRITE
     label: Merge Writes
-    type: boolean
+    type: select
+    options:
+      - label: False
+        value: false
+      - label: True
+        value: true
     description: >-
       When true, writes to existing documents are merged with existing data.
       When false, writes to existing documents overwrite existing data.

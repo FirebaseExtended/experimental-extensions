@@ -130,7 +130,7 @@ params:
     label: NLP task to perform on the input data.
     description: >
       Select one or more NLP tasks to perform on the input data.
-    type: multiselect
+    type: multiSelect
     options:
       - label: Entity extraction
         value: ENTITY
@@ -145,7 +145,7 @@ params:
     label: Entities to filter.
     description: >
       If you perform entity extraction, which entity types are you interested in? (ignored if entity extraction is not performed)
-    type: multiselect
+    type: multiSelect
     options:
       - label: Location
         value: LOCATION

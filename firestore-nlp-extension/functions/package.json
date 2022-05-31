@@ -26,7 +26,7 @@
     "prettier": "1.15.3",
     "rimraf": "^3.0.2",
     "ts-jest": "^26.1.2",
-    "typescript": "^3.8.0"
+    "typescript": "^4.6.4"
   },
   "private": true
 }
