@@ -1,0 +1,121 @@
+name: storage-image-processing-api
+version: 0.0.1
+specVersion: v1beta
+
+displayName: Image Processing API
+description: TODO
+
+license: Apache-2.0
+
+sourceUrl: https://github.com/invertase/firebase-extensions/tree/main/extensions/storage-image-processing-api
+releaseNotesUrl: https://github.com/invertase/firebase-extensions/tree/main/extensions/storage-image-processing-api/CHANGELOG.md
+
+author:
+  authorName: Invertase
+  url: https://invertase.io
+
+contributors:
+  - authorName: Invertase
+    email: oss@invertase.io
+    url: https://github.com/invertase
+
+billingRequired: true
+
+apis:
+  - apiName: storage-component.googleapis.com
+    reason: Needed to use Cloud Storage
+
+roles:
+  - role: firebaseauth.admin
+    reason: >-
+      Allows the extension to set custom claims for users.
+
+resources:
+  - name: createIssue
+    type: firebaseextensions.v1beta.function
+    description:
+      Listens for document changes in your specified Cloud Firestore collection,
+      then exports the changes into BigQuery.
+    properties:
+      location: ${param:LOCATION}
+      runtime: nodejs14
+      eventTrigger:
+        eventType: providers/cloud.firestore/eventTypes/document.write
+        resource: projects/${param:PROJECT_ID}/databases/(default)/documents/${param:COLLECTION_PATH}/{documentId}
+
+  - name: createUser
+    type: firebaseextensions.v1beta.function
+    description:
+      Listens for new user accounts (as managed by Firebase Authentication),
+      then automatically adds the new user to your specified CRM audience.
+    properties:
+      location: ${param:LOCATION}
+      runtime: nodejs14
+      eventTrigger:
+        eventType: providers/firebase.auth/eventTypes/user.create
+        resource: projects/${param:PROJECT_ID}
+
+params:
+  - param: LOCATION
+    label: Cloud Functions location
+    description: >-
+      Where do you want to deploy the functions created for this extension?
+      You usually want a location close to your Storage bucket. For help selecting a
+      location, refer to the [location selection
+      guide](https://firebase.google.com/docs/functions/locations).
+    type: select
+    options:
+      - label: Iowa (us-central1)
+        value: us-central1
+      - label: South Carolina (us-east1)
+        value: us-east1
+      - label: Northern Virginia (us-east4)
+        value: us-east4
+      - label: Los Angeles (us-west2)
+        value: us-west2
+      - label: Salt Lake City (us-west3)
+        value: us-west3
+      - label: Las Vegas (us-west4)
+        value: us-west4
+      - label: Warsaw (europe-central2)
+        value: europe-central2
+      - label: Belgium (europe-west1)
+        value: europe-west1
+      - label: London (europe-west2)
+        value: europe-west2
+      - label: Frankfurt (europe-west3)
+        value: europe-west3
+      - label: Zurich (europe-west6)
+        value: europe-west6
+      - label: Hong Kong (asia-east2)
+        value: asia-east2
+      - label: Tokyo (asia-northeast1)
+        value: asia-northeast1
+      - label: Osaka (asia-northeast2)
+        value: asia-northeast2
+      - label: Seoul (asia-northeast3)
+        value: asia-northeast3
+      - label: Mumbai (asia-south1)
+        value: asia-south1
+      - label: Jakarta (asia-southeast2)
+        value: asia-southeast2
+      - label: Montreal (northamerica-northeast1)
+        value: northamerica-northeast1
+      - label: Sao Paulo (southamerica-east1)
+        value: southamerica-east1
+      - label: Sydney (australia-southeast1)
+        value: australia-southeast1
+    default: us-central1
+    required: true
+    immutable: true
+
+  - param: PROVIDERS
+    label: List of CRM providers
+    description: >
+      A JSON string of provider credentials
+    type: string
+    example: {trello: {apiKey: test}}
+    validationErrorMessage: Invalid storage bucket
+    default: ${param:STORAGE_BUCKET}
+    required: true
+
