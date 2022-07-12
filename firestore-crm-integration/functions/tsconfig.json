@@ -2,7 +2,8 @@
   "compilerOptions": {
     "target": "ES2020",
     "lib": ["ES2020", "DOM"],
-    "types": ["node", "jest"],
+    "types": ["node", "jest", "@types/jest"],
+    "typeRoots": ["./node_modules/@types"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": false,
@@ -14,6 +15,6 @@
     "isolatedModules": true,
     "outDir": "lib"
   },
-  "exclude": ["node_modules", "__tests__"],
+  "exclude": ["node_modules"],
   "include": ["src"]
 }

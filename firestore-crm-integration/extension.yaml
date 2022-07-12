@@ -1,8 +1,8 @@
-name: storage-image-processing-api
+name: crm-integration
 version: 0.0.1
 specVersion: v1beta
 
-displayName: Image Processing API
+displayName: CRM Integration
 description: TODO
 
 license: Apache-2.0
@@ -20,10 +20,6 @@ contributors:
     url: https://github.com/invertase
 
 billingRequired: true
-
-apis:
-  - apiName: storage-component.googleapis.com
-    reason: Needed to use Cloud Storage
 
 roles:
   - role: firebaseauth.admin
@@ -108,6 +104,20 @@ params:
     default: us-central1
     required: true
     immutable: true
+
+  - param: COLLECTION_PATH
+    label: Collection path
+    description: >-
+      What is the path of the collection that you would like to export? You may
+      use `{wildcard}` notation to match a subcollection of all documents in a
+      collection (for example: `chatrooms/{chatid}/posts`). Parent Firestore Document IDs from `{wildcards}` 
+      can be returned in `path_params` as a JSON formatted string.
+    type: string
+    example: posts
+    validationRegex: "^[^/]+(/[^/]+/[^/]+)*$"
+    validationErrorMessage: Firestore collection paths must be an odd number of segments separated by slashes, e.g. "path/to/collection".
+    default: posts
+    required: true
 
   - param: PROVIDERS
     label: List of CRM providers

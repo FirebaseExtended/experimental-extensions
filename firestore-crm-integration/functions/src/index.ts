@@ -1,7 +1,10 @@
 import * as functions from "firebase-functions";
 import * as log from "./logs";
 import config from "./config";
-import { trelloApi, githubApi } from "./api";
+
+import { TrelloProvider } from "./providers/trello";
+import { GithubProvider } from "./providers/github";
+import { ZendeskProvider } from "./providers/zendesk";
 
 // const zendesk = NodeZendesk.createClient({
 //   username: "username",
@@ -23,29 +26,29 @@ exports.createIssue = functions.firestore
     log.start();
 
     /** find configuration */
-    const { trello, github } = JSON.parse(config.providers);
+    const { trello, github, zendesk } = JSON.parse(config.providers);
 
-    if (!trello) {
-      const { host, key, token } = trello;
+    /** Extract document data */
+    const { name, description } = change.after.data();
 
-      /** Extract document data */
-      const { name, description, idList } = change.after.data();
+    if (trello) {
+      const trelloProvider = new TrelloProvider();
 
       /** Generate create card url */
-      const url = `${host}/card?idList=${idList}&name=${name}&description=${description}&key=${key}&token=${token}`;
-
-      /** Post new issue */
-      await trelloApi(url);
+      await trelloProvider.create({ name, description });
     }
 
     if (github) {
-      const { token, owner, repo } = github;
-      await githubApi({
-        token,
-        owner,
-        repo,
-        title: "Found a bug!",
-        body: "I'm having a problem with this.",
-      });
+      const githubProvider = new GithubProvider();
+
+      /** Generate create card url */
+      await githubProvider.create({ name, description });
+    }
+
+    if (zendesk) {
+      const zendeskProvider = new ZendeskProvider();
+
+      /** Generate create card url */
+      await zendeskProvider.create({ name, description });
     }
   });
