@@ -33,6 +33,20 @@ resources:
       location: ${LOCATION}
       runtime: nodejs16
       httpsTrigger: {}
+  
+  - name: createTerms
+    type: firebaseextensions.v1beta.function
+    properties:
+      location: ${LOCATION}
+      runtime: nodejs16
+      httpsTrigger: {}
+
+  - name: getTerms
+    type: firebaseextensions.v1beta.function
+    properties:
+      location: ${LOCATION}
+      runtime: nodejs16
+      httpsTrigger: {}
 
 params:
   - param: LOCATION
