@@ -17,6 +17,7 @@ const auth = admin.auth();
 const acceptTermsFn = fft.wrap(funcs.acceptTerms);
 const createTermsFn = fft.wrap(funcs.createTerms);
 const getTermsFn = fft.wrap(funcs.getTerms);
+const getAcceptances = fft.wrap(funcs.getAcceptances);
 
 describe("functions testing", () => {
   describe("accept terms", () => {
@@ -186,6 +187,36 @@ describe("functions testing", () => {
       expect(terms?.tos_id).toBeDefined();
       expect(terms?.creationDate).toBeDefined();
     });
+
+    test("can get a terms with a custom filter", async () => {
+      await createTermsFn.call(
+        {},
+        {
+          link: "www.link.to.terms",
+          tos_id,
+          creationDate: new Date().toLocaleDateString(),
+          custom_attributes: [
+            {
+              role: "publisher",
+              add_to_custom_claims: true,
+            },
+          ],
+        },
+        { auth: { uid: user.uid } }
+      );
+
+      const terms = await getTermsFn.call(
+        {},
+        { custom_filter: { role: "publisher" } },
+        { auth: { uid: user.uid } }
+      );
+
+      expect(terms).toBeDefined();
+      expect(terms?.link).toBeDefined();
+      expect(terms?.tos_id).toBeDefined();
+      expect(terms?.creationDate).toBeDefined();
+      expect(terms?.custom_attributes[0].role).toEqual("publisher");
+    });
   });
 
   describe("create terms", () => {
@@ -195,6 +226,7 @@ describe("functions testing", () => {
       const randomId = Math.random().toString(36).substring(2, 15);
       tos_id = `tos_v${randomId}`;
     });
+
     test("can create a terms of service", async () => {
       const link = "www.link.to.terms";
       const creationDate = new Date().toLocaleDateString();
@@ -217,6 +249,82 @@ describe("functions testing", () => {
       expect(terms.tos_id).toEqual(tos_id);
       expect(terms.creationDate).toEqual(creationDate);
       expect(terms.link).toEqual(link);
+    });
+
+    test("can create a terms of service with a custom attribute", async () => {
+      const link = "www.link.to.terms";
+      const creationDate = new Date().toLocaleDateString();
+      const custom_attributes = [
+        {
+          role: "publisher",
+          add_to_custom_claims: true,
+        },
+      ];
+
+      await createTermsFn.call(
+        {},
+        { tos_id, link, creationDate, custom_attributes },
+        { auth: { uid: "test" } }
+      );
+
+      const terms = await admin
+        .firestore()
+        .collection("terms")
+        .doc("agreements")
+        .collection("tos")
+        .doc(tos_id)
+        .get()
+        .then((doc) => doc.data());
+
+      expect(terms.tos_id).toEqual(tos_id);
+      expect(terms.creationDate).toEqual(creationDate);
+      expect(terms.link).toEqual(link);
+
+      expect(terms.custom_attributes[0].role).toEqual("publisher");
+    });
+  });
+
+  describe("get acceptances", () => {
+    let user;
+    let tos_id;
+
+    beforeEach(async () => {
+      /** create example user */
+      user = await auth.createUser({});
+
+      const randomId = Math.random().toString(36).substring(2, 15);
+      tos_id = `tos_v${randomId}`;
+    });
+
+    test("can get a acceptance", async () => {
+      const link = "www.link.to.terms";
+      const creationDate = new Date().toLocaleDateString();
+
+      /** create terms */
+      await createTermsFn.call(
+        {},
+        {
+          link: "www.link.to.terms",
+          tos_id,
+          creationDate: new Date().toLocaleDateString(),
+        },
+        { auth: { uid: user.uid } }
+      );
+
+      /** accept terms */
+      await acceptTermsFn.call({}, { tos_id }, { auth: { uid: user.uid } });
+
+      /** get terms */
+      const acceptances = await getAcceptances.call(
+        {},
+        {},
+        { auth: { uid: user.uid } }
+      );
+
+      expect(acceptances).toBeDefined();
+      expect(acceptances[0].link).toEqual(link);
+      expect(acceptances[0].link).toEqual(link);
+      expect(acceptances[0].creationDate).toEqual(creationDate);
     });
   });
 });

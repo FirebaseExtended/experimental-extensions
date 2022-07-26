@@ -48,6 +48,13 @@ resources:
       runtime: nodejs16
       httpsTrigger: {}
 
+  - name: getAcceptances
+    type: firebaseextensions.v1beta.function
+    properties:
+      location: ${LOCATION}
+      runtime: nodejs16
+      httpsTrigger: {}
+
 params:
   - param: LOCATION
     label: Cloud Functions location

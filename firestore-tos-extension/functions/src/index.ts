@@ -2,6 +2,7 @@ import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
 import * as log from "./logs";
 import config from "./config";
+import { user } from "firebase-functions/v1/auth";
 
 if (admin.apps.length === 0) {
   admin.initializeApp({ projectId: "demo-test" });
@@ -53,6 +54,7 @@ export const acceptTerms = functions.handler.https.onCall(
         ...tos_acceptances,
         {
           tosId: "publisher_tos_v1",
+          link: "www.link.to.terms",
           creationDate: new Date().toLocaleDateString(),
           acceptanceDate: new Date().toLocaleDateString(),
           customAttributes: {
@@ -103,16 +105,38 @@ export const getTerms = functions.handler.https.onCall(
       return;
     }
 
-    const { tos_id, latest_only = false } = data;
+    const { tos_id, latest_only = false, custom_filter } = data;
 
     const query = db
       .collection(config.collectionPath)
       .doc("agreements")
       .collection("tos");
 
+    if (custom_filter) {
+      const [key, value] = Object.entries(custom_filter)[0];
+      query.where(`custom_attributes.${key}`, "==", value).limit(1);
+    }
+
     if (latest_only) query.orderBy("creationDate", "desc").limit(1);
     if (tos_id) query.where("tos_id", "==", tos_id);
 
     return query.get().then((doc) => doc.docs[0].data());
+  }
+);
+
+export const getAcceptances = functions.handler.https.onCall(
+  async (data, context) => {
+    // Checking that the user is authenticated.
+    if (!context.auth) {
+      return;
+    }
+
+    const user = await auth.getUser(context.auth.uid);
+
+    console.log(user.customClaims);
+
+    return (
+      user.customClaims[`${process.env.EXT_INSTANCE_ID}`]?.tos_acceptances || []
+    );
   }
 );

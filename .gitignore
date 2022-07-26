@@ -12,3 +12,6 @@ local.properties
 coverage
 package-lock.json
 yarn.lock
+
+_emulator/firestore-debug.log
+_emulator/ui-debug.log
