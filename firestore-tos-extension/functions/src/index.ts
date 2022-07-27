@@ -18,9 +18,9 @@ export const acceptTerms = functions.handler.https.onCall(
       return;
     }
 
-    /** check if tos_id has been provided  */
-    if (!data.tos_id) {
-      console.warn("No tos_id provided");
+    /** check if tosId has been provided  */
+    if (!data.tosId) {
+      console.warn("No tosId provided");
       return;
     }
 
@@ -29,7 +29,7 @@ export const acceptTerms = functions.handler.https.onCall(
       .collection(config.collectionPath)
       .doc("agreements")
       .collection("tos")
-      .doc(data.tos_id)
+      .doc(data.tosId)
       .get();
 
     /** Return if no agreement exists  */
@@ -38,41 +38,29 @@ export const acceptTerms = functions.handler.https.onCall(
       return;
     }
 
-    const tos_acceptances = await auth
-      .getUser(context.auth.uid)
-      .then(async (user) => {
-        if (!user.customClaims) return [];
-        return (
-          user.customClaims[`${process.env.EXT_INSTANCE_ID}`]
-            ?.tos_acceptances || []
-        );
-      });
+    /** Find current acceptances */
+    const tos_acceptances = await db
+      .collection(config.collectionPath)
+      .doc("acceptances")
+      .collection(context.auth.uid)
+      .doc(`${process.env.EXT_INSTANCE_ID}`)
+      .get()
+      .then(($) => $.data() || {});
 
-    const claims = {};
-    claims[`${process.env.EXT_INSTANCE_ID}`] = {
-      tos_acceptances: [
-        ...tos_acceptances,
-        {
-          tosId: "publisher_tos_v1",
-          link: "www.link.to.terms",
-          creationDate: new Date().toLocaleDateString(),
-          acceptanceDate: new Date().toLocaleDateString(),
-          customAttributes: {
-            role: "consumer",
-          },
-        },
-      ],
-    };
+    tos_acceptances[data.tosId] = tosDoc.data();
 
     /** Add Acceptance cliam to user document list */
     await db
       .collection(config.collectionPath)
       .doc("acceptances")
       .collection(context.auth.uid)
-      .add({ claims });
+      .doc(`${process.env.EXT_INSTANCE_ID}`)
+      .set({ ...(tos_acceptances || {}) });
 
     /** Set claims on user and return */
-    return auth.setCustomUserClaims(context.auth.uid, claims);
+    const claims = {};
+    claims[process.env.EXT_INSTANCE_ID] = tos_acceptances;
+    return auth.setCustomUserClaims(context.auth.uid, { ...claims });
   }
 );
 
@@ -93,8 +81,12 @@ export const createTerms = functions.handler.https.onCall(
       .collection(config.collectionPath)
       .doc("agreements")
       .collection("tos")
-      .doc(data.tos_id)
-      .set(data);
+      .doc(data.tosId)
+      .set({
+        ...data,
+        creationDate: new Date().toLocaleDateString(),
+        acceptanceDate: new Date().toLocaleDateString(),
+      });
   }
 );
 
@@ -105,7 +97,7 @@ export const getTerms = functions.handler.https.onCall(
       return;
     }
 
-    const { tos_id, latest_only = false, custom_filter } = data;
+    const { tosId, latest_only = false, custom_filter } = data;
 
     const query = db
       .collection(config.collectionPath)
@@ -114,11 +106,14 @@ export const getTerms = functions.handler.https.onCall(
 
     if (custom_filter) {
       const [key, value] = Object.entries(custom_filter)[0];
-      query.where(`custom_attributes.${key}`, "==", value).limit(1);
+      const queryObject = { [key]: value };
+      query
+        .where(`customAttributes`, "array-contains", { queryObject })
+        .limit(1);
     }
 
     if (latest_only) query.orderBy("creationDate", "desc").limit(1);
-    if (tos_id) query.where("tos_id", "==", tos_id);
+    if (tosId) query.where("tosId", "==", tosId);
 
     return query.get().then((doc) => doc.docs[0].data());
   }
@@ -131,12 +126,12 @@ export const getAcceptances = functions.handler.https.onCall(
       return;
     }
 
-    const user = await auth.getUser(context.auth.uid);
-
-    console.log(user.customClaims);
-
-    return (
-      user.customClaims[`${process.env.EXT_INSTANCE_ID}`]?.tos_acceptances || []
-    );
+    return db
+      .collection(config.collectionPath)
+      .doc("acceptances")
+      .collection(context.auth.uid)
+      .doc(`${process.env.EXT_INSTANCE_ID}`)
+      .get()
+      .then((doc) => doc.data());
   }
 );

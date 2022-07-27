@@ -23,25 +23,34 @@ describe("functions testing", () => {
   describe("accept terms", () => {
     describe("with a valid terms of service available", () => {
       let user;
-      let tos_id;
+      let tosId;
 
       beforeEach(async () => {
         /** create example user */
         user = await auth.createUser({});
-        tos_id = "tos_v1";
+
+        const randomId = Math.random().toString(36).substring(2, 15);
+        tosId = `tos_v${randomId}`;
+
         await createTermsFn.call(
           {},
           {
             link: "www.link.to.terms",
-            tos_id,
+            tosId,
             creationDate: new Date().toLocaleDateString(),
           },
           { auth: { uid: user.uid } }
         );
       });
 
-      test("can add a terms of service", async () => {
-        await acceptTermsFn.call({}, { tos_id }, { auth: { uid: user.uid } });
+      test("can accept a terms of service", async () => {
+        await acceptTermsFn.call(
+          {},
+          {
+            tosId,
+          },
+          { auth: { uid: user.uid } }
+        );
 
         const userRecord = await auth.getUser(user.uid);
 
@@ -50,43 +59,59 @@ describe("functions testing", () => {
 
         const terms = userRecord?.customClaims[process.env.EXT_INSTANCE_ID];
         expect(terms).toBeDefined();
-        expect(terms?.tos_acceptances).toBeDefined();
+        expect(terms[tosId]).toBeDefined();
 
-        const acceptances: TermsOfServiceAcceptance = terms.tos_acceptances[0];
+        const acceptances: TermsOfServiceAcceptance = terms[tosId];
 
         expect(acceptances).toBeDefined();
         expect(acceptances.tosId).toBeDefined();
         expect(acceptances.creationDate).toBeDefined();
         expect(acceptances.acceptanceDate).toBeDefined();
-        expect(acceptances.customAttributes).toBeDefined();
-        expect(acceptances.customAttributes?.role).toBeDefined();
       });
 
-      test("can add multiple terms of service agreements", async () => {
-        await acceptTermsFn.call({}, { tos_id }, { auth: { uid: user.uid } });
-        await acceptTermsFn.call({}, { tos_id }, { auth: { uid: user.uid } });
+      test("can accept multiple terms of service agreements", async () => {
+        const tosId_2 = tosId + "_2";
+
+        /** create a second agreement */
+        await createTermsFn.call(
+          {},
+          {
+            link: "www.link.to.terms",
+            tosId: tosId_2,
+          },
+          { auth: { uid: user.uid } }
+        );
+
+        await acceptTermsFn.call({}, { tosId }, { auth: { uid: user.uid } });
+        await acceptTermsFn.call(
+          {},
+          { tosId: tosId_2 },
+          { auth: { uid: user.uid } }
+        );
 
         const userRecord = await auth.getUser(user.uid);
 
         const terms = userRecord?.customClaims[process.env.EXT_INSTANCE_ID];
-        const acceptances: TermsOfServiceAcceptance = terms.tos_acceptances;
+        const acceptances: TermsOfServiceAcceptance = terms;
 
-        expect(acceptances).toHaveLength(2);
+        expect(Object.keys(acceptances)).toHaveLength(2);
       });
     });
 
     describe("without a valid user", () => {
       let user;
-      let tos_id;
+      let tosId;
 
       beforeEach(async () => {
         /** create example user */
         user = await auth.createUser({});
-        tos_id = "tos_v1";
+
+        const randomId = Math.random().toString(36).substring(2, 15);
+        tosId = `tos_v${randomId}`;
       });
 
       test("does not add a terms of service", async () => {
-        await acceptTermsFn.call({}, { tos_id }, {});
+        await acceptTermsFn.call({}, { tosId }, {});
 
         const userRecord = await auth.getUser(user.uid);
 
@@ -104,7 +129,7 @@ describe("functions testing", () => {
         user = await auth.createUser({});
       });
 
-      test("does not add a terms of service without a provided tos_id", async () => {
+      test("does not add a terms of service without a provided tosId", async () => {
         await acceptTermsFn.call({}, {}, { auth: { uid: user.uid } });
 
         const userRecord = await auth.getUser(user.uid);
@@ -114,10 +139,10 @@ describe("functions testing", () => {
         expect(claims).toBeUndefined();
       });
 
-      test("does not add a terms of service without a exisiting tos_id", async () => {
+      test("does not add a terms of service without a exisiting tosId", async () => {
         await acceptTermsFn.call(
           {},
-          { tos_id: "unknown" },
+          { tosId: "unknown" },
           { auth: { uid: user.uid } }
         );
 
@@ -132,14 +157,14 @@ describe("functions testing", () => {
 
   describe("get terms", () => {
     let user;
-    let tos_id;
+    let tosId;
 
     beforeEach(async () => {
       /** create example user */
       user = await auth.createUser({});
 
       const randomId = Math.random().toString(36).substring(2, 15);
-      tos_id = `tos_v${randomId}`;
+      tosId = `tos_v${randomId}`;
     });
 
     test("can get a terms of service", async () => {
@@ -147,7 +172,7 @@ describe("functions testing", () => {
         {},
         {
           link: "www.link.to.terms",
-          tos_id,
+          tosId,
           creationDate: new Date().toLocaleDateString(),
         },
         { auth: { uid: "test" } }
@@ -155,36 +180,35 @@ describe("functions testing", () => {
 
       const terms = await getTermsFn.call(
         {},
-        { tos_id },
+        { tosId },
         { auth: { uid: user.uid } }
       );
 
       expect(terms).toBeDefined();
       expect(terms?.link).toBeDefined();
-      expect(terms?.tos_id).toBeDefined();
+      expect(terms?.tosId).toBeDefined();
       expect(terms?.creationDate).toBeDefined();
     });
 
-    test("can get a terms of service by tos_id", async () => {
+    test("can get a terms of service by tosId", async () => {
       await createTermsFn.call(
         {},
         {
           link: "www.link.to.terms",
-          tos_id,
-          creationDate: new Date().toLocaleDateString(),
+          tosId,
         },
-        { auth: { uid: "test" } }
+        { auth: { uid: user.uid } }
       );
 
       const terms = await getTermsFn.call(
         {},
-        { tos_id },
+        { tosId },
         { auth: { uid: user.uid } }
       );
 
       expect(terms).toBeDefined();
       expect(terms?.link).toBeDefined();
-      expect(terms?.tos_id).toBeDefined();
+      expect(terms?.tosId).toBeDefined();
       expect(terms?.creationDate).toBeDefined();
     });
 
@@ -192,15 +216,9 @@ describe("functions testing", () => {
       await createTermsFn.call(
         {},
         {
-          link: "www.link.to.terms",
-          tos_id,
-          creationDate: new Date().toLocaleDateString(),
-          custom_attributes: [
-            {
-              role: "publisher",
-              add_to_custom_claims: true,
-            },
-          ],
+          link: "www.test.com",
+          tosId,
+          customAttributes: [{ role: "publisher" }],
         },
         { auth: { uid: user.uid } }
       );
@@ -213,18 +231,22 @@ describe("functions testing", () => {
 
       expect(terms).toBeDefined();
       expect(terms?.link).toBeDefined();
-      expect(terms?.tos_id).toBeDefined();
+      expect(terms?.tosId).toBeDefined();
       expect(terms?.creationDate).toBeDefined();
-      expect(terms?.custom_attributes[0].role).toEqual("publisher");
+      expect(terms?.customAttributes[0].role).toEqual("publisher");
     });
   });
 
   describe("create terms", () => {
-    let tos_id;
+    let user;
+    let tosId;
 
     beforeEach(async () => {
+      /** create example user */
+      user = await auth.createUser({});
+
       const randomId = Math.random().toString(36).substring(2, 15);
-      tos_id = `tos_v${randomId}`;
+      tosId = `tos_v${randomId}`;
     });
 
     test("can create a terms of service", async () => {
@@ -233,7 +255,7 @@ describe("functions testing", () => {
 
       await createTermsFn.call(
         {},
-        { tos_id, link, creationDate },
+        { tosId, link, creationDate },
         { auth: { uid: "test" } }
       );
 
@@ -242,11 +264,11 @@ describe("functions testing", () => {
         .collection("terms")
         .doc("agreements")
         .collection("tos")
-        .doc(tos_id)
+        .doc(tosId)
         .get()
         .then((doc) => doc.data());
 
-      expect(terms.tos_id).toEqual(tos_id);
+      expect(terms.tosId).toEqual(tosId);
       expect(terms.creationDate).toEqual(creationDate);
       expect(terms.link).toEqual(link);
     });
@@ -254,7 +276,7 @@ describe("functions testing", () => {
     test("can create a terms of service with a custom attribute", async () => {
       const link = "www.link.to.terms";
       const creationDate = new Date().toLocaleDateString();
-      const custom_attributes = [
+      const customAttributes = [
         {
           role: "publisher",
           add_to_custom_claims: true,
@@ -263,7 +285,7 @@ describe("functions testing", () => {
 
       await createTermsFn.call(
         {},
-        { tos_id, link, creationDate, custom_attributes },
+        { tosId, link, creationDate, customAttributes },
         { auth: { uid: "test" } }
       );
 
@@ -272,28 +294,28 @@ describe("functions testing", () => {
         .collection("terms")
         .doc("agreements")
         .collection("tos")
-        .doc(tos_id)
+        .doc(tosId)
         .get()
         .then((doc) => doc.data());
 
-      expect(terms.tos_id).toEqual(tos_id);
+      expect(terms.tosId).toEqual(tosId);
       expect(terms.creationDate).toEqual(creationDate);
       expect(terms.link).toEqual(link);
 
-      expect(terms.custom_attributes[0].role).toEqual("publisher");
+      expect(terms.customAttributes[0].role).toEqual("publisher");
     });
   });
 
   describe("get acceptances", () => {
     let user;
-    let tos_id;
+    let tosId;
 
     beforeEach(async () => {
       /** create example user */
       user = await auth.createUser({});
 
       const randomId = Math.random().toString(36).substring(2, 15);
-      tos_id = `tos_v${randomId}`;
+      tosId = `tos_v${randomId}`;
     });
 
     test("can get a acceptance", async () => {
@@ -304,15 +326,14 @@ describe("functions testing", () => {
       await createTermsFn.call(
         {},
         {
-          link: "www.link.to.terms",
-          tos_id,
-          creationDate: new Date().toLocaleDateString(),
+          link,
+          tosId,
         },
         { auth: { uid: user.uid } }
       );
 
       /** accept terms */
-      await acceptTermsFn.call({}, { tos_id }, { auth: { uid: user.uid } });
+      await acceptTermsFn.call({}, { tosId }, { auth: { uid: user.uid } });
 
       /** get terms */
       const acceptances = await getAcceptances.call(
@@ -322,9 +343,8 @@ describe("functions testing", () => {
       );
 
       expect(acceptances).toBeDefined();
-      expect(acceptances[0].link).toEqual(link);
-      expect(acceptances[0].link).toEqual(link);
-      expect(acceptances[0].creationDate).toEqual(creationDate);
+      expect(acceptances[tosId].link).toEqual(link);
+      expect(acceptances[tosId].creationDate).toEqual(creationDate);
     });
   });
 });
