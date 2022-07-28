@@ -123,3 +123,16 @@ params:
     default: posts
     required: true
 
+  - param: INCLUDE_AUTH_CLAIMS
+    label: Add to user auth claims
+    description: >-
+      Allows the storage and processing of consent documents on the authenticated user.
+    type: select
+    options:
+      - label: include
+        value: include
+      - label: exclude
+        value: exclude
+    default: exclude
+    required: true
+

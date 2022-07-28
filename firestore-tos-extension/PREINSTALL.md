@@ -1,4 +1,4 @@
-Use this extension to provides an API for adding new consent terms, retrieving the latest terms, and tracking acceptances. 
+Use this extension to provides an API for adding new consent terms, retrieving the latest terms, and tracking acceptances.
 
 Allows users to sign consent forms as part of their application. Some common consent forms include ToS and cookie consent.
 
@@ -26,6 +26,18 @@ All functions `require authentication` to run, ensure you have a valud Firebase 
 `allowList`: A list of users emails or phone numbers. If specified, this will validate to ensure only selected users can accept the specified terms.
 
 `customAttributes`: A key/value list of unique properties for the terms Firestore document. An example, would be to add unique roles such as `publisher/consumer`
+
+## Auth claims (optional)
+
+By default, all accepted documents are stored under the `acceptances/{UID}` sub collection. Any lookups return the relavant Firestore documents.
+
+If you would like to store the accepted documents on the Firebase User as auth claims, this can be configured by enabling the `Include Authentication Claims` in the Extension configuration.
+
+Please note:
+
+- Claims can be easily overriden by the Firebase sdk, for example through another function or script ran on the user.
+
+- Custom claims are limited to 1000 bytes and may therfore be limited on how claims can be stored. This would also depend on exisitng claims data that exists for the user.
 
 ### Additional setup
 
