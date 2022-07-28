@@ -4,8 +4,6 @@ Allows users to sign consent forms as part of their application. Some common con
 
 ## Usage
 
-These documents are managed in a specified Cloud Firestore collection.
-
 The extension supports multiple use cases:
 
 - Accepting terms
@@ -14,6 +12,15 @@ The extension supports multiple use cases:
 - Getting accepted terms
 
 All functions `require authentication` to run, ensure you have a valud Firebase User included in your POST requests.
+
+Managed documents are stored in a specified Cloud Firestore collection, while providing two subcollections for accesing data, these are:
+
+- acceptances
+- agreements
+
+Each collection has a managed section for supporting multiple instances of the extension. For example, a typical routes for agreements would be:
+
+`agreement/${EXT_ID}/{agreementId}`
 
 ## Definitions
 
