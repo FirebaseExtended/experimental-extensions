@@ -2,7 +2,7 @@ name: terms-of-service
 version: 0.0.1
 specVersion: v1beta
 
-displayName: CRM Integration
+displayName: Consent Management Extension
 description: TODO
 
 license: Apache-2.0

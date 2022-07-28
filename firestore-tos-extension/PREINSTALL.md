@@ -1,0 +1,57 @@
+Use this extension to manage terms of service documents and acceptances from the functions provided.
+
+## Usage
+
+These documents are managed in a specified Cloud Firestore collection.
+
+The extension supports multiple use cases:
+
+- Accepting terms
+- Creating terms
+- Getting terms
+- Getting accepted terms
+
+All functions `require authentication` to run, ensure you have a valud Firebase User included in your POST requests.
+
+## Definitions
+
+`tosId`: Terms of service Id. This unique Id represents a created terms firestore document.
+
+`link`: An external http link for a user to view the associated terms and conditions.
+
+`creationDate`: Automatically generated date value on creation of a new terms document.
+
+`allowList`: A list of users emails or phone numbers. If specified, this will validate to ensure only selected users can accept the specified terms.
+
+`customAttributes`: A key/value list of unique properties for the terms Firestore document. An example, would be to add unique roles such as `publisher/consurumer`
+
+### Additional setup
+
+Before installing this extension, make sure that you've [set up a Cloud Firestore database](https://firebase.google.com/docs/firestore/quickstart) in your Firebase project.
+
+#### Billing
+
+To install an extension, your project must be on the [Blaze (pay as you go) plan](https://firebase.google.com/pricing)
+
+- You will be charged a small amount (typically around $0.01/month) for the Firebase resources required by this extension (even if it is not used).
+- This extension uses other Firebase and Google Cloud Platform services, which have associated charges if you exceed the service’s no-cost tier:
+  - Cloud Firestore
+  - Cloud Functions (Node.js 10+ runtime. [See FAQs](https://firebase.google.com/support/faq#extensions-pricing))
+
+Usage of this extension also requires you to have SMTP credentials for mail delivery. You are responsible for any associated costs with your usage of your SMTP provider.
+
+**Configuration Parameters:**
+
+- Cloud Functions location: Where do you want to deploy the functions created for this extension? You usually want a location close to your database. For help selecting a location, refer to the [location selection guide](https://firebase.google.com/docs/functions/locations).
+
+- Consent documents collection: What is the path to the collection that contains the documents used to manage all consent documents?
+
+**Cloud Functions:**
+
+- **processQueue:** Processes document changes in the specified Cloud Firestore collection, delivers emails, and updates the document with delivery status information.
+
+**Access Required**:
+
+This extension will operate with the following project IAM roles:
+
+- datastore.user (Reason: Allows this extension to access Cloud Firestore to read and process added email documents.)
