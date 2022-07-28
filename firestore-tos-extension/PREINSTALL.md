@@ -1,4 +1,6 @@
-Use this extension to manage terms of service documents and acceptances from the functions provided.
+Use this extension to provides an API for adding new consent terms, retrieving the latest terms, and tracking acceptances. 
+
+Allows users to sign consent forms as part of their application. Some common consent forms include ToS and cookie consent.
 
 ## Usage
 
@@ -23,7 +25,7 @@ All functions `require authentication` to run, ensure you have a valud Firebase 
 
 `allowList`: A list of users emails or phone numbers. If specified, this will validate to ensure only selected users can accept the specified terms.
 
-`customAttributes`: A key/value list of unique properties for the terms Firestore document. An example, would be to add unique roles such as `publisher/consurumer`
+`customAttributes`: A key/value list of unique properties for the terms Firestore document. An example, would be to add unique roles such as `publisher/consumer`
 
 ### Additional setup
 
@@ -38,8 +40,6 @@ To install an extension, your project must be on the [Blaze (pay as you go) plan
   - Cloud Firestore
   - Cloud Functions (Node.js 10+ runtime. [See FAQs](https://firebase.google.com/support/faq#extensions-pricing))
 
-Usage of this extension also requires you to have SMTP credentials for mail delivery. You are responsible for any associated costs with your usage of your SMTP provider.
-
 **Configuration Parameters:**
 
 - Cloud Functions location: Where do you want to deploy the functions created for this extension? You usually want a location close to your database. For help selecting a location, refer to the [location selection guide](https://firebase.google.com/docs/functions/locations).
@@ -48,10 +48,16 @@ Usage of this extension also requires you to have SMTP credentials for mail deli
 
 **Cloud Functions:**
 
-- **processQueue:** Processes document changes in the specified Cloud Firestore collection, delivers emails, and updates the document with delivery status information.
+- **acceptTerms:** Callable function for user to accept current terms.
+
+- **createTerms:** Callable function to create a new terms of service agreement. This function can be used to implement admin tooling.
+
+- **getTerms:** Callable function to get the current terms.
+
+- **getAcceptances:** Callable function to get acceptances.
 
 **Access Required**:
 
 This extension will operate with the following project IAM roles:
 
-- datastore.user (Reason: Allows this extension to access Cloud Firestore to read and process added email documents.)
+- datastore.user (Reason: Allows this extension to access Cloud Firestore to read and process added consent related documents.)
