@@ -76,6 +76,11 @@ export const createTerms = functions.handler.https.onCall(
       return;
     }
 
+    /** check if tos data has been provided  */
+    if (!data.noticeType) {
+      return { error: "No noticeType provided" };
+    }
+
     /** Set claims on user and return */
     return db
       .collection(config.collectionPath)

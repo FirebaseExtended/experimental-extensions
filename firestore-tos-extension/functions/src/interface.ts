@@ -12,8 +12,8 @@ export interface Acknowledgement {
   tosId: string;
   acceptanceDate: string;
   creationDate: string;
-  noticeType?: {
+  noticeType: {
     [key: string]: any;
   };
-  status: string;
+  status?: string;
 }

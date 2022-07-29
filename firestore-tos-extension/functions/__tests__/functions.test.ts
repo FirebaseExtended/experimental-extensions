@@ -37,6 +37,7 @@ describe("functions testing", () => {
           {
             link: "www.link.to.terms",
             tosId,
+            noticeType: {},
           },
           { auth: { uid: user.uid } }
         );
@@ -47,6 +48,7 @@ describe("functions testing", () => {
           {},
           {
             tosId,
+            noticeType: {},
           },
           { auth: { uid: user.uid } }
         );
@@ -77,6 +79,7 @@ describe("functions testing", () => {
           {
             link: "www.link.to.terms",
             tosId: tosId_2,
+            noticeType: {},
           },
           { auth: { uid: user.uid } }
         );
@@ -110,7 +113,7 @@ describe("functions testing", () => {
       });
 
       test("does not add a terms of service", async () => {
-        await acceptTermsFn.call({}, { tosId }, {});
+        await acceptTermsFn.call({}, { tosId, noticeType: {} }, {});
 
         const userRecord = await auth.getUser(user.uid);
 
@@ -129,7 +132,11 @@ describe("functions testing", () => {
       });
 
       test("does not add a terms of service without a provided tosId", async () => {
-        await acceptTermsFn.call({}, {}, { auth: { uid: user.uid } });
+        await acceptTermsFn.call(
+          {},
+          { noticeType: {} },
+          { auth: { uid: user.uid } }
+        );
 
         const userRecord = await auth.getUser(user.uid);
 
@@ -141,7 +148,7 @@ describe("functions testing", () => {
       test("does not add a terms of service without a exisiting tosId", async () => {
         await acceptTermsFn.call(
           {},
-          { tosId: "unknown" },
+          { tosId: "unknown", noticeType: {} },
           { auth: { uid: user.uid } }
         );
 
@@ -173,6 +180,7 @@ describe("functions testing", () => {
           link: "www.link.to.terms",
           tosId,
           creationDate: new Date().toLocaleDateString(),
+          noticeType: {},
         },
         { auth: { uid: "test" } }
       );
@@ -195,6 +203,7 @@ describe("functions testing", () => {
         {
           link: "www.link.to.terms",
           tosId,
+          noticeType: {},
         },
         { auth: { uid: user.uid } }
       );
@@ -250,58 +259,42 @@ describe("functions testing", () => {
 
     test("can create a terms of service", async () => {
       const link = "www.link.to.terms";
-      const creationDate = new Date().toLocaleDateString();
+      const status = "SEEN";
+      const noticeType = [{ role: "publisher" }];
 
       await createTermsFn.call(
+        {},
+        { tosId, link, status, noticeType },
+        { auth: { uid: "test" } }
+      );
+
+      const terms = await admin
+        .firestore()
+        .collection("terms")
+        .doc("agreements")
+        .collection("tos")
+        .doc(tosId)
+        .get()
+        .then((doc) => doc.data());
+
+      expect(terms.tosId).toEqual(tosId);
+      expect(terms.creationDate).toBeDefined();
+      expect(terms.link).toEqual(link);
+      expect(terms.status).toEqual(status);
+      expect(terms.noticeType).toEqual(noticeType);
+    });
+
+    test("should throw an error when a valid notice type has not been provided", async () => {
+      const link = "www.link.to.terms";
+      const creationDate = new Date().toLocaleDateString();
+
+      const response = await createTermsFn.call(
         {},
         { tosId, link, creationDate },
         { auth: { uid: "test" } }
       );
 
-      const terms = await admin
-        .firestore()
-        .collection("terms")
-        .doc("agreements")
-        .collection("tos")
-        .doc(tosId)
-        .get()
-        .then((doc) => doc.data());
-
-      expect(terms.tosId).toEqual(tosId);
-      expect(terms.creationDate).toEqual(creationDate);
-      expect(terms.link).toEqual(link);
-    });
-
-    test("can create a terms of service with a custom attribute", async () => {
-      const link = "www.link.to.terms";
-      const creationDate = new Date().toLocaleDateString();
-      const noticeType = [
-        {
-          role: "publisher",
-          add_to_custom_claims: true,
-        },
-      ];
-
-      await createTermsFn.call(
-        {},
-        { tosId, link, creationDate, noticeType },
-        { auth: { uid: "test" } }
-      );
-
-      const terms = await admin
-        .firestore()
-        .collection("terms")
-        .doc("agreements")
-        .collection("tos")
-        .doc(tosId)
-        .get()
-        .then((doc) => doc.data());
-
-      expect(terms.tosId).toEqual(tosId);
-      expect(terms.creationDate).toEqual(creationDate);
-      expect(terms.link).toEqual(link);
-
-      expect(terms.noticeType[0].role).toEqual("publisher");
+      expect(response.error).toEqual("No noticeType provided");
     });
   });
 
@@ -327,12 +320,17 @@ describe("functions testing", () => {
         {
           link,
           tosId,
+          noticeType: {},
         },
         { auth: { uid: user.uid } }
       );
 
       /** accept terms */
-      await acceptTermsFn.call({}, { tosId }, { auth: { uid: user.uid } });
+      await acceptTermsFn.call(
+        {},
+        { tosId, noticeType: {} },
+        { auth: { uid: user.uid } }
+      );
 
       /** get terms */
       const acknowledgements = await getAcknowledgements.call(
