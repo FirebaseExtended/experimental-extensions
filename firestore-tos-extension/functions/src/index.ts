@@ -47,7 +47,10 @@ export const acceptTerms = functions.handler.https.onCall(
       .get()
       .then(($) => $.data() || {});
 
-    acknowledgements[data.tosId] = tosDoc.data();
+    acknowledgements[data.tosId] = {
+      ...tosDoc.data(),
+      acceptanceDate: admin.firestore.FieldValue.serverTimestamp(),
+    };
 
     /** Add Acceptance cliam to user document list */
     await db
@@ -89,8 +92,7 @@ export const createTerms = functions.handler.https.onCall(
       .doc(data.tosId)
       .set({
         ...data,
-        creationDate: new Date().toLocaleDateString(),
-        acceptanceDate: new Date().toLocaleDateString(),
+        creationDate: admin.firestore.FieldValue.serverTimestamp(),
       });
   }
 );
@@ -110,9 +112,12 @@ export const getTerms = functions.handler.https.onCall(
       .collection("tos");
 
     if (custom_filter) {
-      const [key, value] = Object.entries(custom_filter)[0];
-      const queryObject = { [key]: value };
-      query.where(`noticeType`, "array-contains", { queryObject }).limit(1);
+      Object.entries(custom_filter).forEach(([key, value]) => {
+        const queryObject = { [key]: value };
+        query.where(`noticeType`, "array-contains", { queryObject });
+      });
+
+      return query.get().then((doc) => doc.docs.map(($) => $.data()));
     }
 
     if (latest_only) query.orderBy("creationDate", "desc").limit(1);
