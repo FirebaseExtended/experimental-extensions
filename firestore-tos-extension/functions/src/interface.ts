@@ -3,7 +3,7 @@ export interface TermsOfServiceMetadata {
   link: string;
   creationDate: string;
   allowList?: string[];
-  customAttributes?: {
+  noticeType?: {
     [key: string]: any;
   };
 }
@@ -12,7 +12,7 @@ export interface TermsOfServiceAcceptance {
   tosId: string;
   acceptanceDate: string;
   creationDate: string;
-  customAttributes?: {
+  noticeType?: {
     [key: string]: any;
   };
 }

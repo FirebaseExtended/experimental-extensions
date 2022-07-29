@@ -37,7 +37,6 @@ describe("functions testing", () => {
           {
             link: "www.link.to.terms",
             tosId,
-            creationDate: new Date().toLocaleDateString(),
           },
           { auth: { uid: user.uid } }
         );
@@ -218,7 +217,7 @@ describe("functions testing", () => {
         {
           link: "www.test.com",
           tosId,
-          customAttributes: [{ role: "publisher" }],
+          noticeType: [{ role: "publisher" }],
         },
         { auth: { uid: user.uid } }
       );
@@ -233,7 +232,7 @@ describe("functions testing", () => {
       expect(terms?.link).toBeDefined();
       expect(terms?.tosId).toBeDefined();
       expect(terms?.creationDate).toBeDefined();
-      expect(terms?.customAttributes[0].role).toEqual("publisher");
+      expect(terms?.noticeType[0].role).toEqual("publisher");
     });
   });
 
@@ -276,7 +275,7 @@ describe("functions testing", () => {
     test("can create a terms of service with a custom attribute", async () => {
       const link = "www.link.to.terms";
       const creationDate = new Date().toLocaleDateString();
-      const customAttributes = [
+      const noticeType = [
         {
           role: "publisher",
           add_to_custom_claims: true,
@@ -285,7 +284,7 @@ describe("functions testing", () => {
 
       await createTermsFn.call(
         {},
-        { tosId, link, creationDate, customAttributes },
+        { tosId, link, creationDate, noticeType },
         { auth: { uid: "test" } }
       );
 
@@ -302,7 +301,7 @@ describe("functions testing", () => {
       expect(terms.creationDate).toEqual(creationDate);
       expect(terms.link).toEqual(link);
 
-      expect(terms.customAttributes[0].role).toEqual("publisher");
+      expect(terms.noticeType[0].role).toEqual("publisher");
     });
   });
 

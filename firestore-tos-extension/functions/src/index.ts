@@ -107,9 +107,7 @@ export const getTerms = functions.handler.https.onCall(
     if (custom_filter) {
       const [key, value] = Object.entries(custom_filter)[0];
       const queryObject = { [key]: value };
-      query
-        .where(`customAttributes`, "array-contains", { queryObject })
-        .limit(1);
+      query.where(`noticeType`, "array-contains", { queryObject }).limit(1);
     }
 
     if (latest_only) query.orderBy("creationDate", "desc").limit(1);

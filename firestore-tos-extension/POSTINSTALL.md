@@ -45,7 +45,7 @@ The extension will provide `4` new functions for managing consent for users.
         link: string;
         creationDate: string;
         allowList?: string[];
-        customAttributes?: {
+        noticeType?: {
             [key: string]: any;
         };
     }

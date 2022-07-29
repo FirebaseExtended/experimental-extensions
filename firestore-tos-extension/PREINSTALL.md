@@ -32,7 +32,7 @@ Each collection has a managed section for supporting multiple instances of the e
 
 `allowList`: A list of users emails or phone numbers. If specified, this will validate to ensure only selected users can accept the specified terms.
 
-`customAttributes`: A key/value list of unique properties for the terms Firestore document. An example, would be to add unique roles such as `publisher/consumer`
+`noticeType`: A key/value list of unique properties for the terms Firestore document. An example, would be to add unique roles such as `publisher/consumer`
 
 ## Auth claims (optional)
 
