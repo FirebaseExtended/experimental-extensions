@@ -2,7 +2,7 @@ name: terms-of-service
 version: 0.0.1
 specVersion: v1beta
 
-displayName: Consent Management Extension
+displayName: Ackowledgement Management Extension
 description: TODO
 
 license: Apache-2.0
@@ -48,7 +48,7 @@ resources:
       runtime: nodejs16
       httpsTrigger: {}
 
-  - name: getAcceptances
+  - name: getAcknowledgement
     type: firebaseextensions.v1beta.function
     properties:
       location: ${LOCATION}
@@ -126,7 +126,7 @@ params:
   - param: INCLUDE_AUTH_CLAIMS
     label: Add to user auth claims
     description: >-
-      Allows the storage and processing of consent documents on the authenticated user.
+      Allows the storage and processing of ackowledgement documents on the authenticated user.
     type: select
     options:
       - label: include

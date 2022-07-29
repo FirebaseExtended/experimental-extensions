@@ -8,11 +8,12 @@ export interface TermsOfServiceMetadata {
   };
 }
 
-export interface TermsOfServiceAcceptance {
+export interface Acknowledgement {
   tosId: string;
   acceptanceDate: string;
   creationDate: string;
   noticeType?: {
     [key: string]: any;
   };
+  status: string;
 }

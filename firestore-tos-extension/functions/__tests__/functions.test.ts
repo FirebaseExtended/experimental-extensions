@@ -4,7 +4,7 @@ setupEnvironment();
 import * as admin from "firebase-admin";
 const fft = require("firebase-functions-test")();
 
-import { TermsOfServiceAcceptance } from "../src/interface";
+import { Acknowledgement } from "../src/interface";
 import * as funcs from "../src/index";
 
 if (admin.apps.length === 0) {
@@ -17,7 +17,7 @@ const auth = admin.auth();
 const acceptTermsFn = fft.wrap(funcs.acceptTerms);
 const createTermsFn = fft.wrap(funcs.createTerms);
 const getTermsFn = fft.wrap(funcs.getTerms);
-const getAcceptances = fft.wrap(funcs.getAcceptances);
+const getAcknowledgements = fft.wrap(funcs.getAcknowledgements);
 
 describe("functions testing", () => {
   describe("accept terms", () => {
@@ -60,12 +60,12 @@ describe("functions testing", () => {
         expect(terms).toBeDefined();
         expect(terms[tosId]).toBeDefined();
 
-        const acceptances: TermsOfServiceAcceptance = terms[tosId];
+        const acknowledgement: Acknowledgement = terms[tosId];
 
-        expect(acceptances).toBeDefined();
-        expect(acceptances.tosId).toBeDefined();
-        expect(acceptances.creationDate).toBeDefined();
-        expect(acceptances.acceptanceDate).toBeDefined();
+        expect(acknowledgement).toBeDefined();
+        expect(acknowledgement.tosId).toBeDefined();
+        expect(acknowledgement.creationDate).toBeDefined();
+        expect(acknowledgement.acceptanceDate).toBeDefined();
       });
 
       test("can accept multiple terms of service agreements", async () => {
@@ -91,9 +91,9 @@ describe("functions testing", () => {
         const userRecord = await auth.getUser(user.uid);
 
         const terms = userRecord?.customClaims[process.env.EXT_INSTANCE_ID];
-        const acceptances: TermsOfServiceAcceptance = terms;
+        const acknowledgements: Acknowledgement = terms;
 
-        expect(Object.keys(acceptances)).toHaveLength(2);
+        expect(Object.keys(acknowledgements)).toHaveLength(2);
       });
     });
 
@@ -305,7 +305,7 @@ describe("functions testing", () => {
     });
   });
 
-  describe("get acceptances", () => {
+  describe("get acknowledgements", () => {
     let user;
     let tosId;
 
@@ -335,15 +335,15 @@ describe("functions testing", () => {
       await acceptTermsFn.call({}, { tosId }, { auth: { uid: user.uid } });
 
       /** get terms */
-      const acceptances = await getAcceptances.call(
+      const acknowledgements = await getAcknowledgements.call(
         {},
         {},
         { auth: { uid: user.uid } }
       );
 
-      expect(acceptances).toBeDefined();
-      expect(acceptances[tosId].link).toEqual(link);
-      expect(acceptances[tosId].creationDate).toEqual(creationDate);
+      expect(acknowledgements).toBeDefined();
+      expect(acknowledgements[tosId].link).toEqual(link);
+      expect(acknowledgements[tosId].creationDate).toEqual(creationDate);
     });
   });
 });

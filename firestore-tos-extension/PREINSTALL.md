@@ -1,6 +1,6 @@
-Use this extension to provides an API for adding new consent terms, retrieving the latest terms, and tracking acceptances.
+Use this extension to provides an API for adding new ackowledgement terms, retrieving the latest terms, and tracking acknowledgements.
 
-Allows users to sign consent forms as part of their application. Some common consent forms include ToS and cookie consent.
+Allows users to sign ackowledgement forms as part of their application. Some common ackowledgement forms include ToS and cookie ackowledgement.
 
 ## Usage
 
@@ -15,7 +15,7 @@ All functions `require authentication` to run, ensure you have a valud Firebase 
 
 Managed documents are stored in a specified Cloud Firestore collection, while providing two subcollections for accesing data, these are:
 
-- acceptances
+- acknowledgements
 - agreements
 
 Each collection has a managed section for supporting multiple instances of the extension. For example, a typical routes for agreements would be:
@@ -36,7 +36,7 @@ Each collection has a managed section for supporting multiple instances of the e
 
 ## Auth claims (optional)
 
-By default, all accepted documents are stored under the `acceptances/{UID}` sub collection. Any lookups return the relavant Firestore documents.
+By default, all accepted documents are stored under the `acknowledgements/{UID}` sub collection. Any lookups return the relavant Firestore documents.
 
 If you would like to store the accepted documents on the Firebase User as auth claims, this can be configured by enabling the `Include Authentication Claims` in the Extension configuration.
 
@@ -63,7 +63,7 @@ To install an extension, your project must be on the [Blaze (pay as you go) plan
 
 - Cloud Functions location: Where do you want to deploy the functions created for this extension? You usually want a location close to your database. For help selecting a location, refer to the [location selection guide](https://firebase.google.com/docs/functions/locations).
 
-- Consent documents collection: What is the path to the collection that contains the documents used to manage all consent documents?
+- Ackowledgement documents collection: What is the path to the collection that contains the documents used to manage all ackowledgement documents?
 
 **Cloud Functions:**
 
@@ -73,10 +73,10 @@ To install an extension, your project must be on the [Blaze (pay as you go) plan
 
 - **getTerms:** Callable function to get the current terms.
 
-- **getAcceptances:** Callable function to get acceptances.
+- **getAcknowledgements:** Callable function to get acknowledgements.
 
 **Access Required**:
 
 This extension will operate with the following project IAM roles:
 
-- datastore.user (Reason: Allows this extension to access Cloud Firestore to read and process added consent related documents.)
+- datastore.user (Reason: Allows this extension to access Cloud Firestore to read and process added ackowledgement related documents.)

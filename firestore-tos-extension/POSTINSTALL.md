@@ -16,16 +16,16 @@ You can test out this extension right away!
 
 ### Using the extension
 
-All consent documents are managed in the Cloud Firestore database.
+All ackowledgement documents are managed in the Cloud Firestore database.
 
 These can be found in ${param:COLLECTION_PATH}.
 
 This will also contain two pre-defined subcollections:
 
-- acceptances
+- acknowledgements
 - terms
 
-The extension will provide `4` new functions for managing consent for users.
+The extension will provide `4` new functions for managing ackowledgement for users.
 
 **Accept Terms**
 
@@ -69,10 +69,10 @@ The extension will provide `4` new functions for managing consent for users.
     );
 ```
 
-**Get Acceptances**
+**Get Acknowledgements**
 
 ```js
-    const acceptances = await getAcceptances.call({},
+    const acknowledgements = await getAcknowledgements.call({},
         {},
         { auth: { uid: user.uid } }
     );

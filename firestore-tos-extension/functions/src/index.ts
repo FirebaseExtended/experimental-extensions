@@ -38,28 +38,28 @@ export const acceptTerms = functions.handler.https.onCall(
       return;
     }
 
-    /** Find current acceptances */
-    const tos_acceptances = await db
+    /** Find current acknowledgements */
+    const acknowledgements = await db
       .collection(config.collectionPath)
-      .doc("acceptances")
+      .doc("acknowledgements")
       .collection(context.auth.uid)
       .doc(`${process.env.EXT_INSTANCE_ID}`)
       .get()
       .then(($) => $.data() || {});
 
-    tos_acceptances[data.tosId] = tosDoc.data();
+    acknowledgements[data.tosId] = tosDoc.data();
 
     /** Add Acceptance cliam to user document list */
     await db
       .collection(config.collectionPath)
-      .doc("acceptances")
+      .doc("acknowledgements")
       .collection(context.auth.uid)
       .doc(`${process.env.EXT_INSTANCE_ID}`)
-      .set({ ...(tos_acceptances || {}) });
+      .set({ ...(acknowledgements || {}) });
 
     /** Set claims on user and return */
     const claims = {};
-    claims[process.env.EXT_INSTANCE_ID] = tos_acceptances;
+    claims[process.env.EXT_INSTANCE_ID] = acknowledgements;
     return auth.setCustomUserClaims(context.auth.uid, { ...claims });
   }
 );
@@ -117,7 +117,7 @@ export const getTerms = functions.handler.https.onCall(
   }
 );
 
-export const getAcceptances = functions.handler.https.onCall(
+export const getAcknowledgements = functions.handler.https.onCall(
   async (data, context) => {
     // Checking that the user is authenticated.
     if (!context.auth) {
@@ -126,7 +126,7 @@ export const getAcceptances = functions.handler.https.onCall(
 
     return db
       .collection(config.collectionPath)
-      .doc("acceptances")
+      .doc("acknowledgements")
       .collection(context.auth.uid)
       .doc(`${process.env.EXT_INSTANCE_ID}`)
       .get()
