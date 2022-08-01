@@ -18,7 +18,7 @@ You can test out this extension right away!
 
 All ackowledgement documents are managed in the Cloud Firestore database.
 
-These can be found in ${param:COLLECTION_PATH}.
+These can be found in the `${param:COLLECTION_PATH}` collection.
 
 This will also contain two pre-defined subcollections:
 
