@@ -9,7 +9,18 @@ You can test out this extension right away!
 2. Access the user through any of the authetication methods.
 
 ```js
-    const user = await getAuth().getUser(uid);
+   // v9
+   import { getAuth, onAuthStateChanged } from "firebase/auth";
+
+   const auth = getAuth();
+   const user = await auth.getUser(uid);
+```
+
+```js
+   // < v9
+   import firebase from "firebase-admin";
+
+   const user = await firebase.auth().getUser(uid);
 ```
 
 3. Provide the user / userId into one of the available functions.
