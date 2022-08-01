@@ -30,9 +30,18 @@ The extension will provide `4` new functions for managing ackowledgement for use
 **Accept Terms**
 
   ```js
-    await acceptTermsFn.call({},
-      { tosId }, { auth: { uid: user.uid } }
-    );
+    // < v9
+    var acceptTerms = firebase.functions().httpsCallable('acceptTerms');
+    await acceptTerms({ tosId });
+  ```
+
+  ```js
+    // v9
+    import { getFunctions, httpsCallable } from "firebase/functions";
+
+    const functions = getFunctions();
+    const acceptTerms = httpsCallable(functions, 'acceptTerms');
+    await acceptTerms({ tosId });
   ```
 
 **Create Terms**
@@ -54,29 +63,53 @@ The extension will provide `4` new functions for managing ackowledgement for use
   This can be called via:
 
   ```js
-    await createTermsFn.call({},
-        { tosId, link, creationDate },
-        { auth: { uid: "test" } }
-    );
+    // < v9
+    var createTerms = firebase.functions().httpsCallable('createTerms');
+    await createTerms( { tosId, link, creationDate });
+  ```
+
+  ```js
+    // v9
+    import { getFunctions, httpsCallable } from "firebase/functions";
+
+    const functions = getFunctions();
+    const acceptTerms = httpsCallable(functions, 'acceptTerms');
+    await acceptTerms( { tosId, link, creationDate });
   ```
 
 **Get Terms**
 
-```js
-    const terms = await getTermsFn.call({},
-        { tosId },
-        { auth: { uid: user.uid } }
-    );
-```
+  ```js
+    // < v9
+    var getTerms = firebase.functions().httpsCallable('createTerms');
+    await getTerms( tosId);
+  ```
+
+  ```js
+    // v9
+    import { getFunctions, httpsCallable } from "firebase/functions";
+
+    const functions = getFunctions();
+    const getTerms = httpsCallable(functions, 'getTerms');
+    await getTerms({ tosId });
+  ```
 
 **Get Acknowledgements**
 
-```js
-    const acknowledgements = await getAcknowledgements.call({},
-        {},
-        { auth: { uid: user.uid } }
-    );
-```
+  ```js
+    // < v9
+    var getTerms = firebase.functions().httpsCallable('createTerms');
+    await getTerms({ tosId });
+  ```
+
+  ```js
+    // v9
+    import { getFunctions, httpsCallable } from "firebase/functions";
+
+    const functions = getFunctions();
+    const getAcknowledgements = httpsCallable(functions, 'getAcknowledgements');
+    await getAcknowledgements();
+  ```
 
 ### Monitoring
 
