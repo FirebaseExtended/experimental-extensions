@@ -64,7 +64,15 @@ export const acceptTerms = functions.handler.https.onCall(
     /** Set claims on user and return */
     const claims = {};
     claims[process.env.EXT_INSTANCE_ID] = acknowledgements;
-    return auth.setCustomUserClaims(context.auth.uid, { ...claims });
+
+    const { customClaims: existingClaims } = await auth.getUser(
+      context.auth.uid
+    );
+
+    return auth.setCustomUserClaims(context.auth.uid, {
+      ...existingClaims,
+      ...claims,
+    });
   }
 );
 
