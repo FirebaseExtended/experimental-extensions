@@ -6,6 +6,7 @@ const fft = require("firebase-functions-test")();
 
 import { Acknowledgement } from "../src/interface";
 import * as funcs from "../src/index";
+import { HttpsError } from "firebase-functions/v1/auth";
 
 if (admin.apps.length === 0) {
   admin.initializeApp({ projectId: "demo-test" });
@@ -113,13 +114,10 @@ describe("functions testing", () => {
       });
 
       test("does not add a terms of service", async () => {
-        await acceptTermsFn.call({}, { tosId, noticeType: [] }, {});
-
-        const userRecord = await auth.getUser(user.uid);
-
-        const claims = userRecord?.customClaims;
-
-        expect(claims).toBeUndefined();
+        expect(
+          async () =>
+            await acceptTermsFn.call({}, { tosId, noticeType: [] }, {})
+        ).rejects.toThrow("No valid authentication token provided.");
       });
     });
 
@@ -132,17 +130,10 @@ describe("functions testing", () => {
       });
 
       test("does not add a terms of service without a provided tosId", async () => {
-        await acceptTermsFn.call(
-          {},
-          { noticeType: [] },
-          { auth: { uid: user.uid } }
-        );
-
-        const userRecord = await auth.getUser(user.uid);
-
-        const claims = userRecord?.customClaims;
-
-        expect(claims).toBeUndefined();
+        expect(
+          async () =>
+            await acceptTermsFn.call({}, {}, { auth: { uid: user.uid } })
+        ).rejects.toThrow("No tosId provided.");
       });
 
       test("does not add a terms of service without a exisiting tosId", async () => {
@@ -296,13 +287,14 @@ describe("functions testing", () => {
       const link = "www.link.to.terms";
       const creationDate = new Date().toLocaleDateString();
 
-      const response = await createTermsFn.call(
-        {},
-        { tosId, link, creationDate },
-        { auth: { uid: "test" } }
-      );
-
-      expect(response.error).toEqual("No noticeType provided");
+      expect(
+        async () =>
+          await createTermsFn.call(
+            {},
+            { tosId, link, creationDate },
+            { auth: { uid: "test" } }
+          )
+      ).rejects.toThrow("Invalid notice type");
     });
   });
 
@@ -341,8 +333,6 @@ describe("functions testing", () => {
         { tosId },
         { auth: { uid: user.uid } }
       );
-
-      console.log("testing >>>>", user.uid, tosId);
 
       expect(acknowledgements).toBeDefined();
       expect(acknowledgements[tosId].link).toEqual(link);

@@ -16,13 +16,18 @@ export const acceptTerms = functions.handler.https.onCall(
   async (data, context) => {
     // Checking that the user is authenticated.
     if (!context.auth) {
-      return;
+      throw new functions.https.HttpsError(
+        "unauthenticated",
+        "No valid authentication token provided."
+      );
     }
 
     /** check if tosId has been provided  */
     if (!data.tosId) {
-      console.warn("No tosId provided");
-      return;
+      throw new functions.https.HttpsError(
+        "invalid-argument",
+        "No tosId provided."
+      );
     }
 
     /** check tos documents */
@@ -80,17 +85,26 @@ export const createTerms = functions.handler.https.onCall(
   async (data, context) => {
     // Checking that the user is authenticated.
     if (!context.auth) {
-      return;
+      throw new functions.https.HttpsError(
+        "unauthenticated",
+        "No valid authentication token provided."
+      );
     }
 
     /** check if tos data has been provided  */
     if (!data) {
-      return;
+      throw new functions.https.HttpsError(
+        "invalid-argument",
+        "No valid data provided."
+      );
     }
 
     /** check if tos data has been provided  */
     if (!data.noticeType) {
-      return { error: "No noticeType provided" };
+      throw new functions.https.HttpsError(
+        "invalid-argument",
+        "Invalid notice type"
+      );
     }
 
     /** Set claims on user and return */
@@ -113,7 +127,10 @@ export const getTerms = functions.handler.https.onCall(
   async (data, context) => {
     // Checking that the user is authenticated.
     if (!context.auth) {
-      return;
+      throw new functions.https.HttpsError(
+        "unauthenticated",
+        "No valid authentication token provided."
+      );
     }
 
     const { tosId, latest_only = false, custom_filter } = data;
@@ -145,7 +162,10 @@ export const getAcknowledgements = functions.handler.https.onCall(
   async (data, context) => {
     // Checking that the user is authenticated.
     if (!context.auth) {
-      return;
+      throw new functions.https.HttpsError(
+        "unauthenticated",
+        "No valid authentication token provided."
+      );
     }
 
     return db
