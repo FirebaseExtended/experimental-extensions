@@ -59,7 +59,7 @@ export const acceptTerms = functions.handler.https.onCall(
       .doc("acknowledgements")
       .collection(context.auth.uid)
       .doc(`${process.env.EXT_INSTANCE_ID}`)
-      .set({ ...(acknowledgements || {}) });
+      .set({ ...(acknowledgements || {}) }, { merge: true });
 
     /** Set claims on user and return */
     const claims = {};
@@ -91,10 +91,13 @@ export const createTerms = functions.handler.https.onCall(
       .doc("agreements")
       .collection("tos")
       .doc(data.tosId)
-      .set({
-        ...data,
-        creationDate: admin.firestore.FieldValue.serverTimestamp(),
-      });
+      .set(
+        {
+          ...data,
+          creationDate: admin.firestore.FieldValue.serverTimestamp(),
+        },
+        { merge: true }
+      );
   }
 );
 
