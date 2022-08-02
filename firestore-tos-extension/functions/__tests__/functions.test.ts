@@ -180,7 +180,11 @@ describe("functions testing", () => {
           link: "www.link.to.terms",
           tosId,
           creationDate: new Date().toLocaleDateString(),
-          noticeType: [],
+          noticeType: [
+            {
+              role: "publisher",
+            },
+          ],
         },
         { auth: { uid: "test" } }
       );
@@ -195,6 +199,7 @@ describe("functions testing", () => {
       expect(terms?.link).toBeDefined();
       expect(terms?.tosId).toBeDefined();
       expect(terms?.creationDate).toBeDefined();
+      expect(terms?.noticeType[0].role).toBe("publisher");
     });
 
     test("can get a terms of service by tosId", async () => {

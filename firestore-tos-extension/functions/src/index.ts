@@ -3,6 +3,7 @@ import * as admin from "firebase-admin";
 import * as log from "./logs";
 import config from "./config";
 import { user } from "firebase-functions/v1/auth";
+import { convertToTerms } from "./converter";
 
 if (admin.apps.length === 0) {
   admin.initializeApp({ projectId: "demo-test" });
@@ -117,13 +118,15 @@ export const getTerms = functions.handler.https.onCall(
         query.where(`noticeType`, "array-contains", { queryObject });
       });
 
-      return query.get().then((doc) => doc.docs.map(($) => $.data()));
+      return query
+        .get()
+        .then((doc) => doc.docs.map(($) => convertToTerms($.data())));
     }
 
     if (latest_only) query.orderBy("creationDate", "desc").limit(1);
     if (tosId) query.where("tosId", "==", tosId);
 
-    return query.get().then((doc) => doc.docs[0].data());
+    return query.get().then((doc) => convertToTerms(doc.docs[0].data()));
   }
 );
 
