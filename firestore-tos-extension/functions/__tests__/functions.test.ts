@@ -255,7 +255,7 @@ describe("functions testing", () => {
       tosId = `tos_v${randomId}`;
     });
 
-    test.only("can create a terms of service", async () => {
+    test("can create a terms of service", async () => {
       const link = "www.link.to.terms";
       const noticeType = [{ role: "publisher" }];
 
