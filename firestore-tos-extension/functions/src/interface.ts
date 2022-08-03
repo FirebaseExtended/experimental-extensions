@@ -10,11 +10,12 @@ export interface TermsOfServiceMetadata {
 
 export interface Acknowledgement {
   tosId: string;
-  acceptanceDate: string;
+  acknowledgedDate: string | null;
+  unacknowledgedDate: string | null;
   creationDate: string;
   noticeType: {
     [key: string]: any;
   };
-  status?: string;
+  acknowledged?: boolean;
   extensionId?: string;
 }

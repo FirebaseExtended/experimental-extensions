@@ -31,9 +31,10 @@ export const acknowledgementConverter = {
     return {
       tosId: ack?.tosId || "",
       noticeType: ack?.noticeType || [],
-      status: ack?.status || "",
+      acknowledged: ack?.acknowledged || false,
       creationDate: ack?.creationDate || "",
-      acceptanceDate: ack?.acceptanceDate || "",
+      acknowledgedDate: ack?.acknowledgedDate || null,
+      unacknowledgedDate: ack?.unacknowledgedDate || null,
       extensionId: `${process.env.EXT_INSTANCE_ID}`,
     };
   },
@@ -45,9 +46,10 @@ export const acknowledgementConverter = {
     return {
       tosId: data?.tosId || "",
       noticeType: data?.noticeType || [],
-      status: data?.status || "",
+      acknowledged: data?.acknowledged || false,
       creationDate: data?.creationDate || "",
-      acceptanceDate: data?.acceptanceDate || "",
+      acknowledgedDate: data?.acknowledgedDate || null,
+      unacknowledgedDate: data?.unacknowledgedDate || null,
       extensionId: data?.extensionId || "",
     };
   },

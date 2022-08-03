@@ -29,6 +29,13 @@ export const acceptTerms = functions.handler.https.onCall(
       );
     }
 
+    if (data.acknowledged === null) {
+      throw new functions.https.HttpsError(
+        "invalid-argument",
+        "No acknowledgement value provided."
+      );
+    }
+
     /** check tos documents */
     const tosDoc = await db
       .collection(config.collectionPath)
@@ -44,10 +51,25 @@ export const acceptTerms = functions.handler.https.onCall(
       return;
     }
 
+    const acknowledgementDates = {};
+
+    if (data.acknowledged) {
+      //@ts-ignore
+      acknowledgementDates.acknowledgedDate =
+        admin.firestore.FieldValue.serverTimestamp();
+    }
+
+    if (!data.acknowledged) {
+      //@ts-ignore
+      acknowledgementDates.unacknowledgedDate =
+        admin.firestore.FieldValue.serverTimestamp();
+    }
+
     /** Set new acknowledgment */
     const ack = {
       ...tosDoc.data(),
-      acceptanceDate: admin.firestore.FieldValue.serverTimestamp(),
+      acknowledged: data.acknowledged,
+      ...acknowledgementDates,
     };
 
     /** Add Acknowledgment */

@@ -50,6 +50,7 @@ describe("functions testing", () => {
           {
             tosId,
             noticeType: [],
+            acknowledged: true,
           },
           { auth: { uid: user.uid } }
         );
@@ -68,8 +69,10 @@ describe("functions testing", () => {
 
         expect(acknowledgement).toBeDefined();
         expect(acknowledgement.tosId).toBeDefined();
+        expect(acknowledgement.acknowledged).toBeTruthy();
         expect(acknowledgement.creationDate).toBeDefined();
-        expect(acknowledgement.acceptanceDate).toBeDefined();
+        expect(acknowledgement.acknowledgedDate).toBeDefined();
+        expect(acknowledgement.unacknowledgedDate).toBeNull();
       });
 
       test("can accept multiple terms of service agreements", async () => {
@@ -98,9 +101,38 @@ describe("functions testing", () => {
         const terms = userRecord?.customClaims[process.env.EXT_INSTANCE_ID];
         const acknowledgements: Acknowledgement = terms;
 
-        console.log("terms >>>>", terms);
-
         expect(acknowledgements).toHaveLength(2);
+      });
+
+      test("can decline a terms of service", async () => {
+        await acceptTermsFn.call(
+          {},
+          {
+            tosId,
+            noticeType: [],
+            acknowledged: false,
+          },
+          { auth: { uid: user.uid } }
+        );
+
+        const userRecord = await auth.getUser(user.uid);
+
+        expect(userRecord).toBeDefined();
+        expect(userRecord?.customClaims).toBeDefined();
+
+        const terms = userRecord?.customClaims[process.env.EXT_INSTANCE_ID];
+
+        expect(terms).toBeDefined();
+        expect(terms.length).toBe(1);
+
+        const acknowledgement: Acknowledgement = terms[0];
+
+        expect(acknowledgement).toBeDefined();
+        expect(acknowledgement.tosId).toBeDefined();
+        expect(acknowledgement.acknowledged).toBeFalsy();
+        expect(acknowledgement.creationDate).toBeDefined();
+        expect(acknowledgement.acknowledgedDate).toBeNull();
+        expect(acknowledgement.unacknowledgedDate).toBeDefined();
       });
 
       test("successfully appends exisiting custom claims", async () => {
@@ -297,7 +329,7 @@ describe("functions testing", () => {
       expect(terms.link).toEqual(link);
       expect(terms.noticeType).toEqual(noticeType);
       expect(terms.creationDate).toBeDefined();
-      expect(terms.acceptanceDate).toBeUndefined();
+      expect(terms.acknowledgedDate).toBeUndefined();
     });
 
     test("should throw an error when a valid notice type has not been provided", async () => {
@@ -353,7 +385,7 @@ describe("functions testing", () => {
 
       expect(acknowledgements).toBeDefined();
       expect(acknowledgements.creationDate).toBeDefined();
-      expect(acknowledgements.acceptanceDate).toBeDefined();
+      expect(acknowledgements.acknowledgedDate).toBeDefined();
     });
   });
 });
