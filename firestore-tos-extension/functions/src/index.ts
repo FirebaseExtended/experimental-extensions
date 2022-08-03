@@ -2,8 +2,7 @@ import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
 import * as log from "./logs";
 import config from "./config";
-import { user } from "firebase-functions/v1/auth";
-import { convertToTerms } from "./converter";
+import { termsConverter, acknowledgementConverter } from "./converter";
 
 if (admin.apps.length === 0) {
   admin.initializeApp({ projectId: "demo-test" });
@@ -36,6 +35,7 @@ export const acceptTerms = functions.handler.https.onCall(
       .doc("agreements")
       .collection("tos")
       .doc(data.tosId)
+      .withConverter(termsConverter)
       .get();
 
     /** Return if no agreement exists  */
@@ -50,6 +50,7 @@ export const acceptTerms = functions.handler.https.onCall(
       .doc("acknowledgements")
       .collection(context.auth.uid)
       .doc(`${process.env.EXT_INSTANCE_ID}`)
+      .withConverter(acknowledgementConverter)
       .get()
       .then(($) => $.data() || {});
 
@@ -64,7 +65,13 @@ export const acceptTerms = functions.handler.https.onCall(
       .doc("acknowledgements")
       .collection(context.auth.uid)
       .doc(`${process.env.EXT_INSTANCE_ID}`)
-      .set({ ...(acknowledgements || {}) }, { merge: true });
+      .withConverter(acknowledgementConverter)
+      .set(
+        { ...acknowledgements },
+        {
+          merge: true,
+        }
+      );
 
     /** Set claims on user and return */
     const claims = {};
@@ -113,6 +120,7 @@ export const createTerms = functions.handler.https.onCall(
       .doc("agreements")
       .collection("tos")
       .doc(data.tosId)
+      .withConverter(termsConverter)
       .set(
         {
           ...data,
@@ -147,14 +155,18 @@ export const getTerms = functions.handler.https.onCall(
       });
 
       return query
+        .withConverter(termsConverter)
         .get()
-        .then((doc) => doc.docs.map(($) => convertToTerms($.data())));
+        .then((doc) => doc.docs.map(($) => $.data()));
     }
 
     if (latest_only) query.orderBy("creationDate", "desc").limit(1);
     if (tosId) query.where("tosId", "==", tosId);
 
-    return query.get().then((doc) => convertToTerms(doc.docs[0].data()));
+    return query
+      .withConverter(termsConverter)
+      .get()
+      .then((doc) => doc.docs[0].data());
   }
 );
 
@@ -173,6 +185,7 @@ export const getAcknowledgements = functions.handler.https.onCall(
       .doc("acknowledgements")
       .collection(context.auth.uid)
       .doc(`${process.env.EXT_INSTANCE_ID}`)
+      .withConverter(acknowledgementConverter)
       .get()
       .then((doc) => doc.data());
   }

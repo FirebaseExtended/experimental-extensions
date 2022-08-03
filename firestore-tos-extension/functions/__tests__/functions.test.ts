@@ -255,14 +255,13 @@ describe("functions testing", () => {
       tosId = `tos_v${randomId}`;
     });
 
-    test("can create a terms of service", async () => {
+    test.only("can create a terms of service", async () => {
       const link = "www.link.to.terms";
-      const status = "SEEN";
       const noticeType = [{ role: "publisher" }];
 
       await createTermsFn.call(
         {},
-        { tosId, link, status, noticeType },
+        { tosId, link, noticeType },
         { auth: { uid: "test" } }
       );
 
@@ -277,7 +276,6 @@ describe("functions testing", () => {
 
       expect(terms.tosId).toEqual(tosId);
       expect(terms.link).toEqual(link);
-      expect(terms.status).toEqual(status);
       expect(terms.noticeType).toEqual(noticeType);
       expect(terms.creationDate).toBeDefined();
       expect(terms.acceptanceDate).toBeUndefined();
@@ -335,7 +333,6 @@ describe("functions testing", () => {
       );
 
       expect(acknowledgements).toBeDefined();
-      expect(acknowledgements[tosId].link).toEqual(link);
       expect(acknowledgements[tosId].creationDate).toBeDefined();
       expect(acknowledgements[tosId].acceptanceDate).toBeDefined();
     });
