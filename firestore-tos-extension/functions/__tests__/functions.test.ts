@@ -60,10 +60,11 @@ describe("functions testing", () => {
         expect(userRecord?.customClaims).toBeDefined();
 
         const terms = userRecord?.customClaims[process.env.EXT_INSTANCE_ID];
-        expect(terms).toBeDefined();
-        expect(terms[tosId]).toBeDefined();
 
-        const acknowledgement: Acknowledgement = terms[tosId];
+        expect(terms).toBeDefined();
+        expect(terms.length).toBe(1);
+
+        const acknowledgement: Acknowledgement = terms[0];
 
         expect(acknowledgement).toBeDefined();
         expect(acknowledgement.tosId).toBeDefined();
@@ -97,7 +98,9 @@ describe("functions testing", () => {
         const terms = userRecord?.customClaims[process.env.EXT_INSTANCE_ID];
         const acknowledgements: Acknowledgement = terms;
 
-        expect(Object.keys(acknowledgements)).toHaveLength(2);
+        console.log("terms >>>>", terms);
+
+        expect(acknowledgements).toHaveLength(2);
       });
 
       test("successfully appends exisiting custom claims", async () => {
@@ -349,8 +352,8 @@ describe("functions testing", () => {
       );
 
       expect(acknowledgements).toBeDefined();
-      expect(acknowledgements[tosId].creationDate).toBeDefined();
-      expect(acknowledgements[tosId].acceptanceDate).toBeDefined();
+      expect(acknowledgements.creationDate).toBeDefined();
+      expect(acknowledgements.acceptanceDate).toBeDefined();
     });
   });
 });

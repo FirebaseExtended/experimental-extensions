@@ -28,37 +28,27 @@ export const termsConverter = {
 
 export const acknowledgementConverter = {
   toFirestore(ack: Acknowledgement): FirebaseFirestore.DocumentData {
-    const obj = {};
-
-    Object.entries(ack).forEach(([key, value]) => {
-      obj[key] = {
-        tosId: value?.tosId || "",
-        noticeType: value?.noticeType || [],
-        status: value?.status || "",
-        creationDate: value?.creationDate || "",
-        acceptanceDate: value?.acceptanceDate || "",
-      };
-    });
-
-    return obj;
+    return {
+      tosId: ack?.tosId || "",
+      noticeType: ack?.noticeType || [],
+      status: ack?.status || "",
+      creationDate: ack?.creationDate || "",
+      acceptanceDate: ack?.acceptanceDate || "",
+      extensionId: `${process.env.EXT_INSTANCE_ID}`,
+    };
   },
   fromFirestore(
     snapshot: FirebaseFirestore.DocumentSnapshot
   ): Acknowledgement | {} {
     const data = snapshot.data();
 
-    const obj = {};
-
-    Object.entries(data).forEach(([key, value]) => {
-      obj[key] = {
-        tosId: value?.tosId || "",
-        noticeType: value?.noticeType || [],
-        status: value?.status || "",
-        creationDate: value?.creationDate || "",
-        acceptanceDate: value?.acceptanceDate || "",
-      };
-    });
-
-    return obj;
+    return {
+      tosId: data?.tosId || "",
+      noticeType: data?.noticeType || [],
+      status: data?.status || "",
+      creationDate: data?.creationDate || "",
+      acceptanceDate: data?.acceptanceDate || "",
+      extensionId: data?.extensionId || "",
+    };
   },
 };

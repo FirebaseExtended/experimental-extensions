@@ -44,34 +44,34 @@ export const acceptTerms = functions.handler.https.onCall(
       return;
     }
 
+    /** Set new acknowledgment */
+    const ack = {
+      ...tosDoc.data(),
+      acceptanceDate: admin.firestore.FieldValue.serverTimestamp(),
+    };
+
+    /** Add Acknowledgment */
+    await db
+      .collection(config.collectionPath)
+      .doc("acknowledgements")
+      .collection(context.auth.uid)
+      .doc(data.tosId)
+      .withConverter(acknowledgementConverter)
+      .set(
+        { ...ack },
+        {
+          merge: true,
+        }
+      );
+
     /** Find current acknowledgements */
     const acknowledgements = await db
       .collection(config.collectionPath)
       .doc("acknowledgements")
       .collection(context.auth.uid)
-      .doc(`${process.env.EXT_INSTANCE_ID}`)
       .withConverter(acknowledgementConverter)
       .get()
-      .then(($) => $.data() || {});
-
-    acknowledgements[data.tosId] = {
-      ...tosDoc.data(),
-      acceptanceDate: admin.firestore.FieldValue.serverTimestamp(),
-    };
-
-    /** Add Acceptance cliam to user document list */
-    await db
-      .collection(config.collectionPath)
-      .doc("acknowledgements")
-      .collection(context.auth.uid)
-      .doc(`${process.env.EXT_INSTANCE_ID}`)
-      .withConverter(acknowledgementConverter)
-      .set(
-        { ...acknowledgements },
-        {
-          merge: true,
-        }
-      );
+      .then(($) => $.docs.map((doc) => doc.data()));
 
     /** Set claims on user and return */
     const claims = {};
@@ -191,7 +191,7 @@ export const getAcknowledgements = functions.handler.https.onCall(
       .collection(config.collectionPath)
       .doc("acknowledgements")
       .collection(context.auth.uid)
-      .doc(`${process.env.EXT_INSTANCE_ID}`)
+      .doc(data.tosId)
       .withConverter(acknowledgementConverter)
       .get()
       .then((doc) => doc.data());

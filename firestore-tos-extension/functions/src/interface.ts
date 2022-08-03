@@ -16,4 +16,5 @@ export interface Acknowledgement {
     [key: string]: any;
   };
   status?: string;
+  extensionId?: string;
 }
