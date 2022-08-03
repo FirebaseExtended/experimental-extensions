@@ -99,6 +99,22 @@ describe("functions testing", () => {
 
         expect(Object.keys(acknowledgements)).toHaveLength(2);
       });
+
+      test("successfully appends exisiting custom claims", async () => {
+        /** set example custom claims on the user */
+        await auth.setCustomUserClaims(user.uid, { foo: "bar" });
+
+        /** accept terms */
+        await acceptTermsFn.call({}, { tosId }, { auth: { uid: user.uid } });
+
+        const userRecord = await auth.getUser(user.uid);
+
+        const terms = userRecord?.customClaims[process.env.EXT_INSTANCE_ID];
+        const acknowledgements: Acknowledgement = terms;
+
+        expect(userRecord.customClaims["foo"]).toEqual("bar");
+        expect(acknowledgements).toBeDefined();
+      });
     });
 
     describe("without a valid user", () => {

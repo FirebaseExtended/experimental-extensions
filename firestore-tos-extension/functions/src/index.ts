@@ -161,7 +161,14 @@ export const getTerms = functions.handler.https.onCall(
     }
 
     if (latest_only) query.orderBy("creationDate", "desc").limit(1);
-    if (tosId) query.where("tosId", "==", tosId);
+
+    if (tosId)
+      return query
+        .where("tosId", "==", tosId)
+        .limit(1)
+        .withConverter(termsConverter)
+        .get()
+        .then((doc) => doc.docs[0].data());
 
     return query
       .withConverter(termsConverter)
