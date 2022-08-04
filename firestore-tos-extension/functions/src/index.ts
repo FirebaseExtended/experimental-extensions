@@ -4,6 +4,14 @@ import * as log from "./logs";
 import config from "./config";
 import { termsConverter, acknowledgementConverter } from "./converter";
 
+import { getEventarc } from "firebase-admin/eventarc";
+
+const eventChannel =
+  process.env.EVENTARC_CHANNEL &&
+  getEventarc().channel(process.env.EVENTARC_CHANNEL, {
+    allowedEventTypes: process.env.EXT_SELECTED_EVENTS,
+  });
+
 if (admin.apps.length === 0) {
   admin.initializeApp({ projectId: "demo-test" });
 }
@@ -103,9 +111,15 @@ export const acceptTerms = functions.handler.https.onCall(
       context.auth.uid
     );
 
-    return auth.setCustomUserClaims(context.auth.uid, {
+    const updatedClaims = await auth.setCustomUserClaims(context.auth.uid, {
       ...existingClaims,
       ...claims,
+    });
+
+    /** send event if configured */
+    await eventChannel?.publish({
+      type: "firebase.google.v1.tos-accepted",
+      data: JSON.stringify(updatedClaims),
     });
   }
 );
