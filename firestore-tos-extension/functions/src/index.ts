@@ -77,6 +77,7 @@ export const acceptTerms = functions.handler.https.onCall(
     const ack = {
       ...tosDoc.data(),
       acknowledged: data.acknowledged,
+      noticeType: data.noticeType,
       ...acknowledgementDates,
     };
 

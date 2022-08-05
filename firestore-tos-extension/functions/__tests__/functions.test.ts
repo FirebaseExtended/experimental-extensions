@@ -4,9 +4,8 @@ setupEnvironment();
 import * as admin from "firebase-admin";
 const fft = require("firebase-functions-test")();
 
-import { Acknowledgement } from "../src/interface";
+import { Acknowledgement, Preference } from "../src/interface";
 import * as funcs from "../src/index";
-import { HttpsError } from "firebase-functions/v1/auth";
 
 if (admin.apps.length === 0) {
   admin.initializeApp({ projectId: "demo-test" });
@@ -201,6 +200,114 @@ describe("functions testing", () => {
         expect(claims).toBeUndefined();
       });
     });
+
+    describe("can accept terms with preferences", () => {
+      let user;
+      let tosId;
+
+      beforeEach(async () => {
+        /** create example user */
+        user = await auth.createUser({});
+
+        const randomId = Math.random().toString(36).substring(2, 15);
+        tosId = `tos_v${randomId}`;
+      });
+
+      test("accept a standard preference", async () => {
+        const Analytics: Preference = {
+          name: "_ga",
+          description: "Google Analytics",
+          required: true,
+        };
+
+        /** create terms with a preference */
+        await createTermsFn.call(
+          {},
+          {
+            link: "www.link.to.terms",
+            tosId,
+            noticeType: [{ preferences: [Analytics] }],
+          },
+          { auth: { uid: user.uid } }
+        );
+
+        /** accept terms with preferences selected */
+        await acceptTermsFn.call(
+          {},
+          {
+            tosId,
+            noticeType: [{ preferences: [{ ...Analytics, active: true }] }],
+            acknowledged: true,
+          },
+          { auth: { uid: user.uid } }
+        );
+
+        const userRecord = await auth.getUser(user.uid);
+
+        expect(userRecord).toBeDefined();
+        expect(userRecord?.customClaims).toBeDefined();
+
+        const terms = userRecord?.customClaims[process.env.EXT_INSTANCE_ID];
+
+        expect(terms).toBeDefined();
+        expect(terms.length).toBe(1);
+
+        const acknowledgement: Acknowledgement = terms[0];
+
+        expect(acknowledgement).toBeDefined();
+        expect(acknowledgement.tosId).toBeDefined();
+        expect(acknowledgement.noticeType[0].preferences[0]).toBeDefined();
+      });
+
+      test("accept an optional preference", async () => {
+        const Analytics: Preference = {
+          name: "_ga",
+          description: "Google Analytics",
+          options: ["_ga", "_gat"],
+          required: true,
+        };
+
+        /** create terms with a preference */
+        await createTermsFn.call(
+          {},
+          {
+            link: "www.link.to.terms",
+            tosId,
+            noticeType: [{ preferences: [Analytics] }],
+          },
+          { auth: { uid: user.uid } }
+        );
+
+        /** accept terms with preferences selected */
+        await acceptTermsFn.call(
+          {},
+          {
+            tosId,
+            noticeType: [{ preferences: [{ ...Analytics, value: "_gat" }] }],
+            acknowledged: true,
+          },
+          { auth: { uid: user.uid } }
+        );
+
+        const userRecord = await auth.getUser(user.uid);
+
+        expect(userRecord).toBeDefined();
+        expect(userRecord?.customClaims).toBeDefined();
+
+        const terms = userRecord?.customClaims[process.env.EXT_INSTANCE_ID];
+
+        expect(terms).toBeDefined();
+        expect(terms.length).toBe(1);
+
+        const acknowledgement: Acknowledgement = terms[0];
+
+        expect(acknowledgement).toBeDefined();
+        expect(acknowledgement.tosId).toBeDefined();
+        expect(acknowledgement.noticeType[0].preferences[0].value).toEqual(
+          "_gat"
+        );
+      });
+    });
   });
 
   describe("get terms", () => {
@@ -328,6 +435,75 @@ describe("functions testing", () => {
       expect(terms.tosId).toEqual(tosId);
       expect(terms.link).toEqual(link);
       expect(terms.noticeType).toEqual(noticeType);
+
+      expect(terms.creationDate).toBeDefined();
+      expect(terms.acknowledgedDate).toBeUndefined();
+    });
+
+    test("can create a terms of service with a basic preference", async () => {
+      const link = "www.link.to.terms";
+      const Analytics: Preference = {
+        name: "_ga",
+        description: "Google Analytics",
+        required: true,
+        value: "_ga",
+      };
+      const noticeType = [{ role: "publisher", preferences: [Analytics] }];
+
+      await createTermsFn.call(
+        {},
+        { tosId, link, noticeType },
+        { auth: { uid: "test" } }
+      );
+
+      const terms = await admin
+        .firestore()
+        .collection("terms")
+        .doc("agreements")
+        .collection("tos")
+        .doc(tosId)
+        .get()
+        .then((doc) => doc.data());
+
+      expect(terms.tosId).toEqual(tosId);
+      expect(terms.link).toEqual(link);
+      expect(terms.noticeType).toEqual(noticeType);
+
+      expect(terms.noticeType[0].preferences[0].name).toEqual("_ga");
+      expect(terms.creationDate).toBeDefined();
+      expect(terms.acknowledgedDate).toBeUndefined();
+    });
+
+    test("can create a terms of service with a optional preference", async () => {
+      const link = "www.link.to.terms";
+      const Analytics: Preference = {
+        name: "_ga",
+        description: "Google Analytics",
+        required: true,
+        options: ["_ga", "_gat"],
+      };
+      const noticeType = [{ role: "publisher", preferences: [Analytics] }];
+
+      await createTermsFn.call(
+        {},
+        { tosId, link, noticeType },
+        { auth: { uid: "test" } }
+      );
+
+      const terms = await admin
+        .firestore()
+        .collection("terms")
+        .doc("agreements")
+        .collection("tos")
+        .doc(tosId)
+        .get()
+        .then((doc) => doc.data());
+
+      expect(terms.tosId).toEqual(tosId);
+      expect(terms.link).toEqual(link);
+      expect(terms.noticeType).toEqual(noticeType);
+
+      expect(terms.noticeType[0].preferences[0].options.length).toEqual(2);
       expect(terms.creationDate).toBeDefined();
       expect(terms.acknowledgedDate).toBeUndefined();
     });

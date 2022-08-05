@@ -19,3 +19,13 @@ export interface Acknowledgement {
   acknowledged?: boolean;
   extensionId?: string;
 }
+
+export interface Preference {
+  name: string;
+  description: string;
+  duration?: string;
+  value?: string;
+  options?: string[];
+  required: boolean;
+  active?: boolean;
+}
