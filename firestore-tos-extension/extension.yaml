@@ -3,7 +3,7 @@ version: 0.0.1
 specVersion: v1beta
 
 displayName: Ackowledgement Management Extension
-description: TODO
+description: Provides an out of the box acknowledgement management extension for Firestore 
 
 license: Apache-2.0
 
@@ -25,6 +25,9 @@ roles:
   - role: firebaseauth.admin
     reason: >-
       Allows the extension to set custom claims for users.
+      
+  - role: datastore.user
+    reason: Allows this extension to access Cloud Firestore to read and process terms.
 
 resources:
   - name: acceptTerms
@@ -48,7 +51,7 @@ resources:
       runtime: nodejs16
       httpsTrigger: {}
 
-  - name: getAcknowledgement
+  - name: getAcknowledgements
     type: firebaseextensions.v1beta.function
     properties:
       location: ${LOCATION}
@@ -117,10 +120,10 @@ params:
       collection (for example: `chatrooms/{chatid}/posts`). Parent Firestore Document IDs from `{wildcards}` 
       can be returned in `path_params` as a JSON formatted string.
     type: string
-    example: posts
+    example: terms
     validationRegex: "^[^/]+(/[^/]+/[^/]+)*$"
     validationErrorMessage: Firestore collection paths must be an odd number of segments separated by slashes, e.g. "path/to/collection".
-    default: posts
+    default: terms
     required: true
 
   - param: INCLUDE_AUTH_CLAIMS

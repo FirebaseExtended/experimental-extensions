@@ -13,7 +13,7 @@ const eventChannel =
   });
 
 if (admin.apps.length === 0) {
-  admin.initializeApp({ projectId: "demo-test" });
+  admin.initializeApp();
 }
 
 const auth = admin.auth();
@@ -210,7 +210,10 @@ export const getTerms = functions.handler.https.onCall(
     return query
       .withConverter(termsConverter)
       .get()
-      .then((doc) => doc.docs[0].data());
+      .then(({ docs }) => {
+        if (docs.length) return docs[0].data();
+        return [];
+      });
   }
 );
 
