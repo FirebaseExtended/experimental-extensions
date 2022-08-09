@@ -38,23 +38,6 @@ This will also contain two pre-defined subcollections:
 
 The extension will provide `4` new functions for managing ackowledgement for users.
 
-**Accept Terms**
-
-  ```js
-    // < v9
-    var acceptTerms = firebase.functions().httpsCallable('acceptTerms');
-    await acceptTerms({ tosId });
-  ```
-
-  ```js
-    // v9
-    import { getFunctions, httpsCallable } from "firebase/functions";
-
-    const functions = getFunctions();
-    const acceptTerms = httpsCallable(functions, 'acceptTerms');
-    await acceptTerms({ tosId });
-  ```
-
 **Create Terms**
 
   Creates a new terms of service, based on the following schema:
@@ -84,8 +67,47 @@ The extension will provide `4` new functions for managing ackowledgement for use
     import { getFunctions, httpsCallable } from "firebase/functions";
 
     const functions = getFunctions();
+    const createTerms = httpsCallable(functions, 'createTerms');
+    await createTerms( { tosId, link, creationDate });
+  ```
+
+  **Using Preferences**
+
+  Preferences can also be included as part of a notice type.
+
+  ```js
+  export interface Preference {
+    name: string;
+    description: string;
+    duration?: string;
+    value?: string;
+    options?: string[];
+    required: boolean;
+    active?: boolean;
+}
+  ```
+
+  There are two types of preference
+
+  - Singular, this contains a singular value.
+  - Multi-select, by defining a list for multiple options.
+
+
+**Accept Terms**
+
+  ```js
+    // < v9
+    var acceptTerms = firebase.functions().httpsCallable('acceptTerms');
+    await acceptTerms({ tosId });
+  ```
+
+  ```js
+    // v9
+    import { getFunctions, httpsCallable } from "firebase/functions";
+
+    const functions = getFunctions();
     const acceptTerms = httpsCallable(functions, 'acceptTerms');
-    await acceptTerms( { tosId, link, creationDate });
+    await acceptTerms({ tosId });
   ```
 
 **Get Terms**
