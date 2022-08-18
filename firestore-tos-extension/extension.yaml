@@ -1,4 +1,4 @@
-name: terms-of-service
+name: acknowledgements-api
 version: 0.0.1
 specVersion: v1beta
 
@@ -25,26 +25,26 @@ roles:
   - role: firebaseauth.admin
     reason: >-
       Allows the extension to set custom claims for users.
-      
+
   - role: datastore.user
-    reason: Allows this extension to access Cloud Firestore to read and process terms.
+    reason: Allows this extension to access Cloud Firestore to read and process notices.
 
 resources:
-  - name: acceptTerms
+  - name: acceptNotices
     type: firebaseextensions.v1beta.function
     properties:
       location: ${LOCATION}
       runtime: nodejs16
       httpsTrigger: {}
   
-  - name: createTerms
+  - name: createNotices
     type: firebaseextensions.v1beta.function
     properties:
       location: ${LOCATION}
       runtime: nodejs16
       httpsTrigger: {}
 
-  - name: getTerms
+  - name: getNotices
     type: firebaseextensions.v1beta.function
     properties:
       location: ${LOCATION}
@@ -120,10 +120,10 @@ params:
       collection (for example: `chatrooms/{chatid}/posts`). Parent Firestore Document IDs from `{wildcards}` 
       can be returned in `path_params` as a JSON formatted string.
     type: string
-    example: terms
+    example: notices
     validationRegex: "^[^/]+(/[^/]+/[^/]+)*$"
     validationErrorMessage: Firestore collection paths must be an odd number of segments separated by slashes, e.g. "path/to/collection".
-    default: terms
+    default: notices
     required: true
 
   - param: INCLUDE_AUTH_CLAIMS

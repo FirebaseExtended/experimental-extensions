@@ -1,4 +1,4 @@
-Use this extension to provides an API for adding new ackowledgement terms, retrieving the latest terms, and tracking acknowledgements.
+Use this extension to provides an API for adding new ackowledgement notices, retrieving the latest notices, and tracking acknowledgements.
 
 Allows users to sign ackowledgement forms as part of their application. Some common ackowledgement forms include ToS and cookie ackowledgement.
 
@@ -6,10 +6,10 @@ Allows users to sign ackowledgement forms as part of their application. Some com
 
 The extension supports multiple use cases:
 
-- Accepting terms
-- Creating terms
-- Getting terms
-- Getting accepted terms
+- Accepting notices
+- Creating notices
+- Getting notices
+- Getting accepted notices
 
 All functions `require authentication` to run, ensure you have a valud Firebase User included in your POST requests.
 
@@ -24,15 +24,15 @@ Each collection has a managed section for supporting multiple instances of the e
 
 ## Definitions
 
-`tosId`: Terms of service Id. This unique Id represents a created terms firestore document.
+`tosId`: Notices of service Id. This unique Id represents a created notices firestore document.
 
-`link`: An external http link for a user to view the associated terms and conditions.
+`link`: An external http link for a user to view the associated notices and conditions.
 
-`creationDate`: Automatically generated date value on creation of a new terms document.
+`creationDate`: Automatically generated date value on creation of a new notices document.
 
-`allowList`: A list of users emails or phone numbers. If specified, this will validate to ensure only selected users can accept the specified terms.
+`allowList`: A list of users emails or phone numbers. If specified, this will validate to ensure only selected users can accept the specified notices.
 
-`noticeType`: A key/value list of unique properties for the terms Firestore document. An example, would be to add unique roles such as `publisher/consumer`
+`noticeType`: A key/value list of unique properties for the notices Firestore document. An example, would be to add unique roles such as `publisher/consumer`
 
 ## Auth claims (optional)
 
@@ -67,11 +67,11 @@ To install an extension, your project must be on the [Blaze (pay as you go) plan
 
 **Cloud Functions:**
 
-- **acceptTerms:** Callable function for user to accept current terms.
+- **acceptNotices:** Callable function for user to accept current notices.
 
-- **createTerms:** Callable function to create a new terms of service agreement. This function can be used to implement admin tooling.
+- **createNotices:** Callable function to create a new notices of service agreement. This function can be used to implement admin tooling.
 
-- **getTerms:** Callable function to get the current terms.
+- **getNotices:** Callable function to get the current notices.
 
 - **getAcknowledgements:** Callable function to get acknowledgements.
 

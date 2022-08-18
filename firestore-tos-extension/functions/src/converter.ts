@@ -1,19 +1,19 @@
-import { TermsOfServiceMetadata } from "./interface";
-import { Acknowledgement } from "./interface";
+import { NoticeMetadata } from "./interface";
+import { Acknowledgement, AcknowledgementStatus } from "./interface";
 
-export const termsConverter = {
-  toFirestore(terms: TermsOfServiceMetadata): FirebaseFirestore.DocumentData {
+export const noticeConverter = {
+  toFirestore(notice: NoticeMetadata): FirebaseFirestore.DocumentData {
     return {
-      tosId: terms.tosId,
-      link: terms.link,
-      creationDate: terms.creationDate,
-      allowList: terms?.allowList || [],
-      noticeType: terms.noticeType,
+      tosId: notice.tosId,
+      link: notice.link,
+      creationDate: notice.creationDate,
+      allowList: notice?.allowList || [],
+      noticeType: notice.noticeType,
     };
   },
   fromFirestore(
     snapshot: FirebaseFirestore.QueryDocumentSnapshot
-  ): TermsOfServiceMetadata {
+  ): NoticeMetadata {
     const data = snapshot.data();
 
     return {
@@ -31,26 +31,26 @@ export const acknowledgementConverter = {
     return {
       tosId: ack?.tosId || "",
       noticeType: ack?.noticeType || [],
-      acknowledged: ack?.acknowledged || false,
       creationDate: ack?.creationDate || "",
       acknowledgedDate: ack?.acknowledgedDate || null,
       unacknowledgedDate: ack?.unacknowledgedDate || null,
+      status: ack?.status || AcknowledgementStatus.SEEN,
       extensionId: `${process.env.EXT_INSTANCE_ID}`,
     };
   },
   fromFirestore(
     snapshot: FirebaseFirestore.DocumentSnapshot
   ): Acknowledgement | {} {
-    const data = snapshot.data();
+    const ack = snapshot.data();
 
     return {
-      tosId: data?.tosId || "",
-      noticeType: data?.noticeType || [],
-      acknowledged: data?.acknowledged || false,
-      creationDate: data?.creationDate || "",
-      acknowledgedDate: data?.acknowledgedDate || null,
-      unacknowledgedDate: data?.unacknowledgedDate || null,
-      extensionId: data?.extensionId || "",
+      tosId: ack?.tosId || "",
+      noticeType: ack?.noticeType || [],
+      creationDate: ack?.creationDate || "",
+      acknowledgedDate: ack?.acknowledgedDate || null,
+      unacknowledgedDate: ack?.unacknowledgedDate || null,
+      status: ack?.status || AcknowledgementStatus.SEEN,
+      extensionId: ack?.extensionId || "",
     };
   },
 };

@@ -1,4 +1,4 @@
-export interface TermsOfServiceMetadata {
+export interface NoticeMetadata {
   tosId: string;
   link: string;
   creationDate: string;
@@ -6,6 +6,12 @@ export interface TermsOfServiceMetadata {
   noticeType?: {
     [key: string]: any;
   };
+}
+
+export enum AcknowledgementStatus {
+  SEEN = "seen",
+  ACCEPTED = "accepted",
+  DECLINED = "declined",
 }
 
 export interface Acknowledgement {
@@ -16,8 +22,8 @@ export interface Acknowledgement {
   noticeType: {
     [key: string]: any;
   };
-  acknowledged?: boolean;
   extensionId?: string;
+  status: AcknowledgementStatus;
 }
 
 export interface Preference {
