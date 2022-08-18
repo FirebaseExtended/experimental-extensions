@@ -563,9 +563,11 @@ describe("functions testing", () => {
         { auth: { uid: user.uid } }
       );
 
+      console.log(acknowledgements);
+
       expect(acknowledgements).toBeDefined();
-      expect(acknowledgements.creationDate).toBeDefined();
-      expect(acknowledgements.acknowledgedDate).toBeDefined();
+      expect(acknowledgements[0].creationDate).toBeDefined();
+      expect(acknowledgements[0].acknowledgedDate).toBeDefined();
     });
   });
 });
