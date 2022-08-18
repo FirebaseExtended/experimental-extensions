@@ -119,7 +119,7 @@ export const acceptNotice = functions.handler.https.onCall(
 
     /** send event if configured */
     await eventChannel?.publish({
-      type: "firebase.google.v1.tos-accepted",
+      type: "firebase.google.v1.acknowledgement-accepted",
       data: JSON.stringify(updatedClaims),
     });
   }
