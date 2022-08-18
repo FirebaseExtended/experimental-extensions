@@ -92,7 +92,6 @@ The extension will provide `4` new functions for managing ackowledgement for use
   - Singular, this contains a singular value.
   - Multi-select, by defining a list for multiple options.
 
-
 **Accept Terms**
 
   ```js
@@ -109,6 +108,12 @@ The extension will provide `4` new functions for managing ackowledgement for use
     const acceptTerms = httpsCallable(functions, 'acceptTerms');
     await acceptTerms({ tosId });
   ```
+
+  **Accepting preferences**
+
+  By including the a `Notice Type` with a list of preferences. These will be stored as part of the accepted document.
+
+  Use the preferences provided from an already created terms document as a guide on what to provide.
 
 **Get Terms**
 

@@ -197,7 +197,14 @@ export const getTerms = functions.handler.https.onCall(
         .then((doc) => doc.docs.map(($) => $.data()));
     }
 
-    if (latest_only) query.orderBy("creationDate", "desc").limit(1);
+    if (latest_only) {
+      return query
+        .orderBy("creationDate", "desc")
+        .limit(1)
+        .withConverter(termsConverter)
+        .get()
+        .then((doc) => doc.docs[0].data());
+    }
 
     if (tosId)
       return query
@@ -211,7 +218,7 @@ export const getTerms = functions.handler.https.onCall(
       .withConverter(termsConverter)
       .get()
       .then(({ docs }) => {
-        if (docs.length) return docs[0].data();
+        if (docs.length) return docs.map(($) => $.data());
         return [];
       });
   }
@@ -231,9 +238,8 @@ export const getAcknowledgements = functions.handler.https.onCall(
       .collection(config.collectionPath)
       .doc("acknowledgements")
       .collection(context.auth.uid)
-      .doc(data.tosId)
       .withConverter(acknowledgementConverter)
       .get()
-      .then((doc) => doc.data());
+      .then((doc) => doc.docs.map(($) => $.data()));
   }
 );

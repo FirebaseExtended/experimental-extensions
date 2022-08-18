@@ -399,6 +399,10 @@ describe("functions testing", () => {
       expect(toCheck?.creationDate).toBeDefined();
       expect(toCheck?.noticeType[0].role).toEqual("publisher");
     });
+
+    xtest("can get the latest terms", async () => {});
+
+    xtest("can get all terms when no valid filters provided", async () => {});
   });
 
   describe("create terms", () => {
