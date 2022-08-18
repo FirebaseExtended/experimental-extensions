@@ -2,7 +2,7 @@ import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
 import * as log from "./logs";
 import config from "./config";
-import { termsConverter, acknowledgementConverter } from "./converter";
+import { noticeConverter, acknowledgementConverter } from "./converter";
 
 import { getEventarc } from "firebase-admin/eventarc";
 
@@ -19,7 +19,7 @@ if (admin.apps.length === 0) {
 const auth = admin.auth();
 const db = admin.firestore();
 
-export const acceptTerms = functions.handler.https.onCall(
+export const acceptNotice = functions.handler.https.onCall(
   async (data, context) => {
     // Checking that the user is authenticated.
     if (!context.auth) {
@@ -50,7 +50,7 @@ export const acceptTerms = functions.handler.https.onCall(
       .doc("agreements")
       .collection("tos")
       .doc(data.tosId)
-      .withConverter(termsConverter)
+      .withConverter(noticeConverter)
       .get();
 
     /** Return if no agreement exists  */
@@ -125,7 +125,7 @@ export const acceptTerms = functions.handler.https.onCall(
   }
 );
 
-export const createTerms = functions.handler.https.onCall(
+export const createNotice = functions.handler.https.onCall(
   async (data, context) => {
     // Checking that the user is authenticated.
     if (!context.auth) {
@@ -157,7 +157,7 @@ export const createTerms = functions.handler.https.onCall(
       .doc("agreements")
       .collection("tos")
       .doc(data.tosId)
-      .withConverter(termsConverter)
+      .withConverter(noticeConverter)
       .set(
         {
           ...data,
@@ -168,7 +168,7 @@ export const createTerms = functions.handler.https.onCall(
   }
 );
 
-export const getTerms = functions.handler.https.onCall(
+export const getNotices = functions.handler.https.onCall(
   async (data, context) => {
     // Checking that the user is authenticated.
     if (!context.auth) {
@@ -192,7 +192,7 @@ export const getTerms = functions.handler.https.onCall(
       });
 
       return query
-        .withConverter(termsConverter)
+        .withConverter(noticeConverter)
         .get()
         .then((doc) => doc.docs.map(($) => $.data()));
     }
@@ -201,7 +201,7 @@ export const getTerms = functions.handler.https.onCall(
       return query
         .orderBy("creationDate", "desc")
         .limit(1)
-        .withConverter(termsConverter)
+        .withConverter(noticeConverter)
         .get()
         .then((doc) => doc.docs[0].data());
     }
@@ -210,12 +210,12 @@ export const getTerms = functions.handler.https.onCall(
       return query
         .where("tosId", "==", tosId)
         .limit(1)
-        .withConverter(termsConverter)
+        .withConverter(noticeConverter)
         .get()
         .then((doc) => doc.docs[0].data());
 
     return query
-      .withConverter(termsConverter)
+      .withConverter(noticeConverter)
       .get()
       .then(({ docs }) => {
         if (docs.length) return docs.map(($) => $.data());

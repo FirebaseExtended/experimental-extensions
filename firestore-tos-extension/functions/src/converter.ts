@@ -1,19 +1,19 @@
-import { TermsOfServiceMetadata } from "./interface";
+import { NoticeMetadata } from "./interface";
 import { Acknowledgement } from "./interface";
 
-export const termsConverter = {
-  toFirestore(terms: TermsOfServiceMetadata): FirebaseFirestore.DocumentData {
+export const noticeConverter = {
+  toFirestore(notice: NoticeMetadata): FirebaseFirestore.DocumentData {
     return {
-      tosId: terms.tosId,
-      link: terms.link,
-      creationDate: terms.creationDate,
-      allowList: terms?.allowList || [],
-      noticeType: terms.noticeType,
+      tosId: notice.tosId,
+      link: notice.link,
+      creationDate: notice.creationDate,
+      allowList: notice?.allowList || [],
+      noticeType: notice.noticeType,
     };
   },
   fromFirestore(
     snapshot: FirebaseFirestore.QueryDocumentSnapshot
-  ): TermsOfServiceMetadata {
+  ): NoticeMetadata {
     const data = snapshot.data();
 
     return {

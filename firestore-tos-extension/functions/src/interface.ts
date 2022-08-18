@@ -1,4 +1,4 @@
-export interface TermsOfServiceMetadata {
+export interface NoticeMetadata {
   tosId: string;
   link: string;
   creationDate: string;
