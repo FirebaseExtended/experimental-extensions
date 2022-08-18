@@ -6,7 +6,7 @@ You can test out this extension right away!
 
 1. Click **Add User** to add a test user, then copy the test user's UID to your clipboard.
 
-2. Access the user through any of the authetication methods.
+2. Access the user through any of the authentication methods.
 
 ```js
    // v9
