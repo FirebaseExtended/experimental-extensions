@@ -1,5 +1,5 @@
 export interface NoticeMetadata {
-  tosId: string;
+  noticeId: string;
   link: string;
   creationDate: string;
   allowList?: string[];
@@ -15,7 +15,7 @@ export enum AcknowledgementStatus {
 }
 
 export interface Acknowledgement {
-  tosId: string;
+  noticeId: string;
   acknowledgedDate: string | null;
   unacknowledgedDate: string | null;
   creationDate: string;

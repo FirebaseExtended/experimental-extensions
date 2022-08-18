@@ -32,20 +32,20 @@ describe("functions testing", () => {
   describe("accept notice", () => {
     describe("with a valid notice available", () => {
       let user;
-      let tosId;
+      let noticeId;
 
       beforeEach(async () => {
         /** create example user */
         user = await auth.createUser({});
 
         const randomId = Math.random().toString(36).substring(2, 15);
-        tosId = `tos_v${randomId}`;
+        noticeId = `tos_v${randomId}`;
 
         await createNoticeFn.call(
           {},
           {
             link: "www.link.to.notice",
-            tosId,
+            noticeId,
             noticeType: [],
           },
           { auth: { uid: user.uid } }
@@ -56,7 +56,7 @@ describe("functions testing", () => {
         await acceptNoticeFn.call(
           {},
           {
-            tosId,
+            noticeId,
             noticeType: [],
           },
           { auth: { uid: user.uid } }
@@ -75,7 +75,7 @@ describe("functions testing", () => {
         const acknowledgement: Acknowledgement = notice[0];
 
         expect(acknowledgement).toBeDefined();
-        expect(acknowledgement.tosId).toBeDefined();
+        expect(acknowledgement.noticeId).toBeDefined();
         expect(acknowledgement.status).toBe(AcknowledgementStatus.SEEN);
         expect(acknowledgement.creationDate).toBeDefined();
         expect(acknowledgement.acknowledgedDate).toBeDefined();
@@ -84,23 +84,27 @@ describe("functions testing", () => {
       });
 
       test("can accept multiple notices", async () => {
-        const tosId_2 = tosId + "_2";
+        const noticeId_2 = noticeId + "_2";
 
         /** create a second agreement */
         await createNoticeFn.call(
           {},
           {
             link: "www.link.to.notice",
-            tosId: tosId_2,
+            noticeId: noticeId_2,
             noticeType: [],
           },
           { auth: { uid: user.uid } }
         );
 
-        await acceptNoticeFn.call({}, { tosId }, { auth: { uid: user.uid } });
         await acceptNoticeFn.call(
           {},
-          { tosId: tosId_2 },
+          { noticeId },
+          { auth: { uid: user.uid } }
+        );
+        await acceptNoticeFn.call(
+          {},
+          { noticeId: noticeId_2 },
           { auth: { uid: user.uid } }
         );
 
@@ -116,7 +120,7 @@ describe("functions testing", () => {
         await acceptNoticeFn.call(
           {},
           {
-            tosId,
+            noticeId,
             noticeType: [],
           },
           { auth: { uid: user.uid } }
@@ -135,7 +139,7 @@ describe("functions testing", () => {
         const acknowledgement: Acknowledgement = notice[0];
 
         expect(acknowledgement).toBeDefined();
-        expect(acknowledgement.tosId).toBeDefined();
+        expect(acknowledgement.noticeId).toBeDefined();
         expect(acknowledgement.status).toBe(AcknowledgementStatus.SEEN);
         expect(acknowledgement.creationDate).toBeDefined();
         expect(acknowledgement.acknowledgedDate).toBeNull();
@@ -147,7 +151,11 @@ describe("functions testing", () => {
         await auth.setCustomUserClaims(user.uid, { foo: "bar" });
 
         /** accept notice */
-        await acceptNoticeFn.call({}, { tosId }, { auth: { uid: user.uid } });
+        await acceptNoticeFn.call(
+          {},
+          { noticeId },
+          { auth: { uid: user.uid } }
+        );
 
         const userRecord = await auth.getUser(user.uid);
 
@@ -161,20 +169,20 @@ describe("functions testing", () => {
 
     describe("without a valid user", () => {
       let user;
-      let tosId;
+      let noticeId;
 
       beforeEach(async () => {
         /** create example user */
         user = await auth.createUser({});
 
         const randomId = Math.random().toString(36).substring(2, 15);
-        tosId = `tos_v${randomId}`;
+        noticeId = `tos_v${randomId}`;
       });
 
       test("does not add a notice of service", async () => {
         expect(
           async () =>
-            await acceptNoticeFn.call({}, { tosId, noticeType: [] }, {})
+            await acceptNoticeFn.call({}, { noticeId, noticeType: [] }, {})
         ).rejects.toThrow("No valid authentication token provided.");
       });
     });
@@ -187,17 +195,17 @@ describe("functions testing", () => {
         user = await auth.createUser({});
       });
 
-      test("does not add a notice of service without a provided tosId", async () => {
+      test("does not add a notice of service without a provided noticeId", async () => {
         expect(
           async () =>
             await acceptNoticeFn.call({}, {}, { auth: { uid: user.uid } })
-        ).rejects.toThrow("No tosId provided.");
+        ).rejects.toThrow("No noticeId provided.");
       });
 
-      test("does not add a notice of service without a exisiting tosId", async () => {
+      test("does not add a notice of service without a exisiting noticeId", async () => {
         await acceptNoticeFn.call(
           {},
-          { tosId: "unknown", noticeType: [] },
+          { noticeId: "unknown", noticeType: [] },
           { auth: { uid: user.uid } }
         );
 
@@ -211,14 +219,14 @@ describe("functions testing", () => {
 
     describe("can accept notice with preferences", () => {
       let user;
-      let tosId;
+      let noticeId;
 
       beforeEach(async () => {
         /** create example user */
         user = await auth.createUser({});
 
         const randomId = Math.random().toString(36).substring(2, 15);
-        tosId = `tos_v${randomId}`;
+        noticeId = `tos_v${randomId}`;
       });
 
       test("accept a standard preference", async () => {
@@ -233,7 +241,7 @@ describe("functions testing", () => {
           {},
           {
             link: "www.link.to.notice",
-            tosId,
+            noticeId,
             noticeType: [{ preferences: [Analytics] }],
           },
           { auth: { uid: user.uid } }
@@ -243,7 +251,7 @@ describe("functions testing", () => {
         await acceptNoticeFn.call(
           {},
           {
-            tosId,
+            noticeId,
             noticeType: [{ preferences: [{ ...Analytics, active: true }] }],
             acknowledged: true,
           },
@@ -263,7 +271,7 @@ describe("functions testing", () => {
         const acknowledgement: Acknowledgement = notice[0];
 
         expect(acknowledgement).toBeDefined();
-        expect(acknowledgement.tosId).toBeDefined();
+        expect(acknowledgement.noticeId).toBeDefined();
         expect(acknowledgement.noticeType[0].preferences[0]).toBeDefined();
       });
 
@@ -280,7 +288,7 @@ describe("functions testing", () => {
           {},
           {
             link: "www.link.to.notice",
-            tosId,
+            noticeId,
             noticeType: [{ preferences: [Analytics] }],
           },
           { auth: { uid: user.uid } }
@@ -290,7 +298,7 @@ describe("functions testing", () => {
         await acceptNoticeFn.call(
           {},
           {
-            tosId,
+            noticeId,
             noticeType: [{ preferences: [{ ...Analytics, value: "_gat" }] }],
             acknowledged: true,
           },
@@ -310,7 +318,7 @@ describe("functions testing", () => {
         const acknowledgement: Acknowledgement = notice[0];
 
         expect(acknowledgement).toBeDefined();
-        expect(acknowledgement.tosId).toBeDefined();
+        expect(acknowledgement.noticeId).toBeDefined();
         expect(acknowledgement.noticeType[0].preferences[0].value).toEqual(
           "_gat"
         );
@@ -319,14 +327,14 @@ describe("functions testing", () => {
 
     describe("acknowledgment status", () => {
       let user;
-      let tosId;
+      let noticeId;
 
       beforeEach(async () => {
         /** create example user */
         user = await auth.createUser({});
 
         const randomId = Math.random().toString(36).substring(2, 15);
-        tosId = `tos_v${randomId}`;
+        noticeId = `tos_v${randomId}`;
       });
 
       test("can accept a notice as ACCEPTED", async () => {
@@ -334,13 +342,13 @@ describe("functions testing", () => {
 
         await createNoticeFn.call(
           {},
-          { link: "www.link.to.notice", tosId, noticeType },
+          { link: "www.link.to.notice", noticeId, noticeType },
           { auth: { uid: user.uid } }
         );
 
         await acceptNoticeFn.call(
           {},
-          { tosId, noticeType, status: AcknowledgementStatus.ACCEPTED },
+          { noticeId, noticeType, status: AcknowledgementStatus.ACCEPTED },
           { auth: { uid: user.uid } }
         );
 
@@ -350,7 +358,7 @@ describe("functions testing", () => {
         console.log("notice >>>>>", notice);
 
         const acknowledgement: Acknowledgement = notice.filter(
-          ($) => $.tosId === tosId
+          ($) => $.noticeId === noticeId
         )[0];
 
         console.log("acknowledgement >>>>>", acknowledgement);
@@ -364,14 +372,14 @@ describe("functions testing", () => {
 
   describe("get notices", () => {
     let user;
-    let tosId;
+    let noticeId;
 
     beforeEach(async () => {
       /** create example user */
       user = await auth.createUser({});
 
       const randomId = Math.random().toString(36).substring(2, 15);
-      tosId = `tos_v${randomId}`;
+      noticeId = `tos_v${randomId}`;
     });
 
     test("can get a notice of service", async () => {
@@ -379,7 +387,7 @@ describe("functions testing", () => {
         {},
         {
           link: "www.link.to.notice",
-          tosId,
+          noticeId,
           creationDate: new Date().toLocaleDateString(),
           noticeType: [
             {
@@ -392,23 +400,23 @@ describe("functions testing", () => {
 
       const notice = await getNoticeFn.call(
         {},
-        { tosId },
+        { noticeId },
         { auth: { uid: user.uid } }
       );
 
       expect(notice).toBeDefined();
       expect(notice?.link).toBeDefined();
-      expect(notice?.tosId).toBeDefined();
+      expect(notice?.noticeId).toBeDefined();
       expect(notice?.creationDate).toBeDefined();
       expect(notice?.noticeType[0].role).toBe("publisher");
     });
 
-    test("can get a notice of service by tosId", async () => {
+    test("can get a notice of service by noticeId", async () => {
       await createNoticeFn.call(
         {},
         {
           link: "www.link.to.notice",
-          tosId,
+          noticeId,
           noticeType: [],
         },
         { auth: { uid: user.uid } }
@@ -416,13 +424,13 @@ describe("functions testing", () => {
 
       const notice = await getNoticeFn.call(
         {},
-        { tosId },
+        { noticeId },
         { auth: { uid: user.uid } }
       );
 
       expect(notice).toBeDefined();
       expect(notice?.link).toBeDefined();
-      expect(notice?.tosId).toBeDefined();
+      expect(notice?.noticeId).toBeDefined();
       expect(notice?.creationDate).toBeDefined();
     });
 
@@ -431,7 +439,7 @@ describe("functions testing", () => {
         {},
         {
           link: "www.test.com",
-          tosId,
+          noticeId,
           noticeType: [{ role: "publisher" }],
         },
         { auth: { uid: user.uid } }
@@ -443,11 +451,11 @@ describe("functions testing", () => {
         { auth: { uid: user.uid } }
       );
 
-      const toCheck = notice.filter(($) => $.tosId === tosId)[0];
+      const toCheck = notice.filter(($) => $.noticeId === noticeId)[0];
 
       expect(toCheck).toBeDefined();
       expect(toCheck?.link).toBeDefined();
-      expect(toCheck?.tosId).toBeDefined();
+      expect(toCheck?.noticeId).toBeDefined();
       expect(toCheck?.creationDate).toBeDefined();
       expect(toCheck?.noticeType[0].role).toEqual("publisher");
     });
@@ -459,14 +467,14 @@ describe("functions testing", () => {
 
   describe("create notice", () => {
     let user;
-    let tosId;
+    let noticeId;
 
     beforeEach(async () => {
       /** create example user */
       user = await auth.createUser({});
 
       const randomId = Math.random().toString(36).substring(2, 15);
-      tosId = `tos_v${randomId}`;
+      noticeId = `tos_v${randomId}`;
     });
 
     test("can create a notice", async () => {
@@ -475,18 +483,18 @@ describe("functions testing", () => {
 
       await createNoticeFn.call(
         {},
-        { tosId, link, noticeType },
+        { noticeId, link, noticeType },
         { auth: { uid: "test" } }
       );
 
       const notice = await noticesCollection
         .doc("agreements")
         .collection("tos")
-        .doc(tosId)
+        .doc(noticeId)
         .get()
         .then((doc) => doc.data());
 
-      expect(notice.tosId).toEqual(tosId);
+      expect(notice.noticeId).toEqual(noticeId);
       expect(notice.link).toEqual(link);
       expect(notice.noticeType).toEqual(noticeType);
 
@@ -506,18 +514,18 @@ describe("functions testing", () => {
 
       await createNoticeFn.call(
         {},
-        { tosId, link, noticeType },
+        { noticeId, link, noticeType },
         { auth: { uid: "test" } }
       );
 
       const notice = await noticesCollection
         .doc("agreements")
         .collection("tos")
-        .doc(tosId)
+        .doc(noticeId)
         .get()
         .then((doc) => doc.data());
 
-      expect(notice.tosId).toEqual(tosId);
+      expect(notice.noticeId).toEqual(noticeId);
       expect(notice.link).toEqual(link);
       expect(notice.noticeType).toEqual(noticeType);
 
@@ -538,7 +546,7 @@ describe("functions testing", () => {
 
       await createNoticeFn.call(
         {},
-        { tosId, link, noticeType },
+        { noticeId, link, noticeType },
         { auth: { uid: "test" } }
       );
 
@@ -547,11 +555,11 @@ describe("functions testing", () => {
         .collection("notices")
         .doc("agreements")
         .collection("tos")
-        .doc(tosId)
+        .doc(noticeId)
         .get()
         .then((doc) => doc.data());
 
-      expect(notice.tosId).toEqual(tosId);
+      expect(notice.noticeId).toEqual(noticeId);
       expect(notice.link).toEqual(link);
       expect(notice.noticeType).toEqual(noticeType);
 
@@ -568,7 +576,7 @@ describe("functions testing", () => {
         async () =>
           await createNoticeFn.call(
             {},
-            { tosId, link, creationDate },
+            { noticeId, link, creationDate },
             { auth: { uid: "test" } }
           )
       ).rejects.toThrow("Invalid notice type");
@@ -577,14 +585,14 @@ describe("functions testing", () => {
 
   describe("get acknowledgements", () => {
     let user;
-    let tosId;
+    let noticeId;
 
     beforeEach(async () => {
       /** create example user */
       user = await auth.createUser({});
 
       const randomId = Math.random().toString(36).substring(2, 15);
-      tosId = `tos_v${randomId}`;
+      noticeId = `tos_v${randomId}`;
     });
 
     test("can get an acknowledgment", async () => {
@@ -595,19 +603,19 @@ describe("functions testing", () => {
         {},
         {
           link,
-          tosId,
+          noticeId,
           noticeType: [],
         },
         { auth: { uid: user.uid } }
       );
 
       /** accept notice */
-      await acceptNoticeFn.call({}, { tosId }, { auth: { uid: user.uid } });
+      await acceptNoticeFn.call({}, { noticeId }, { auth: { uid: user.uid } });
 
       /** get notice */
       const acknowledgements = await getAcknowledgements.call(
         {},
-        { tosId },
+        { noticeId },
         { auth: { uid: user.uid } }
       );
 

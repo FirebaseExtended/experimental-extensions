@@ -30,11 +30,11 @@ export const acceptNotice = functions.handler.https.onCall(
       );
     }
 
-    /** check if tosId has been provided  */
-    if (!data.tosId) {
+    /** check if noticeId has been provided  */
+    if (!data.noticeId) {
       throw new functions.https.HttpsError(
         "invalid-argument",
-        "No tosId provided."
+        "No noticeId provided."
       );
     }
 
@@ -50,7 +50,7 @@ export const acceptNotice = functions.handler.https.onCall(
       .collection(config.collectionPath)
       .doc("agreements")
       .collection("tos")
-      .doc(data.tosId)
+      .doc(data.noticeId)
       .withConverter(noticeConverter)
       .get();
 
@@ -86,7 +86,7 @@ export const acceptNotice = functions.handler.https.onCall(
       .collection(config.collectionPath)
       .doc("acknowledgements")
       .collection(context.auth.uid)
-      .doc(data.tosId)
+      .doc(data.noticeId)
       .withConverter(acknowledgementConverter)
       .set(
         { ...ack },
@@ -156,7 +156,7 @@ export const createNotice = functions.handler.https.onCall(
       .collection(config.collectionPath)
       .doc("agreements")
       .collection("tos")
-      .doc(data.tosId)
+      .doc(data.noticeId)
       .withConverter(noticeConverter)
       .set(
         {
@@ -178,7 +178,7 @@ export const getNotices = functions.handler.https.onCall(
       );
     }
 
-    const { tosId, latest_only = false, custom_filter } = data;
+    const { noticeId, latest_only = false, custom_filter } = data;
 
     const query = db
       .collection(config.collectionPath)
@@ -206,9 +206,9 @@ export const getNotices = functions.handler.https.onCall(
         .then((doc) => doc.docs[0].data());
     }
 
-    if (tosId)
+    if (noticeId)
       return query
-        .where("tosId", "==", tosId)
+        .where("noticeId", "==", noticeId)
         .limit(1)
         .withConverter(noticeConverter)
         .get()

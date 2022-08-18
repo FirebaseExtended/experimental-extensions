@@ -44,7 +44,7 @@ The extension will provide `4` new functions for managing ackowledgement for use
 
   ```js
     export interface NoticeMetadata {
-        tosId: string;
+        noticeId: string;
         link: string;
         creationDate: string;
         allowList?: string[];
@@ -59,7 +59,7 @@ The extension will provide `4` new functions for managing ackowledgement for use
   ```js
     // < v9
     var createNotice = firebase.functions().httpsCallable('createNotice');
-    await createNotice( { tosId, link, creationDate });
+    await createNotice( { noticeId, link, creationDate });
   ```
 
   ```js
@@ -68,7 +68,7 @@ The extension will provide `4` new functions for managing ackowledgement for use
 
     const functions = getFunctions();
     const createNotice = httpsCallable(functions, 'createNotice');
-    await createNotice( { tosId, link, creationDate });
+    await createNotice( { noticeId, link, creationDate });
   ```
 
   **Using Preferences**
@@ -97,7 +97,7 @@ The extension will provide `4` new functions for managing ackowledgement for use
   ```js
     // < v9
     var acceptNotice = firebase.functions().httpsCallable('acceptNotice');
-    await acceptNotice({ tosId });
+    await acceptNotice({ noticeId });
   ```
 
   ```js
@@ -106,7 +106,7 @@ The extension will provide `4` new functions for managing ackowledgement for use
 
     const functions = getFunctions();
     const acceptNotice = httpsCallable(functions, 'acceptNotice');
-    await acceptNotice({ tosId });
+    await acceptNotice({ noticeId });
   ```
 
 **Accepting preferences**
@@ -120,7 +120,7 @@ The extension will provide `4` new functions for managing ackowledgement for use
   ```js
     // < v9
     var getNotices = firebase.functions().httpsCallable('createNotice');
-    await getNotices( tosId);
+    await getNotices( noticeId);
   ```
 
   ```js
@@ -129,7 +129,7 @@ The extension will provide `4` new functions for managing ackowledgement for use
 
     const functions = getFunctions();
     const getNotices = httpsCallable(functions, 'getNotices');
-    await getNotices({ tosId });
+    await getNotices({ noticeId });
   ```
 
 **Get Acknowledgements**
@@ -137,7 +137,7 @@ The extension will provide `4` new functions for managing ackowledgement for use
   ```js
     // < v9
     var getNotices = firebase.functions().httpsCallable('createNotice');
-    await getNotices({ tosId });
+    await getNotices({ noticeId });
   ```
 
   ```js

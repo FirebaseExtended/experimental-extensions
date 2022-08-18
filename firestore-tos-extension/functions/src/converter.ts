@@ -4,7 +4,7 @@ import { Acknowledgement, AcknowledgementStatus } from "./interface";
 export const noticeConverter = {
   toFirestore(notice: NoticeMetadata): FirebaseFirestore.DocumentData {
     return {
-      tosId: notice.tosId,
+      noticeId: notice.noticeId,
       link: notice.link,
       creationDate: notice.creationDate,
       allowList: notice?.allowList || [],
@@ -17,7 +17,7 @@ export const noticeConverter = {
     const data = snapshot.data();
 
     return {
-      tosId: data?.tosId || "",
+      noticeId: data?.noticeId || "",
       link: data?.link || "",
       creationDate: data?.creationDate || "",
       allowList: data?.allowList || [],
@@ -29,7 +29,7 @@ export const noticeConverter = {
 export const acknowledgementConverter = {
   toFirestore(ack: Acknowledgement): FirebaseFirestore.DocumentData {
     return {
-      tosId: ack?.tosId || "",
+      noticeId: ack?.noticeId || "",
       noticeType: ack?.noticeType || [],
       creationDate: ack?.creationDate || "",
       acknowledgedDate: ack?.acknowledgedDate || null,
@@ -44,7 +44,7 @@ export const acknowledgementConverter = {
     const ack = snapshot.data();
 
     return {
-      tosId: ack?.tosId || "",
+      noticeId: ack?.noticeId || "",
       noticeType: ack?.noticeType || [],
       creationDate: ack?.creationDate || "",
       acknowledgedDate: ack?.acknowledgedDate || null,

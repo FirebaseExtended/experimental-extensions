@@ -24,9 +24,9 @@ Each collection has a managed section for supporting multiple instances of the e
 
 ## Definitions
 
-`tosId`: Notices of service Id. This unique Id represents a created notices firestore document.
+`noticeId`: Notice Id. This unique Id represents a created notice firestore document.
 
-`link`: An external http link for a user to view the associated notices and conditions.
+`link`: An external http link for a user to view the associated notice terms and conditions.
 
 `creationDate`: Automatically generated date value on creation of a new notices document.
 
