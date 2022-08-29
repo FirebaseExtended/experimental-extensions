@@ -4,9 +4,9 @@ import path from "path";
   require("dotenv").config({
     path: path.resolve(
       __dirname,
-      "../../../_emulator/extensions/firestore-tos-extension.env.local"
+      "../../../_emulator/extensions/firestore-notice-extension.env.local"
     ),
   });
 
-  process.env.EXT_INSTANCE_ID = "firestore-tos-extension";
+  process.env.EXT_INSTANCE_ID = "firestore-notice-extension";
 })();

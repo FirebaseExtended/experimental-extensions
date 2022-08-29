@@ -1,5 +1,5 @@
 {
-  "name": "firestore-tos-extension",
+  "name": "firestore-notice-extension",
   "version": "0.0.1",
   "scripts": {
     "prepare": "npm run build",

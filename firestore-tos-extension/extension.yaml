@@ -140,6 +140,6 @@ params:
     required: true
 
 events:
-  - type: firebase.google.v1.tos-accepted
-    description: Event indicating that the ToS has been accepted and added to the user’s custom claims.
+  - type: firebase.google.v1.acknowledgement-accepted
+    description: Event indicating that the Notice has been accepted and added to the user’s custom claims.
 

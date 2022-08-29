@@ -45,18 +45,18 @@ export const acceptNotice = functions.handler.https.onCall(
       );
     }
 
-    /** check tos documents */
-    const tosDoc = await db
+    /** check notice documents */
+    const noticeDoc = await db
       .collection(config.collectionPath)
       .doc("agreements")
-      .collection("tos")
+      .collection("notice")
       .doc(data.noticeId)
       .withConverter(noticeConverter)
       .get();
 
     /** Return if no agreement exists  */
-    if (!tosDoc || !tosDoc.exists) {
-      console.warn("tosDoc does not exist");
+    if (!noticeDoc || !noticeDoc.exists) {
+      console.warn("noticeDoc does not exist");
       return;
     }
 
@@ -76,7 +76,7 @@ export const acceptNotice = functions.handler.https.onCall(
 
     /** Set new acknowledgment */
     const ack = {
-      ...tosDoc.data(),
+      ...noticeDoc.data(),
       ...data,
       ...acknowledgementDates,
     };
@@ -135,7 +135,7 @@ export const createNotice = functions.handler.https.onCall(
       );
     }
 
-    /** check if tos data has been provided  */
+    /** check if notice data has been provided  */
     if (!data) {
       throw new functions.https.HttpsError(
         "invalid-argument",
@@ -143,7 +143,7 @@ export const createNotice = functions.handler.https.onCall(
       );
     }
 
-    /** check if tos data has been provided  */
+    /** check if notice data has been provided  */
     if (!data.noticeType) {
       throw new functions.https.HttpsError(
         "invalid-argument",
@@ -155,7 +155,7 @@ export const createNotice = functions.handler.https.onCall(
     return db
       .collection(config.collectionPath)
       .doc("agreements")
-      .collection("tos")
+      .collection("notices")
       .doc(data.noticeId)
       .withConverter(noticeConverter)
       .set(
@@ -183,7 +183,7 @@ export const getNotices = functions.handler.https.onCall(
     const query = db
       .collection(config.collectionPath)
       .doc("agreements")
-      .collection("tos");
+      .collection("notices");
 
     if (custom_filter) {
       Object.entries(custom_filter).forEach(([key, value]) => {

@@ -39,7 +39,7 @@ describe("functions testing", () => {
         user = await auth.createUser({});
 
         const randomId = Math.random().toString(36).substring(2, 15);
-        noticeId = `tos_v${randomId}`;
+        noticeId = `notice_v${randomId}`;
 
         await createNoticeFn.call(
           {},
@@ -176,7 +176,7 @@ describe("functions testing", () => {
         user = await auth.createUser({});
 
         const randomId = Math.random().toString(36).substring(2, 15);
-        noticeId = `tos_v${randomId}`;
+        noticeId = `notice_v${randomId}`;
       });
 
       test("does not add a notice of service", async () => {
@@ -226,7 +226,7 @@ describe("functions testing", () => {
         user = await auth.createUser({});
 
         const randomId = Math.random().toString(36).substring(2, 15);
-        noticeId = `tos_v${randomId}`;
+        noticeId = `notice_v${randomId}`;
       });
 
       test("accept a standard preference", async () => {
@@ -334,7 +334,7 @@ describe("functions testing", () => {
         user = await auth.createUser({});
 
         const randomId = Math.random().toString(36).substring(2, 15);
-        noticeId = `tos_v${randomId}`;
+        noticeId = `notice_v${randomId}`;
       });
 
       test("can accept a notice as ACCEPTED", async () => {
@@ -379,7 +379,7 @@ describe("functions testing", () => {
       user = await auth.createUser({});
 
       const randomId = Math.random().toString(36).substring(2, 15);
-      noticeId = `tos_v${randomId}`;
+      noticeId = `notice_v${randomId}`;
     });
 
     test("can get a notice of service", async () => {
@@ -474,7 +474,7 @@ describe("functions testing", () => {
       user = await auth.createUser({});
 
       const randomId = Math.random().toString(36).substring(2, 15);
-      noticeId = `tos_v${randomId}`;
+      noticeId = `notice_v${randomId}`;
     });
 
     test("can create a notice", async () => {
@@ -489,7 +489,7 @@ describe("functions testing", () => {
 
       const notice = await noticesCollection
         .doc("agreements")
-        .collection("tos")
+        .collection("notice")
         .doc(noticeId)
         .get()
         .then((doc) => doc.data());
@@ -520,7 +520,7 @@ describe("functions testing", () => {
 
       const notice = await noticesCollection
         .doc("agreements")
-        .collection("tos")
+        .collection("notice")
         .doc(noticeId)
         .get()
         .then((doc) => doc.data());
@@ -554,7 +554,7 @@ describe("functions testing", () => {
         .firestore()
         .collection("notices")
         .doc("agreements")
-        .collection("tos")
+        .collection("notice")
         .doc(noticeId)
         .get()
         .then((doc) => doc.data());
@@ -592,7 +592,7 @@ describe("functions testing", () => {
       user = await auth.createUser({});
 
       const randomId = Math.random().toString(36).substring(2, 15);
-      noticeId = `tos_v${randomId}`;
+      noticeId = `notice_v${randomId}`;
     });
 
     test("can get an acknowledgment", async () => {

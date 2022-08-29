@@ -1,6 +1,6 @@
 {
   "extensions": {
-    "firestore-tos-extension": "../firestore-tos-extension"
+    "firestore-notice-extension": "../firestore-notice-extension"
   },
   "storage": {
     "rules": "storage.rules"
