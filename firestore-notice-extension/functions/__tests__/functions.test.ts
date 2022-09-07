@@ -8,6 +8,7 @@ import {
   Acknowledgement,
   AcknowledgementStatus,
   Preference,
+  NoticeMetadata,
 } from "../src/interface";
 import * as funcs from "../src/index";
 import * as config from "../src/config";
@@ -241,7 +242,6 @@ describe("functions testing", () => {
           {
             link: "www.link.to.notice",
             noticeId,
-            noticeType: [{ preferences: [Analytics] }],
           },
           { auth: { uid: user.uid } }
         );
@@ -251,7 +251,8 @@ describe("functions testing", () => {
           {},
           {
             noticeId,
-            noticeType: [{ preferences: [{ ...Analytics, active: true }] }],
+            noticeType: "exmaple",
+            preferences: [{ ...Analytics, active: true }],
             acknowledged: true,
           },
           { auth: { uid: user.uid } }
@@ -271,7 +272,7 @@ describe("functions testing", () => {
 
         expect(acknowledgement).toBeDefined();
         expect(acknowledgement.noticeId).toBeDefined();
-        expect(acknowledgement.noticeType[0].preferences[0]).toBeDefined();
+        expect(acknowledgement.preferences[0]).toBeDefined();
       });
 
       test("accept an optional preference", async () => {
@@ -288,7 +289,6 @@ describe("functions testing", () => {
           {
             link: "www.link.to.notice",
             noticeId,
-            noticeType: [{ preferences: [Analytics] }],
           },
           { auth: { uid: user.uid } }
         );
@@ -298,7 +298,7 @@ describe("functions testing", () => {
           {},
           {
             noticeId,
-            noticeType: [{ preferences: [{ ...Analytics, value: "_gat" }] }],
+            preferences: [{ ...Analytics, value: "_gat" }],
             acknowledged: true,
           },
           { auth: { uid: user.uid } }
@@ -316,11 +316,11 @@ describe("functions testing", () => {
 
         const acknowledgement: Acknowledgement = notice[0];
 
+        console.log("acknowledgement >>>>", acknowledgement);
+
         expect(acknowledgement).toBeDefined();
         expect(acknowledgement.noticeId).toBeDefined();
-        expect(acknowledgement.noticeType[0].preferences[0].value).toEqual(
-          "_gat"
-        );
+        expect(acknowledgement.preferences[0].value).toEqual("_gat");
       });
     });
 
@@ -337,8 +337,7 @@ describe("functions testing", () => {
       });
 
       test("can accept a notice as ACCEPTED", async () => {
-        const noticeType = [{ preferences: [] }];
-
+        const noticeType = "example_notice";
         await createNoticeFn.call(
           {},
           { link: "www.link.to.notice", noticeId, noticeType },
@@ -439,8 +438,8 @@ describe("functions testing", () => {
         {
           link: "www.test.com",
           noticeId,
-          noticeType: [{ role: "publisher" }],
-        },
+          noticeType: "publisher",
+        } as NoticeMetadata,
         { auth: { uid: user.uid } }
       );
 
@@ -456,7 +455,7 @@ describe("functions testing", () => {
       expect(toCheck?.link).toBeDefined();
       expect(toCheck?.noticeId).toBeDefined();
       expect(toCheck?.creationDate).toBeDefined();
-      expect(toCheck?.noticeType[0].role).toEqual("publisher");
+      expect(toCheck?.noticeType).toEqual("publisher");
     });
 
     xtest("can get the latest notice", async () => {});
@@ -509,12 +508,14 @@ describe("functions testing", () => {
         required: true,
         value: "_ga",
       };
-      const noticeType = [{ role: "publisher", preferences: [Analytics] }];
+      const preferences = [Analytics];
 
       await createNoticeFn.call(
         {},
-        { noticeId, link, noticeType },
-        { auth: { uid: "test" } }
+        { noticeId, link, preferences } as NoticeMetadata,
+        {
+          auth: { uid: "test" },
+        }
       );
 
       const notice = await noticesCollection
@@ -526,59 +527,21 @@ describe("functions testing", () => {
 
       expect(notice.noticeId).toEqual(noticeId);
       expect(notice.link).toEqual(link);
-      expect(notice.noticeType).toEqual(noticeType);
 
-      expect(notice.noticeType[0].preferences[0].name).toEqual("_ga");
+      expect(notice.preferences[0].name).toEqual("_ga");
       expect(notice.creationDate).toBeDefined();
       expect(notice.acknowledgedDate).toBeUndefined();
     });
 
-    test("can create a notice with a optional preference", async () => {
-      const link = "www.link.to.notice";
-      const Analytics: Preference = {
-        name: "_ga",
-        description: "Google Analytics",
-        required: true,
-        options: ["_ga", "_gat"],
-      };
-      const noticeType = [{ role: "publisher", preferences: [Analytics] }];
-
-      await createNoticeFn.call(
-        {},
-        { noticeId, link, noticeType },
-        { auth: { uid: "test" } }
-      );
-
-      const notice = await admin
-        .firestore()
-        .collection("notices")
-        .doc("agreements")
-        .collection("notices")
-        .doc(noticeId)
-        .get()
-        .then((doc) => doc.data());
-
-      expect(notice.noticeId).toEqual(noticeId);
-      expect(notice.link).toEqual(link);
-      expect(notice.noticeType).toEqual(noticeType);
-
-      expect(notice.noticeType[0].preferences[0].options.length).toEqual(2);
-      expect(notice.creationDate).toBeDefined();
-      expect(notice.acknowledgedDate).toBeUndefined();
-    });
-
-    test("should throw an error when a valid notice type has not been provided", async () => {
+    test("should not throw an error when an invalid notice type has not been provided", async () => {
       const link = "www.link.to.notice";
       const creationDate = new Date().toLocaleDateString();
 
-      expect(
-        async () =>
-          await createNoticeFn.call(
-            {},
-            { noticeId, link, creationDate },
-            { auth: { uid: "test" } }
-          )
-      ).rejects.toThrow("Invalid notice type");
+      await createNoticeFn.call(
+        {},
+        { noticeId, link, creationDate },
+        { auth: { uid: "test" } }
+      );
     });
   });
 

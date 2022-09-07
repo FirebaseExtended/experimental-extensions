@@ -1,11 +1,10 @@
 export interface NoticeMetadata {
   noticeId: string;
   link: string;
-  creationDate: string;
+  creationDate?: string;
   allowList?: string[];
-  noticeType?: {
-    [key: string]: any;
-  };
+  noticeType?: string;
+  preferences?: Record<string, any>[];
 }
 
 export enum AcknowledgementStatus {
@@ -19,11 +18,10 @@ export interface Acknowledgement {
   acknowledgedDate: string | null;
   unacknowledgedDate: string | null;
   creationDate: string;
-  noticeType: {
-    [key: string]: any;
-  };
+  noticeType: string;
   extensionId?: string;
   status: AcknowledgementStatus;
+  preferences?: Record<string, any>[];
 }
 
 export interface Preference {

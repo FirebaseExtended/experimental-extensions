@@ -58,7 +58,7 @@ export const acceptNotice = functions.handler.https.onCall(
     if (!noticeDoc || !noticeDoc.exists) {
       throw new functions.https.HttpsError(
         "not-found",
-        "Notice document does not exist"
+        "Notice document does not exist."
       );
     }
 
@@ -145,14 +145,6 @@ export const createNotice = functions.handler.https.onCall(
       );
     }
 
-    /** check if notice data has been provided  */
-    if (!data.noticeType) {
-      throw new functions.https.HttpsError(
-        "invalid-argument",
-        "Invalid notice type"
-      );
-    }
-
     /** Set claims on user and return */
     return db
       .collection(config.collectionPath)
@@ -180,20 +172,16 @@ export const getNotices = functions.handler.https.onCall(
       );
     }
 
-    const { noticeId, latest_only = false, custom_filter } = data;
+    const { noticeId, latest_only = false, noticeType } = data;
 
     const query = db
       .collection(config.collectionPath)
       .doc("agreements")
       .collection("notices");
 
-    if (custom_filter) {
-      Object.entries(custom_filter).forEach(([key, value]) => {
-        const queryObject = { [key]: value };
-        query.where(`noticeType`, "array-contains", { queryObject });
-      });
-
+    if (noticeType) {
       return query
+        .where(`noticeType`, "==", noticeType)
         .withConverter(noticeConverter)
         .get()
         .then((doc) => doc.docs.map(($) => $.data()));

@@ -8,7 +8,8 @@ export const noticeConverter = {
       link: notice.link,
       creationDate: notice.creationDate,
       allowList: notice?.allowList || [],
-      noticeType: notice.noticeType,
+      noticeType: notice.noticeType || "",
+      preferences: notice?.preferences || [],
     };
   },
   fromFirestore(
@@ -21,7 +22,8 @@ export const noticeConverter = {
       link: data?.link || "",
       creationDate: data?.creationDate || "",
       allowList: data?.allowList || [],
-      noticeType: data?.noticeType || [],
+      noticeType: data?.noticeType || "",
+      preferences: data?.preferences || [],
     };
   },
 };
@@ -30,12 +32,13 @@ export const acknowledgementConverter = {
   toFirestore(ack: Acknowledgement): FirebaseFirestore.DocumentData {
     return {
       noticeId: ack?.noticeId || "",
-      noticeType: ack?.noticeType || [],
+      noticeType: ack?.noticeType || "",
       creationDate: ack?.creationDate || "",
       acknowledgedDate: ack?.acknowledgedDate || null,
       unacknowledgedDate: ack?.unacknowledgedDate || null,
       status: ack?.status || AcknowledgementStatus.SEEN,
       extensionId: `${process.env.EXT_INSTANCE_ID}`,
+      preferences: ack?.preferences || [],
     };
   },
   fromFirestore(
@@ -45,12 +48,13 @@ export const acknowledgementConverter = {
 
     return {
       noticeId: ack?.noticeId || "",
-      noticeType: ack?.noticeType || [],
+      noticeType: ack?.noticeType || "",
       creationDate: ack?.creationDate || "",
       acknowledgedDate: ack?.acknowledgedDate || null,
       unacknowledgedDate: ack?.unacknowledgedDate || null,
       status: ack?.status || AcknowledgementStatus.SEEN,
       extensionId: ack?.extensionId || "",
+      preferences: ack?.preferences || [],
     };
   },
 };
