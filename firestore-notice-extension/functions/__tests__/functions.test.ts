@@ -160,6 +160,8 @@ describe("functions testing", () => {
         const userRecord = await auth.getUser(user.uid);
 
         const notice = userRecord?.customClaims[process.env.EXT_INSTANCE_ID];
+
+        console.log("userRecord.customClaims >>>>", userRecord.customClaims);
         const acknowledgements: Acknowledgement = notice;
 
         expect(userRecord.customClaims["foo"]).toEqual("bar");
@@ -489,7 +491,7 @@ describe("functions testing", () => {
 
       const notice = await noticesCollection
         .doc("agreements")
-        .collection("notice")
+        .collection("notices")
         .doc(noticeId)
         .get()
         .then((doc) => doc.data());
@@ -520,7 +522,7 @@ describe("functions testing", () => {
 
       const notice = await noticesCollection
         .doc("agreements")
-        .collection("notice")
+        .collection("notices")
         .doc(noticeId)
         .get()
         .then((doc) => doc.data());
@@ -554,7 +556,7 @@ describe("functions testing", () => {
         .firestore()
         .collection("notices")
         .doc("agreements")
-        .collection("notice")
+        .collection("notices")
         .doc(noticeId)
         .get()
         .then((doc) => doc.data());

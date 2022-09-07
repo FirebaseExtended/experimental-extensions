@@ -49,7 +49,7 @@ export const acceptNotice = functions.handler.https.onCall(
     const noticeDoc = await db
       .collection(config.collectionPath)
       .doc("agreements")
-      .collection("notice")
+      .collection("notices")
       .doc(data.noticeId)
       .withConverter(noticeConverter)
       .get();
