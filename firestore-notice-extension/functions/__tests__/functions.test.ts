@@ -24,7 +24,7 @@ const auth = admin.auth();
 const noticesCollection = firestore().collection(config.default.collectionPath);
 
 /** prepare extension functions */
-const acceptNoticeFn = fft.wrap(funcs.acceptNotice);
+const acknowledgeNoticeFn = fft.wrap(funcs.acknowledgeNotice);
 const createNoticeFn = fft.wrap(funcs.createNotice);
 const getNoticeFn = fft.wrap(funcs.getNotices);
 const getAcknowledgements = fft.wrap(funcs.getAcknowledgements);
@@ -54,7 +54,7 @@ describe("functions testing", () => {
       });
 
       test("can accept a notice", async () => {
-        await acceptNoticeFn.call(
+        await acknowledgeNoticeFn.call(
           {},
           {
             noticeId,
@@ -98,12 +98,12 @@ describe("functions testing", () => {
           { auth: { uid: user.uid } }
         );
 
-        await acceptNoticeFn.call(
+        await acknowledgeNoticeFn.call(
           {},
           { noticeId },
           { auth: { uid: user.uid } }
         );
-        await acceptNoticeFn.call(
+        await acknowledgeNoticeFn.call(
           {},
           { noticeId: noticeId_2 },
           { auth: { uid: user.uid } }
@@ -118,7 +118,7 @@ describe("functions testing", () => {
       });
 
       test("can decline a notice", async () => {
-        await acceptNoticeFn.call(
+        await acknowledgeNoticeFn.call(
           {},
           {
             noticeId,
@@ -152,7 +152,7 @@ describe("functions testing", () => {
         await auth.setCustomUserClaims(user.uid, { foo: "bar" });
 
         /** accept notice */
-        await acceptNoticeFn.call(
+        await acknowledgeNoticeFn.call(
           {},
           { noticeId },
           { auth: { uid: user.uid } }
@@ -185,7 +185,7 @@ describe("functions testing", () => {
       test("does not add a notice of service", async () => {
         expect(
           async () =>
-            await acceptNoticeFn.call({}, { noticeId, noticeType: [] }, {})
+            await acknowledgeNoticeFn.call({}, { noticeId, noticeType: [] }, {})
         ).rejects.toThrow("No valid authentication token provided.");
       });
     });
@@ -201,14 +201,14 @@ describe("functions testing", () => {
       test("does not add a notice of service without a provided noticeId", async () => {
         expect(
           async () =>
-            await acceptNoticeFn.call({}, {}, { auth: { uid: user.uid } })
+            await acknowledgeNoticeFn.call({}, {}, { auth: { uid: user.uid } })
         ).rejects.toThrow("No noticeId provided.");
       });
 
       test("does not add a notice of service without a exisiting noticeId", async () => {
         expect(
           async () =>
-            await acceptNoticeFn.call(
+            await acknowledgeNoticeFn.call(
               {},
               { noticeId: "unknown", noticeType: [] },
               { auth: { uid: user.uid } }
@@ -247,7 +247,7 @@ describe("functions testing", () => {
         );
 
         /** accept notice with preferences selected */
-        await acceptNoticeFn.call(
+        await acknowledgeNoticeFn.call(
           {},
           {
             noticeId,
@@ -294,7 +294,7 @@ describe("functions testing", () => {
         );
 
         /** accept notice with preferences selected */
-        await acceptNoticeFn.call(
+        await acknowledgeNoticeFn.call(
           {},
           {
             noticeId,
@@ -344,7 +344,7 @@ describe("functions testing", () => {
           { auth: { uid: user.uid } }
         );
 
-        await acceptNoticeFn.call(
+        await acknowledgeNoticeFn.call(
           {},
           { noticeId, noticeType, status: AcknowledgementStatus.ACCEPTED },
           { auth: { uid: user.uid } }
@@ -572,7 +572,11 @@ describe("functions testing", () => {
       );
 
       /** accept notice */
-      await acceptNoticeFn.call({}, { noticeId }, { auth: { uid: user.uid } });
+      await acknowledgeNoticeFn.call(
+        {},
+        { noticeId },
+        { auth: { uid: user.uid } }
+      );
 
       /** get notice */
       const acknowledgements = await getAcknowledgements.call(

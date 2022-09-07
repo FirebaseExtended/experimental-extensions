@@ -20,7 +20,7 @@ if (admin.apps.length === 0) {
 const auth = admin.auth();
 const db = admin.firestore();
 
-export const acceptNotice = functions.handler.https.onCall(
+export const acknowledgeNotice = functions.handler.https.onCall(
   async (data, context) => {
     // Checking that the user is authenticated.
     if (!context.auth) {

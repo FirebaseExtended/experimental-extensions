@@ -67,7 +67,7 @@ To install an extension, your project must be on the [Blaze (pay as you go) plan
 
 **Cloud Functions:**
 
-- **acceptNotices:** Callable function for user to accept current notices.
+- **acknowledgeNotice:** Callable function for user to accept current notices.
 
 - **createNotices:** Callable function to create a new notices of service agreement. This function can be used to implement admin tooling.
 

@@ -96,8 +96,8 @@ The extension will provide `4` new functions for managing ackowledgement for use
 
   ```js
     // < v9
-    var acceptNotice = firebase.functions().httpsCallable('acceptNotice');
-    await acceptNotice({ noticeId });
+    var acknowledgeNotice = firebase.functions().httpsCallable('acknowledgeNotice');
+    await acknowledgeNotice({ noticeId });
   ```
 
   ```js
@@ -105,8 +105,8 @@ The extension will provide `4` new functions for managing ackowledgement for use
     import { getFunctions, httpsCallable } from "firebase/functions";
 
     const functions = getFunctions();
-    const acceptNotice = httpsCallable(functions, 'acceptNotice');
-    await acceptNotice({ noticeId });
+    const acknowledgeNotice = httpsCallable(functions, 'acknowledgeNotice');
+    await acknowledgeNotice({ noticeId });
   ```
 
 **Accepting preferences**

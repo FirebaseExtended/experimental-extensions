@@ -30,7 +30,7 @@ roles:
     reason: Allows this extension to access Cloud Firestore to read and process notices.
 
 resources:
-  - name: acceptNotices
+  - name: acknowledgeNotice
     type: firebaseextensions.v1beta.function
     properties:
       location: ${LOCATION}
