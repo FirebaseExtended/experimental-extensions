@@ -1,6 +1,6 @@
 Use this extension to provides an API for adding new ackowledgement notices, retrieving the latest notices, and tracking acknowledgements.
 
-Allows users to sign ackowledgement forms as part of their application. Some common ackowledgement forms include notice and cookie ackowledgement.
+Allows users to acknowledge notices as part of their application. Ackowledgement forms include notice and cookie ackowledgement.
 
 ## Usage
 
