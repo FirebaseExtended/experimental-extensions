@@ -205,17 +205,14 @@ describe("functions testing", () => {
       });
 
       test("does not add a notice of service without a exisiting noticeId", async () => {
-        await acceptNoticeFn.call(
-          {},
-          { noticeId: "unknown", noticeType: [] },
-          { auth: { uid: user.uid } }
-        );
-
-        const userRecord = await auth.getUser(user.uid);
-
-        const claims = userRecord?.customClaims;
-
-        expect(claims).toBeUndefined();
+        expect(
+          async () =>
+            await acceptNoticeFn.call(
+              {},
+              { noticeId: "unknown", noticeType: [] },
+              { auth: { uid: user.uid } }
+            )
+        ).rejects.toThrow("Notice document does not exist");
       });
     });
 

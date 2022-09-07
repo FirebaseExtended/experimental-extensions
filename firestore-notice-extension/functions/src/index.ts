@@ -56,8 +56,10 @@ export const acceptNotice = functions.handler.https.onCall(
 
     /** Return if no agreement exists  */
     if (!noticeDoc || !noticeDoc.exists) {
-      console.warn("noticeDoc does not exist");
-      return;
+      throw new functions.https.HttpsError(
+        "not-found",
+        "Notice document does not exist"
+      );
     }
 
     const acknowledgementDates = {};
