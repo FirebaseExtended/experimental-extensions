@@ -149,6 +149,16 @@ The extension will provide `4` new functions for managing ackowledgement for use
     await getAcknowledgements();
   ```
 
+#### Versioning
+
+  If you need versioning for your notices, we support that out of the box. You can simply create multiple notices with the same notice_type, and the extension will give you a way to query the latest version of the a given notice_type.
+
+### Custom notices
+
+  If you have custom notices that are shown to specific users (for example, enterprise clients with custom requirements), you can specify a new notice_type and set an allow-list that only certain emails/phone numbers can view and accept.
+
+
+
 ### Monitoring
 
 As a best practice, you can [monitor the activity](https://firebase.google.com/docs/extensions/manage-installed-extensions#monitor) of your installed extension, including checks on its health, usage, and logs.
