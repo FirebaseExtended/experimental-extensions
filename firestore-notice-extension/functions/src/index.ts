@@ -14,7 +14,7 @@ const eventChannel =
   });
 
 if (admin.apps.length === 0) {
-  admin.initializeApp();
+  admin.initializeApp({ projectId: "demo-test" });
 }
 
 const auth = admin.auth();
@@ -47,9 +47,7 @@ export const acknowledgeNotice = functions.handler.https.onCall(
 
     /** check notice documents */
     const noticeDoc = await db
-      .collection(config.collectionPath)
-      .doc("agreements")
-      .collection("notices")
+      .collection(config.noticeCollectionPath)
       .doc(data.noticeId)
       .withConverter(noticeConverter)
       .get();
@@ -85,9 +83,9 @@ export const acknowledgeNotice = functions.handler.https.onCall(
 
     /** Add Acknowledgment */
     await db
-      .collection(config.collectionPath)
-      .doc("acknowledgements")
-      .collection(context.auth.uid)
+      .collection(config.acknowlegementsCollectionPath)
+      .doc(context.auth.uid)
+      .collection(config.noticeCollectionPath)
       .doc(data.noticeId)
       .withConverter(acknowledgementConverter)
       .set(
@@ -99,9 +97,9 @@ export const acknowledgeNotice = functions.handler.https.onCall(
 
     /** Find current acknowledgements */
     const acknowledgements = await db
-      .collection(config.collectionPath)
-      .doc("acknowledgements")
-      .collection(context.auth.uid)
+      .collection(config.acknowlegementsCollectionPath)
+      .doc(context.auth.uid)
+      .collection(config.noticeCollectionPath)
       .withConverter(acknowledgementConverter)
       .get()
       .then(($) => $.docs.map((doc) => doc.data()));
@@ -147,9 +145,7 @@ export const createNotice = functions.handler.https.onCall(
 
     /** Set claims on user and return */
     return db
-      .collection(config.collectionPath)
-      .doc("agreements")
-      .collection("notices")
+      .collection(config.noticeCollectionPath)
       .doc(data.noticeId)
       .withConverter(noticeConverter)
       .set(
@@ -174,10 +170,7 @@ export const getNotices = functions.handler.https.onCall(
 
     const { noticeId, latest_only = false, noticeType } = data;
 
-    const query = db
-      .collection(config.collectionPath)
-      .doc("agreements")
-      .collection("notices");
+    const query = db.collection(config.noticeCollectionPath);
 
     if (noticeType) {
       return query
@@ -225,9 +218,9 @@ export const getAcknowledgements = functions.handler.https.onCall(
     }
 
     return db
-      .collection(config.collectionPath)
-      .doc("acknowledgements")
-      .collection(context.auth.uid)
+      .collection(config.acknowlegementsCollectionPath)
+      .doc(context.auth.uid)
+      .collection(config.noticeCollectionPath)
       .withConverter(acknowledgementConverter)
       .get()
       .then((doc) => doc.docs.map(($) => $.data()));

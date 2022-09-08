@@ -13,14 +13,7 @@ The extension supports multiple use cases:
 
 All functions `require authentication` to run, ensure you have a valud Firebase User included in your POST requests.
 
-Managed documents are stored in a specified Cloud Firestore collection, while providing two subcollections for accesing data, these are:
-
-- acknowledgements
-- agreements
-
-Each collection has a managed section for supporting multiple instances of the extension. For example, a typical routes for agreements would be:
-
-`agreement/${EXT_ID}/{agreementId}`
+Managed documents are stored in a specified Cloud Firestore collection, while providing two configurable collections.
 
 ## Definitions
 

@@ -21,7 +21,9 @@ if (admin.apps.length === 0) {
 const auth = admin.auth();
 
 /**prepare collections */
-const noticesCollection = firestore().collection(config.default.collectionPath);
+const noticesCollection = firestore().collection(
+  config.default.noticeCollectionPath
+);
 
 /** prepare extension functions */
 const acknowledgeNoticeFn = fft.wrap(funcs.acknowledgeNotice);
@@ -316,8 +318,6 @@ describe("functions testing", () => {
 
         const acknowledgement: Acknowledgement = notice[0];
 
-        console.log("acknowledgement >>>>", acknowledgement);
-
         expect(acknowledgement).toBeDefined();
         expect(acknowledgement.noticeId).toBeDefined();
         expect(acknowledgement.preferences[0].value).toEqual("_gat");
@@ -358,8 +358,6 @@ describe("functions testing", () => {
         const acknowledgement: Acknowledgement = notice.filter(
           ($) => $.noticeId === noticeId
         )[0];
-
-        console.log("acknowledgement >>>>>", acknowledgement);
 
         expect(acknowledgement.status).toBe(AcknowledgementStatus.ACCEPTED);
         expect(acknowledgement.unacknowledgedDate).toBeNull();
@@ -486,8 +484,6 @@ describe("functions testing", () => {
       );
 
       const notice = await noticesCollection
-        .doc("agreements")
-        .collection("notices")
         .doc(noticeId)
         .get()
         .then((doc) => doc.data());
@@ -519,8 +515,6 @@ describe("functions testing", () => {
       );
 
       const notice = await noticesCollection
-        .doc("agreements")
-        .collection("notices")
         .doc(noticeId)
         .get()
         .then((doc) => doc.data());

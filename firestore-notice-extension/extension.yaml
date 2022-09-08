@@ -112,7 +112,7 @@ params:
     required: true
     immutable: true
 
-  - param: COLLECTION_PATH
+  - param: NOTICE_COLLECTION_PATH
     label: Collection path
     description: >-
       What is the path of the collection that you would like to use to store notices?
@@ -121,6 +121,17 @@ params:
     validationRegex: "^[^/]+(/[^/]+/[^/]+)*$"
     validationErrorMessage: Firestore collection paths must be an odd number of segments separated by slashes, e.g. "path/to/collection".
     default: notices
+    required: true
+
+    - param: ACKNOWLEDGEMENT_COLLECTION_PATH
+    label: Collection path
+    description: >-
+      What is the path of the collection that you would like to use to store acknowlegements?
+    type: string
+    example: acknowledgement
+    validationRegex: "^[^/]+(/[^/]+/[^/]+)*$"
+    validationErrorMessage: Firestore collection paths must be an odd number of segments separated by slashes, e.g. "path/to/collection".
+    default: acknowledgement
     required: true
 
   - param: INCLUDE_AUTH_CLAIMS
