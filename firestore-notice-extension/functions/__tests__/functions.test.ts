@@ -89,7 +89,7 @@ describe("functions testing", () => {
       test("can accept multiple notices", async () => {
         const noticeId_2 = noticeId + "_2";
 
-        /** create a second agreement */
+        /** create a second notice */
         await createNoticeFn.call(
           {},
           {
@@ -192,7 +192,7 @@ describe("functions testing", () => {
       });
     });
 
-    describe("Without a valid notice of service agreement", () => {
+    describe("Without a valid notice", () => {
       let user;
 
       beforeEach(async () => {

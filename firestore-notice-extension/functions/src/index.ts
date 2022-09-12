@@ -52,7 +52,7 @@ export const acknowledgeNotice = functions.handler.https.onCall(
       .withConverter(noticeConverter)
       .get();
 
-    /** Return if no agreement exists  */
+    /** Return if no acknowledgement exists  */
     if (!noticeDoc || !noticeDoc.exists) {
       throw new functions.https.HttpsError(
         "not-found",
