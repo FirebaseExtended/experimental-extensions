@@ -1,0 +1,141 @@
+# Copyright 2020 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: firestore-export-user-data
+version: 0.1.1
+specVersion: v1beta
+
+displayName: Firestore Export User Data
+
+description: >-
+  Export user data from Firestore to a Google Cloud Storage bucket.
+
+license: Apache-2.0
+
+sourceUrl: https://github.com/FirebaseExtended/firestore-nlp-extension 
+
+author:
+  authorName: Firebase
+  url: https://firebase.google.com
+
+contributors:
+  - authorName: Invertase
+    email: oss@invertase.io
+    url: https://github.com/invertase
+
+billingRequired: true
+
+roles:
+  - role: datastore.owner
+    reason: Allows the extension to delete (user) data from Cloud Firestore.
+  - role: firebasedatabase.admin
+    reason: Allows the extension to delete (user) data from Realtime Database.
+  - role: storage.admin
+    reason: Allows the extension to delete (user) data from Cloud Storage.
+  - role: pubsub.admin
+    reason: allows publish and subscribing of deletion events
+
+resources:
+  - name: firestoreExportUserData
+    type: firebaseextensions.v1beta.function
+    description:
+      Reads and stores user data from Cloud Firestore to a Google Cloud Storage bucket.
+    properties:
+      location: ${LOCATION}
+      eventTrigger:
+        eventType: providers/cloud.firestore/eventTypes/document.create
+        resource: projects/${PROJECT_ID}/databases/(default)/documents/${COLLECTION_PATH}/{messageId}
+      runtime: nodejs14
+
+  - name: handleDeletion
+    type: firebaseextensions.v1beta.function
+    properties:
+      location: ${LOCATION}
+      eventTrigger:
+        eventType: google.pubsub.topic.publish
+        resource: projects/${PROJECT_ID}/topics/export
+
+params:
+  - param: LOCATION
+    label: Cloud Functions location
+    description: >-
+      Where do you want to deploy the functions created for this extension?
+      For help selecting a location, refer to the [location selection
+      guide](https://firebase.google.com/docs/functions/locations).
+    type: select
+    options:
+      - label: Iowa (us-central1)
+        value: us-central1
+      - label: South Carolina (us-east1)
+        value: us-east1
+      - label: Northern Virginia (us-east4)
+        value: us-east4
+      - label: Los Angeles (us-west2)
+        value: us-west2
+      - label: Salt Lake City (us-west3)
+        value: us-west3
+      - label: Las Vegas (us-west4)
+        value: us-west4
+      - label: Warsaw (europe-central2)
+        value: europe-central2
+      - label: Belgium (europe-west1)
+        value: europe-west1
+      - label: London (europe-west2)
+        value: europe-west2
+      - label: Frankfurt (europe-west3)
+        value: europe-west3
+      - label: Zurich (europe-west6)
+        value: europe-west6
+      - label: Hong Kong (asia-east2)
+        value: asia-east2
+      - label: Tokyo (asia-northeast1)
+        value: asia-northeast1
+      - label: Osaka (asia-northeast2)
+        value: asia-northeast2
+      - label: Seoul (asia-northeast3)
+        value: asia-northeast3
+      - label: Mumbai (asia-south1)
+        value: asia-south1
+      - label: Jakarta (asia-southeast2)
+        value: asia-southeast2
+      - label: Montreal (northamerica-northeast1)
+        value: northamerica-northeast1
+      - label: Sao Paulo (southamerica-east1)
+        value: southamerica-east1
+      - label: Sydney (australia-southeast1)
+        value: australia-southeast1
+    default: us-central1
+    required: true
+    immutable: true
+
+  - param: STORAGE_BUCKET
+    label: Cloud Storage bucket for images
+    description: >
+      To which Cloud Storage bucket will you upload images that you want to resize?
+      Resized images will be stored in this bucket. Depending on your extension configuration,
+      original images are either kept or deleted.
+      It is recommended to create a separate bucket for this extension. For more information,
+      refer to the [pre-installation guide](https://firebase.google.com/products/extensions/storage-resize-images).
+    type: string
+    example: my-project-12345.appspot.com
+    validationRegex: ^([0-9a-z_.-]*)$
+    validationErrorMessage: Invalid storage bucket
+    default: ${STORAGE_BUCKET}
+    required: true
+
+events:
+  - type: firebase.google.v1.exported-data
+    description: Event indicating that user data has been exported to Cloud Storage.
+
+ 

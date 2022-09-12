@@ -1,0 +1,38 @@
+{
+  "name": "firestore-export-user-data",
+  "description": "Export user data from Firestore to Google Cloud Storage",
+  "main": "lib/index.js",
+  "license": "Apache-2.0",
+  "scripts": {
+    "prepare": "npm run build",
+    "build": "npm run clean && npm run compile",
+    "build:watch": "tsc --watch",
+    "format": "prettier --write \"**/*.{md,yml,ts,json,yaml}\"",
+    "lint": "prettier --list-different \"**/*.{md,yml,ts,json,yaml}\"",
+    "clean": "rimraf lib",
+    "compile": "tsc",
+    "local:emulator": "cd ../../_emulator && firebase emulators:start -P demo-experimental",
+    "test": "cd ../../_emulator && firebase emulators:exec jest -P demo-experimental",
+    "test:local": "jest",
+    "test:watch": "concurrently \"npm run local:emulator\" \"jest --watch\"",
+    "generate-readme": "firebase ext:info .. --markdown > ../README.md"
+  },
+  "dependencies": {
+    "firebase-admin": "^11.0.1",
+    "firebase-functions": "^3.6.1",
+    "fs": "0.0.1-security",
+    "json2csv": "^5.0.7",
+    "rimraf": "^3.0.2",
+    "typescript": "^4.6.4"
+  },
+  "devDependencies": {
+    "@types/jest": "^26.0.4",
+    "firebase-functions-test": "^0.2.1",
+    "jest": "^26.1.0",
+    "mocked-env": "^1.3.2",
+    "prettier": "1.15.3",
+    "ts-jest": "^26.1.2",
+    "concurrently": "^7.2.2"
+  },
+  "private": true
+}
