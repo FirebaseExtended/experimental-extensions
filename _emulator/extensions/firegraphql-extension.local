@@ -1,3 +1,0 @@
-LOCATION=europe-west2
-FIRESTORE_QUERY_COLLECTION=queries
-searchFields=field1,field2,field3

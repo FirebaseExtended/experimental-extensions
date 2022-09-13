@@ -47,13 +47,10 @@ roles:
 resources:
   - name: handler
     type: firebaseextensions.v1beta.function
-    TODO
     properties:
       location: ${LOCATION}
-      eventTrigger:
-        eventType: providers/cloud.firestore/eventTypes/document.create
-        resource: projects/${PROJECT_ID}/databases/(default)/documents/${COLLECTION_PATH}/{messageId}
-      runtime: "nodejs10"
+      httpsTrigger: {}
+      runtime: "nodejs14"
 
 params:
   - param: LOCATION

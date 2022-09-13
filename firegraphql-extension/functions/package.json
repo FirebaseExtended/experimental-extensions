@@ -14,10 +14,12 @@
     "generate-readme": "firebase ext:info .. --markdown > ../README.md"
   },
   "dependencies": {
-    "firebase-admin": "^8.6.0",
+    "firebase": "^9.9.4",
+    "firebase-admin": "^11.0.1",
     "firebase-functions": "^3.6.1",
     "rimraf": "^3.0.2",
-    "typescript": "^4.6.4"
+    "typescript": "^4.6.4",
+    "firegraphql": "file:firegraphql-0.0.2.tgz"
   },
   "devDependencies": {
     "@types/jest": "^26.0.4",

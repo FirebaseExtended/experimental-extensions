@@ -16,20 +16,40 @@
 
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
-
-// import * as logs from "./logs";
+import { FirebaseApolloFunction, makeExecutableSchema } from "firegraphql";
 import config from "./config";
 
-admin.initializeApp();
+const app = admin.initializeApp();
 
-export const handler = functions.handler.https.onCall(async (data, context) => {
-  // Checking that the user is authenticated.
-  if (!context.auth) {
-    throw new functions.https.HttpsError(
-      "unauthenticated",
-      "No valid authentication token provided."
-    );
+let server: FirebaseApolloFunction;
+
+export const handler = functions.handler.https.onRequest(async (req, res) => {
+  if (!server) {
+    const schema = makeExecutableSchema({
+      typeDefs: `
+      type Test {
+        foo: String!
+      }
+
+      type Query {
+        testing: [Test]! @firestoreQuery(collection: "tests", idField: "lolol")
+      }
+      `,
+    });
+
+    server = new FirebaseApolloFunction(schema, {
+      firebaseAdminAppInstance: app,
+      firebaseOptions: {
+        apiKey: "AIzaSyD6BMzm6VxjlpmJ6WU18uX3klJq6oYwyKs",
+        authDomain: `${config.projectId}.firebaseapp.com`,
+        databaseURL: `https://${config.projectId}-default-rtdb.${
+          config.location
+        }.firebasedatabase.app`,
+        projectId: config.projectId,
+        storageBucket: config.storageBucket,
+      },
+    });
   }
 
-  return null;
+  return server.createHandler()(req, res);
 });

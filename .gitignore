@@ -1,6 +1,7 @@
 .vscode
 node_modules/
 *.env
+*.env.local
 firebase-debug.log
 .DS_Store
 mods-test-data/key.json
@@ -12,3 +13,4 @@ local.properties
 coverage
 package-lock.json
 yarn.lock
+*.log

@@ -15,5 +15,7 @@
  */
 
 export default {
-  inputFieldName: process.env.INPUT_FIELD_NAME,
+  projectId: process.env.PROJECT_ID,
+  location: process.env.LOCATION,
+  storageBucket: process.env.STORAGE_BUCKET,
 };

@@ -5,9 +5,12 @@
     "module": "commonjs",
     "noImplicitReturns": true,
     "sourceMap": false,
-    "target": "es6"
+    "target": "es6",
+    "esModuleInterop": true,
+    "skipLibCheck": true
   },
   "compileOnSave": true,
   "include": ["src"],
   "exclude": ["node_modules"]
 }
+
