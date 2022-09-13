@@ -82,10 +82,16 @@ params:
     immutable: true
 
 
-  - param: INPUT_FIELD_NAME
-    label: Input field name
+  - param: FIREBASE_APPS_LRU_MAX
+    label: Max Firebase Apps LRU Cache Size
     description: >
-      What is the name of the field that contains the string that you want NLP to be performed on?
-    example: text
-    default: text
-    required: true
+      The maximum number of Firebase app instances to keep in memory.
+    example: 100
+    required: false
+
+  - param: FIREBASE_APPS_LRU_TTL
+    label: Firebase Apps LRU Cache TTL
+    description: >
+      The milliseconds to keep Firebase app instances in memory.
+    example: 600000
+    required: false

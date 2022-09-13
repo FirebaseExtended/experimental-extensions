@@ -25,6 +25,13 @@ let server: FirebaseApolloFunction;
 
 export const handler = functions.handler.https.onRequest(async (req, res) => {
   if (!server) {
+    // TODO: Get the schema from Storage or Firestore.
+    //       Requires extension params (document path / file reference)
+
+    // TODO: Get the Firebase Options somehow - we can probably infer most of them from the project ID (see below),
+    //       however, the API Key is required for Firestore, which can be claimed via the google apis (https://firebase.google.com/docs/projects/api/reference/rest/v1beta1/projects.webApps/getConfig),
+    //       but this required knowledge of an App ID to be provided by the user. Need to verify whether this is acceptable or if theres another way.
+
     const schema = makeExecutableSchema({
       typeDefs: `
       type Test {
