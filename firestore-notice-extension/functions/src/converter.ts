@@ -4,6 +4,7 @@ import { Acknowledgement, AcknowledgementStatus } from "./interface";
 export const noticeConverter = {
   toFirestore(notice: NoticeMetadata): FirebaseFirestore.DocumentData {
     return {
+      title: notice?.title || "",
       noticeId: notice.noticeId,
       link: notice.link,
       creationDate: notice.creationDate,
@@ -18,6 +19,7 @@ export const noticeConverter = {
     const data = snapshot.data();
 
     return {
+      title: data?.title || "",
       noticeId: data?.noticeId || "",
       link: data?.link || "",
       creationDate: data?.creationDate || "",

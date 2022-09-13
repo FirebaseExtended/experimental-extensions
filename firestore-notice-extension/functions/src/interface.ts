@@ -1,5 +1,6 @@
 export interface NoticeMetadata {
   noticeId: string;
+  title: string;
   link: string;
   creationDate?: string;
   allowList?: string[];
