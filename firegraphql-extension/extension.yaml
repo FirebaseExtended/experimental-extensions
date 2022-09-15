@@ -16,14 +16,14 @@ name: firegraphql-extension
 version: 0.1.1
 specVersion: v1beta
 
-displayName: TODO
+displayName: FiregraphQL
 
 description: >-
-  TODO
+  Use this extension to set up an endpoint to make GraphQL queries against resources on your Firebase project (Firebase Firestore, RTDB and Storage).
 
 license: Apache-2.0
 
-sourceUrl: https://github.com/FirebaseExtended/firestore-nlp-extension 
+sourceUrl: https://github.com/FirebaseExtended/experimental-extensions
 
 author:
   authorName: Firebase
@@ -37,15 +37,13 @@ contributors:
 billingRequired: true
 
 roles:
-  - role: datastore.owner
-    reason: Allows the extension to delete (user) data from Cloud Firestore.
-  - role: firebasedatabase.admin
-    reason: Allows the extension to delete (user) data from Realtime Database.
-  - role: storage.admin
-    reason: Allows the extension to delete (user) data from Cloud Storage.
+  - role: storage.objectViewer
+    reason: Allows the extension to download the GraphQL Schema file from the Cloud Storage bucket.
+  - role: firebaseauth.viewer
+    reason: Allows the extension to get the project Web App credentials.
 
 resources:
-  - name: handler
+  - name: executeQuery
     type: firebaseextensions.v1beta.function
     properties:
       location: ${LOCATION}
@@ -81,17 +79,41 @@ params:
     required: true
     immutable: true
 
+  - param: STORAGE_BUCKET
+    label: Cloud Storage bucket for GQL schemas
+    description: >
+      To which Cloud Storage bucket will you upload the GQL schemas?
+    type: selectResource
+    resourceType: storage.googleapis.com/Bucket
+    example: my-project-12345.appspot.com
+    validationRegex: ^([0-9a-z_.-]*)$
+    validationErrorMessage: Invalid storage bucket
+    default: ${STORAGE_BUCKET}
+    required: true
+
+  - param: SCHEMA_PATH
+    label: GQL Schema path
+    description: >
+      A path to a file in Cloud Storage representing the GraphQL schema. 
+    required: true
+    
+  - param: FIREBASE_WEB_APP_ID
+    label: Firebase Web App ID
+    description: >
+      ID of the web app associated with this GraphQL endpoint. Needed to access client credentials.
+    example: 1:11111111111:web:xxxxxxxxxxxxxxxxxxxxxx
+    required: false
 
   - param: FIREBASE_APPS_LRU_MAX
     label: Max Firebase Apps LRU Cache Size
     description: >
-      The maximum number of Firebase app instances to keep in memory.
+      The maximum number of Firebase app instances to store in the LRU cache.
     example: 100
     required: false
 
   - param: FIREBASE_APPS_LRU_TTL
     label: Firebase Apps LRU Cache TTL
     description: >
-      The milliseconds to keep Firebase app instances in memory.
+      The number of milliseconds to keep Firebase app instances in the LRU cache.
     example: 600000
     required: false

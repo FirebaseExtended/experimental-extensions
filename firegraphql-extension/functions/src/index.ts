@@ -14,49 +14,70 @@
  * limitations under the License.
  */
 
-import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
+import * as functions from "firebase-functions";
 import { FirebaseApolloFunction, makeExecutableSchema } from "firegraphql";
+
 import config from "./config";
+import * as logs from "./logs";
+
+import { FirebaseOptions } from "firebase/app";
+import { getWebConfigByAppId, getWebConfigByList } from "./api";
 
 const app = admin.initializeApp();
-
 let server: FirebaseApolloFunction;
 
-export const handler = functions.handler.https.onRequest(async (req, res) => {
-  if (!server) {
-    // TODO: Get the schema from Storage or Firestore.
-    //       Requires extension params (document path / file reference)
+logs.init();
 
-    // TODO: Get the Firebase Options somehow - we can probably infer most of them from the project ID (see below),
-    //       however, the API Key is required for Firestore, which can be claimed via the google apis (https://firebase.google.com/docs/projects/api/reference/rest/v1beta1/projects.webApps/getConfig),
-    //       but this required knowledge of an App ID to be provided by the user. Need to verify whether this is acceptable or if theres another way.
+export const executeQuery = functions.handler.https.onRequest(
+  async (req, res) => {
+    if (!server) {
+      let firebaseOptions: FirebaseOptions;
+      let typeDef: string;
 
-    const schema = makeExecutableSchema({
-      typeDefs: `
-      type Test {
-        foo: String!
+      try {
+        if (config.webAppId) {
+          firebaseOptions = await getWebConfigByAppId(config.webAppId);
+        } else {
+          firebaseOptions = await getWebConfigByList();
+        }
+      } catch (e) {
+        logs.webConfigError(e);
+        return;
       }
 
-      type Query {
-        testing: [Test]! @firestoreQuery(collection: "tests", idField: "lolol")
+      try {
+        typeDef = await downloadSchema();
+      } catch (e) {
+        logs.downloadSchemaError(e);
+        return;
       }
-      `,
-    });
 
-    server = new FirebaseApolloFunction(schema, {
-      firebaseAdminAppInstance: app,
-      firebaseOptions: {
-        apiKey: "AIzaSyD6BMzm6VxjlpmJ6WU18uX3klJq6oYwyKs",
-        authDomain: `${config.projectId}.firebaseapp.com`,
-        databaseURL: `https://${config.projectId}-default-rtdb.${
-          config.location
-        }.firebasedatabase.app`,
-        projectId: config.projectId,
-        storageBucket: config.storageBucket,
-      },
-    });
+      server = new FirebaseApolloFunction(
+        makeExecutableSchema({
+          typeDefs: [typeDef],
+        }),
+        {
+          firebaseAdminAppInstance: app,
+          firebaseOptions,
+        }
+      );
+    }
+
+    return server.createHandler()(req, res);
   }
+);
 
-  return server.createHandler()(req, res);
-});
+// Downloads a file from the storage bucket at the provided ref.
+async function downloadSchema(): Promise<string> {
+  const download = await app
+    .storage()
+    .bucket(config.storageBucket)
+    .file(config.schemaPath)
+    .download({
+      // https://github.com/googleapis/google-cloud-node/issues/654#issuecomment-987123067
+      validation: !process.env.FUNCTIONS_EMULATOR,
+    });
+
+  return download.toString();
+}

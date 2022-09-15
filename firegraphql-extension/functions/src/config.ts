@@ -17,5 +17,7 @@
 export default {
   projectId: process.env.PROJECT_ID,
   location: process.env.LOCATION,
+  webAppId: process.env.FIREBASE_WEB_APP_ID,
   storageBucket: process.env.STORAGE_BUCKET,
+  schemaPath: process.env.SCHEMA_PATH,
 };
