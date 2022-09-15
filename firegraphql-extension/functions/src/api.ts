@@ -43,7 +43,7 @@ export async function getWebConfigByList(): Promise<FirebaseOptions> {
   });
 
   if (res.data.apps.length === 0) {
-    throw Error("Project has no web apps");
+    throw Error("This Firebase project has no Web Applications configured. Please visit https://firebase.google.com/docs/web/setup#register-app to create one.");
   }
 
   return res.data.apps[0];
