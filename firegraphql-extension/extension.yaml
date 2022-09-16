@@ -100,7 +100,8 @@ params:
   - param: FIREBASE_WEB_APP_ID
     label: Firebase Web App ID
     description: >
-      ID of the web app associated with this GraphQL endpoint. Needed to access client credentials.
+      The ID of the Firebase web app which will be used to make client requests. If not provided, the extension will attempt to use
+      one of the Firebase web apps in your project.
     example: 1:11111111111:web:xxxxxxxxxxxxxxxxxxxxxx
     required: false
 
