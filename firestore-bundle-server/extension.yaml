@@ -37,7 +37,7 @@ resources:
     properties:
       location: us-central1
       httpsTrigger: {}
-      runtime: "nodejs12"
+      runtime: "nodejs14"
 
 # Learn about the `params` field in the docs
 params:
