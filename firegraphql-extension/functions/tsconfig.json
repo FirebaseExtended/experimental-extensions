@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "lib": ["esnext.asynciterable", "es2020", "es6"],
+    "outDir": "lib",
+    "module": "commonjs",
+    "noImplicitReturns": true,
+    "sourceMap": false,
+    "target": "es6",
+    "esModuleInterop": true,
+    "skipLibCheck": true
+  },
+  "compileOnSave": true,
+  "include": ["src"],
+  "exclude": ["node_modules"]
+}
+

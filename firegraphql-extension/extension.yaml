@@ -1,0 +1,120 @@
+# Copyright 2020 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: firegraphql-extension
+version: 0.1.1
+specVersion: v1beta
+
+displayName: FiregraphQL
+
+description: >-
+  Use this extension to set up an endpoint to make GraphQL queries against resources on your Firebase project (Firebase Firestore, RTDB and Storage).
+
+license: Apache-2.0
+
+sourceUrl: https://github.com/FirebaseExtended/experimental-extensions
+
+author:
+  authorName: Firebase
+  url: https://firebase.google.com
+
+contributors:
+  - authorName: Invertase
+    email: oss@invertase.io
+    url: https://github.com/invertase
+
+billingRequired: true
+
+roles:
+  - role: storage.objectViewer
+    reason: Allows the extension to download the GraphQL Schema file from the Cloud Storage bucket.
+  - role: firebaseauth.viewer
+    reason: Allows the extension to get the project Web App credentials.
+
+resources:
+  - name: executeQuery
+    type: firebaseextensions.v1beta.function
+    properties:
+      location: ${LOCATION}
+      httpsTrigger: {}
+      runtime: "nodejs14"
+
+params:
+  - param: LOCATION
+    label: Cloud Functions location
+    description: >-
+      Where do you want to deploy the functions created for this extension?
+      For help selecting a location, refer to the [location selection
+      guide](https://firebase.google.com/docs/functions/locations).
+    type: select
+    options:
+      - label: Iowa (us-central1)
+        value: us-central1
+      - label: South Carolina (us-east1)
+        value: us-east1
+      - label: Northern Virginia (us-east4)
+        value: us-east4
+      - label: Belgium (europe-west1)
+        value: europe-west1
+      - label: London (europe-west2)
+        value: europe-west2
+      - label: Frankfurt (europe-west3)
+        value: europe-west3
+      - label: Hong Kong (asia-east2)
+        value: asia-east2
+      - label: Tokyo (asia-northeast1)
+        value: asia-northeast1
+    default: us-central1
+    required: true
+    immutable: true
+
+  - param: STORAGE_BUCKET
+    label: Cloud Storage bucket for GQL schemas
+    description: >
+      To which Cloud Storage bucket will you upload the GQL schemas?
+    type: selectResource
+    resourceType: storage.googleapis.com/Bucket
+    example: my-project-12345.appspot.com
+    validationRegex: ^([0-9a-z_.-]*)$
+    validationErrorMessage: Invalid storage bucket
+    default: ${STORAGE_BUCKET}
+    required: true
+
+  - param: SCHEMA_PATH
+    label: GQL Schema path
+    description: >
+      A path to a file in Cloud Storage representing the GraphQL schema. 
+    required: true
+    
+  - param: FIREBASE_WEB_APP_ID
+    label: Firebase Web App ID
+    description: >
+      The ID of the Firebase web app which will be used to make client requests. If not provided, the extension will attempt to use
+      one of the Firebase web apps in your project.
+    example: 1:11111111111:web:xxxxxxxxxxxxxxxxxxxxxx
+    required: false
+
+  - param: FIREBASE_APPS_LRU_MAX
+    label: Max Firebase Apps LRU Cache Size
+    description: >
+      The maximum number of Firebase app instances to store in the LRU cache.
+    example: 100
+    required: false
+
+  - param: FIREBASE_APPS_LRU_TTL
+    label: Firebase Apps LRU Cache TTL
+    description: >
+      The number of milliseconds to keep Firebase app instances in the LRU cache.
+    example: 600000
+    required: false

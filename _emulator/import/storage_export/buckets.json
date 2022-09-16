@@ -1,0 +1,10 @@
+{
+  "buckets": [
+    {
+      "id": "demo-experimental.appspot.com"
+    },
+    {
+      "id": "extensions-testing.appspot.com"
+    }
+  ]
+}
