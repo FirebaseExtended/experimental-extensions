@@ -151,8 +151,6 @@ describe("functions", () => {
     const [metadata, documentMetadata, document] =
       extractObjectfromBuffer(bundle);
 
-    console.log(documentMetadata);
-
     /*** check metadata */
     expect(metadata.metadata.id).toEqual(bundleName);
     expect(metadata.metadata.totalDocuments).toEqual(2);
@@ -192,8 +190,6 @@ describe("functions", () => {
     const [metadata, documentMetadata, document] =
       extractObjectfromBuffer(bundle);
 
-    console.log(documentMetadata);
-
     /*** check metadata */
     expect(metadata.metadata.id).toEqual(bundleName);
     expect(metadata.metadata.totalDocuments).toEqual(0);
@@ -206,8 +202,6 @@ describe("functions", () => {
 
     const [metadata, documentMetadata, document] =
       extractObjectfromBuffer(bundle);
-
-    console.log(documentMetadata);
 
     /*** check metadata */
     expect(metadata.metadata.id).toEqual(bundleName);
@@ -222,8 +216,6 @@ describe("functions", () => {
     const [metadata, documentMetadata, document] =
       extractObjectfromBuffer(bundle);
 
-    console.log(documentMetadata);
-
     /*** check metadata */
     expect(metadata.metadata.id).toEqual(bundleName);
     expect(metadata.metadata.totalDocuments).toEqual(0);
@@ -236,8 +228,6 @@ describe("functions", () => {
 
     const [metadata, documentMetadata, document] =
       extractObjectfromBuffer(bundle);
-
-    console.log(documentMetadata);
 
     /*** check metadata */
     expect(metadata.metadata.id).toEqual(bundleName);
