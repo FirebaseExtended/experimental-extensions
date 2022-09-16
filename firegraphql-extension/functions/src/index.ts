@@ -34,34 +34,36 @@ export const executeQuery = functions.handler.https.onRequest(
     if (!server) {
       let firebaseOptions: FirebaseOptions;
       let typeDef: string;
-
-      try {
-        if (config.webAppId) {
-          firebaseOptions = await getWebConfigByAppId(config.webAppId);
-        } else {
-          firebaseOptions = await getWebConfigByList();
+      
+      if (!process.env.TESTING) {
+        try {
+          if (config.webAppId) {
+            firebaseOptions = await getWebConfigByAppId(config.webAppId);
+          } else {
+            firebaseOptions = await getWebConfigByList();
+          }
+        } catch (e: any) {
+          logs.webConfigError(e);
+          return res.status(400).send(e?.message ?? e ?? '400 Bad Request');
         }
-      } catch (e) {
-        logs.webConfigError(e);
-        return;
       }
-
+      
       try {
         typeDef = await downloadSchema();
       } catch (e) {
         logs.downloadSchemaError(e);
-        return;
+        return res.status(400).send(e?.message ?? e ?? '400 Bad Request');
       }
 
-      server = new FirebaseApolloFunction(
-        makeExecutableSchema({
+      server = new FirebaseApolloFunction({
+        schema: makeExecutableSchema({
           typeDefs: [typeDef],
         }),
-        {
+        options: {
           firebaseAdminAppInstance: app,
           firebaseOptions,
-        }
-      );
+        },
+      });
     }
 
     return server.createHandler()(req, res);

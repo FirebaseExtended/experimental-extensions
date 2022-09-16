@@ -27,6 +27,7 @@ const auth = new google.auth.GoogleAuth({
 export async function getWebConfigByAppId(
   appId: string
 ): Promise<FirebaseOptions> {
+  console.dir(process.env);
   const res = await firebase.projects.webApps.getConfig({
     auth: await auth.getClient(),
     name: `projects/${config.projectId}/webApps/${appId}/config`,

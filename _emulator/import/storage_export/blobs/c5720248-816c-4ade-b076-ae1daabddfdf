@@ -1,0 +1,9 @@
+type Test {
+  foo: String!
+}
+
+type Query {
+  testsCollection: [Test]! @firestoreQuery(collection: "tests")
+  testsCollectionWithCustomId: [Test]! @firestoreQuery(collection: "tests", idField: "customId")
+  testsDocument(id: ID!): Test @firestoreDoc(collection: "tests")
+}

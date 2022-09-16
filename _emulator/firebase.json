@@ -19,7 +19,7 @@
       "port": 8085
     },
     "functions": {
-      "port": 5001
+      "port": 3001
     },
     "ui": {
       "enabled": true
