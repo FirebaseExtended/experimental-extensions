@@ -21,20 +21,19 @@ process.env.FIRESTORE_EMULATOR_HOST = "localhost:8080";
 process.env.FIREBASE_FIRESTORE_EMULATOR_ADDRESS = "localhost:8080";
 process.env.FIREBASE_AUTH_EMULATOR_HOST = "localhost:9099";
 process.env.FIREBASE_STORAGE_EMULATOR_HOST = "localhost:9199";
+process.env.FIREBASE_DATABASE_EMULATOR_HOST = "localhost:9000";
 process.env.PUBSUB_EMULATOR_HOST = "localhost:8085";
 process.env.GOOGLE_CLOUD_PROJECT = "demo-experimental";
-process.env.TESTING = "true";
 
 if (admin.apps.length === 0) {
   admin.initializeApp({ projectId: "demo-experimental" });
 }
 
 const extName = "ext-firegraphql-extension-executeQuery";
-const url = `http://localhost:3001/demo-experimental/us-central1/${extName}`;
+const url = `http://0.0.0.0:5001/demo-experimental/us-central1/${extName}`;
 
-function postReq(query: string, variables?: any) {
-  console.log(url);
-  return fetch(url, {
+async function postReq(query: string, variables?: any) {
+  const res = await fetch(url, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -44,15 +43,40 @@ function postReq(query: string, variables?: any) {
       variables,
     }),
   });
+
+  return await res.json();
 }
 
-describe("foo", () => {
-  it("does something", async () => {
+describe("FiregraphQL Extension", () => {
+  it("returns collection data", async () => {
     const res = await postReq(`query { testsCollection }`);
-    console.log(res.data);
-    // Mock example
-    // add a valid schema to storage: firebase emulators:start --project=demo-experimental --import=./import --export-on-exit=./import
-    //
-    console.log("ok!");
+
+    expect(res.errors).toBeUndefined();
+    expect(res.data.testsCollection.length).toBe(3);
+
+    res.data.testsCollection.forEach((doc: any) => {
+      expect(doc.foo).toBeDefined();
+      expect(doc.id).toBeDefined();
+    });
+  });
+
+  it("returns collection data with a custom id", async () => {
+    const res = await postReq(`query { testsCollectionWithCustomId }`);
+
+    expect(res.errors).toBeUndefined();
+    expect(res.data.testsCollectionWithCustomId.length).toBe(3);
+
+    res.data.testsCollectionWithCustomId.forEach((doc: any) => {
+      expect(doc.foo).toBeDefined();
+      expect(doc.customId).toBeDefined();
+    });
+  });
+
+  it("returns a specific document", async () => {
+    const res = await postReq(`query { testsDocument(id: "9vg0QuyugnYAtNrxziiP") }`);
+
+    expect(res.errors).toBeUndefined();
+    expect(res.data.testsDocument.foo).toBeDefined();
+    expect(res.data.testsDocument.id).toBeDefined();
   });
 });

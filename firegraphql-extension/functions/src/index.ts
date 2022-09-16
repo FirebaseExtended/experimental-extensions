@@ -21,7 +21,6 @@ import { FirebaseApolloFunction, makeExecutableSchema } from "firegraphql";
 import config from "./config";
 import * as logs from "./logs";
 
-import { FirebaseOptions } from "firebase/app";
 import { getWebConfigByAppId, getWebConfigByList } from "./api";
 
 const app = admin.initializeApp();
@@ -32,10 +31,12 @@ logs.init();
 export const executeQuery = functions.handler.https.onRequest(
   async (req, res) => {
     if (!server) {
-      let firebaseOptions: FirebaseOptions;
+      let firebaseOptions = config.firebaseOptions;
       let typeDef: string;
       
-      if (!process.env.TESTING) {
+      // During integration tests, we can't mock this call to GoogleApis easily,
+      // and since tests are running in the emulator, options are not needed.
+      if (!firebaseOptions) {
         try {
           if (config.webAppId) {
             firebaseOptions = await getWebConfigByAppId(config.webAppId);
@@ -45,7 +46,7 @@ export const executeQuery = functions.handler.https.onRequest(
         } catch (e: any) {
           logs.webConfigError(e);
           return res.status(400).send(e?.message ?? e ?? '400 Bad Request');
-        }
+        } 
       }
       
       try {
@@ -54,7 +55,7 @@ export const executeQuery = functions.handler.https.onRequest(
         logs.downloadSchemaError(e);
         return res.status(400).send(e?.message ?? e ?? '400 Bad Request');
       }
-
+      
       server = new FirebaseApolloFunction({
         schema: makeExecutableSchema({
           typeDefs: [typeDef],
@@ -62,6 +63,9 @@ export const executeQuery = functions.handler.https.onRequest(
         options: {
           firebaseAdminAppInstance: app,
           firebaseOptions,
+          connectFirestoreEmulator: config.firestoreEmulator,
+          connectDatabaseEmulator: config.databaseEmulator,
+          connectStorageEmulator: config.storageEmulator,
         },
       });
     }
@@ -78,7 +82,7 @@ async function downloadSchema(): Promise<string> {
     .file(config.schemaPath)
     .download({
       // https://github.com/googleapis/google-cloud-node/issues/654#issuecomment-987123067
-      validation: !process.env.FUNCTIONS_EMULATOR,
+      validation:  !process.env.FUNCTIONS_EMULATOR,
     });
 
   return download.toString();
