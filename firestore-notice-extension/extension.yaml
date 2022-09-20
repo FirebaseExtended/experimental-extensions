@@ -58,6 +58,13 @@ resources:
       runtime: nodejs16
       httpsTrigger: {}
 
+  - name: unAcknowledgeNotice
+    type: firebaseextensions.v1beta.function
+    properties:
+      location: ${LOCATION}
+      runtime: nodejs16
+      httpsTrigger: {}
+
 params:
   - param: LOCATION
     label: Cloud Functions location
@@ -123,7 +130,7 @@ params:
     default: notices
     required: true
 
-    - param: ACKNOWLEDGEMENT_COLLECTION_PATH
+  - param: ACKNOWLEDGEMENT_COLLECTION_PATH
     label: Collection path
     description: >-
       What is the path of the collection that you would like to use to store acknowlegements?

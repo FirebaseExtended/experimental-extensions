@@ -226,3 +226,68 @@ export const getAcknowledgements = functions.handler.https.onCall(
       .then((doc) => doc.docs.map(($) => $.data()));
   }
 );
+
+export const unAcknowledgeNotice = functions.handler.https.onCall(
+  async (data, context) => {
+    // Checking that the user is authenticated.
+    if (!context.auth) {
+      throw new functions.https.HttpsError(
+        "unauthenticated",
+        "No valid authentication token provided."
+      );
+    }
+
+    /** check notice documents */
+    const noticeDoc = await db
+      .collection(config.noticeCollectionPath)
+      .doc(data.noticeId)
+      .withConverter(noticeConverter)
+      .get();
+
+    /** Return if no acknowledgement exists  */
+    if (!noticeDoc || !noticeDoc.exists) {
+      throw new functions.https.HttpsError(
+        "not-found",
+        "Notice document does not exist."
+      );
+    }
+
+    /** Set new acknowledgment */
+    const ack = {
+      ...noticeDoc.data(),
+      ...data,
+      unacknowledgedDate: admin.firestore.FieldValue.serverTimestamp(),
+    };
+
+    /** Add Acknowledgment */
+    await db
+      .collection(config.acknowlegementsCollectionPath)
+      .doc(context.auth.uid)
+      .collection(config.noticeCollectionPath)
+      .doc(data.noticeId)
+      .withConverter(acknowledgementConverter)
+      .set(
+        {
+          status: AcknowledgementStatus.DECLINED,
+          unacknowledgedDate: admin.firestore.FieldValue.serverTimestamp(),
+        },
+        {
+          merge: true,
+        }
+      );
+
+    /** Removed unacknowledged claims */
+    const { customClaims } = await auth.getUser(context.auth.uid);
+
+    if (customClaims) {
+      const extClaims =
+        customClaims[process.env.EXT_INSTANCE_ID]?.filter(
+          (claim) => claim.noticeId !== data.noticeId
+        ) || [];
+
+      customClaims[process.env.EXT_INSTANCE_ID] = extClaims;
+
+      await auth.setCustomUserClaims(context.auth.uid, customClaims);
+    }
+  }
+);

@@ -27,6 +27,7 @@ const noticesCollection = firestore().collection(
 
 /** prepare extension functions */
 const acknowledgeNoticeFn = fft.wrap(funcs.acknowledgeNotice);
+const unacknowledgeNoticeFn = fft.wrap(funcs.unAcknowledgeNotice);
 const createNoticeFn = fft.wrap(funcs.createNotice);
 const getNoticeFn = fft.wrap(funcs.getNotices);
 const getAcknowledgements = fft.wrap(funcs.getAcknowledgements);
@@ -164,7 +165,6 @@ describe("functions testing", () => {
 
         const notice = userRecord?.customClaims[process.env.EXT_INSTANCE_ID];
 
-        console.log("userRecord.customClaims >>>>", userRecord.customClaims);
         const acknowledgements: Acknowledgement = notice;
 
         expect(userRecord.customClaims["foo"]).toEqual("bar");
@@ -353,8 +353,6 @@ describe("functions testing", () => {
         const userRecord = await auth.getUser(user.uid);
         const notice = userRecord?.customClaims[process.env.EXT_INSTANCE_ID];
 
-        console.log("notice >>>>>", notice);
-
         const acknowledgement: Acknowledgement = notice.filter(
           ($) => $.noticeId === noticeId
         )[0];
@@ -474,12 +472,13 @@ describe("functions testing", () => {
     });
 
     test("can create a notice", async () => {
+      const title = "test notice";
       const link = "www.link.to.notice";
       const noticeType = [{ role: "publisher" }];
 
       await createNoticeFn.call(
         {},
-        { noticeId, link, noticeType },
+        { title, noticeId, link, noticeType },
         { auth: { uid: "test" } }
       );
 
@@ -497,6 +496,7 @@ describe("functions testing", () => {
     });
 
     test("can create a notice with a basic preference", async () => {
+      const title = "test notice";
       const link = "www.link.to.notice";
       const Analytics: Preference = {
         name: "_ga",
@@ -508,7 +508,7 @@ describe("functions testing", () => {
 
       await createNoticeFn.call(
         {},
-        { noticeId, link, preferences } as NoticeMetadata,
+        { title, noticeId, link, preferences } as NoticeMetadata,
         {
           auth: { uid: "test" },
         }
@@ -579,11 +579,101 @@ describe("functions testing", () => {
         { auth: { uid: user.uid } }
       );
 
-      console.log(acknowledgements);
-
       expect(acknowledgements).toBeDefined();
       expect(acknowledgements[0].creationDate).toBeDefined();
       expect(acknowledgements[0].acknowledgedDate).toBeDefined();
+    });
+  });
+
+  describe("get acknowledgements", () => {
+    let user;
+    let noticeId;
+
+    beforeEach(async () => {
+      /** create example user */
+      user = await auth.createUser({});
+
+      const randomId = Math.random().toString(36).substring(2, 15);
+      noticeId = `notice_v${randomId}`;
+    });
+
+    test("can unacknowledge an exisitng acknowledgement notice", async () => {
+      const link = "www.link.to.notice";
+
+      /** create notice */
+      await createNoticeFn.call(
+        {},
+        {
+          link,
+          noticeId,
+          noticeType: [],
+        },
+        { auth: { uid: user.uid } }
+      );
+
+      /** acknowledge Notice notice */
+      await acknowledgeNoticeFn.call(
+        {},
+        { noticeId },
+        { auth: { uid: user.uid } }
+      );
+
+      /** unacknowledge Notice notice */
+      await unacknowledgeNoticeFn.call(
+        {},
+        { noticeId },
+        { auth: { uid: user.uid } }
+      );
+
+      /** get notice */
+      const acknowledgements = await getAcknowledgements.call(
+        {},
+        { noticeId },
+        { auth: { uid: user.uid } }
+      );
+
+      expect(acknowledgements).toBeDefined();
+      expect(acknowledgements[0].creationDate).toBeDefined();
+      expect(acknowledgements[0].unacknowledgedDate).toBeDefined();
+    });
+
+    test("can unacknowledge a new notice", async () => {
+      const link = "www.link.to.notice";
+
+      /** create notice */
+      await createNoticeFn.call(
+        {},
+        {
+          link,
+          noticeId,
+          noticeType: [],
+        },
+        { auth: { uid: user.uid } }
+      );
+
+      /** unacknowledge Notice notice */
+      await unacknowledgeNoticeFn.call(
+        {},
+        { noticeId },
+        { auth: { uid: user.uid } }
+      );
+
+      /** get notice */
+      const acknowledgements = await getAcknowledgements.call(
+        {},
+        { noticeId },
+        { auth: { uid: user.uid } }
+      );
+
+      expect(acknowledgements).toBeDefined();
+      expect(acknowledgements[0].creationDate).toBeDefined();
+      expect(acknowledgements[0].unacknowledgedDate).toBeDefined();
+
+      /** Check Custom Claims  */
+      const userRecord = await auth.getUser(user.uid);
+
+      expect(userRecord).toBeDefined();
+      expect(userRecord?.customClaims).toBeUndefined();
     });
   });
 });
