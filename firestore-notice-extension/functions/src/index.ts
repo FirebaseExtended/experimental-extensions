@@ -104,8 +104,6 @@ export const acknowledgeNotice = functions.handler.https.onCall(
       .get()
       .then(($) => $.docs.map((doc) => doc.id));
 
-    console.log("acknowledgements >>>>", acknowledgements);
-
     /** Set claims on user and return */
     const claims = {};
     claims[process.env.EXT_INSTANCE_ID] = acknowledgements;
@@ -229,7 +227,7 @@ export const getAcknowledgements = functions.handler.https.onCall(
   }
 );
 
-export const unAcknowledgeNotice = functions.handler.https.onCall(
+export const unacknowledgeNotice = functions.handler.https.onCall(
   async (data, context) => {
     // Checking that the user is authenticated.
     if (!context.auth) {

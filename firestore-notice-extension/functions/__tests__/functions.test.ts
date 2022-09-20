@@ -32,7 +32,7 @@ const acknowledgementsCollection = firestore().collection(
 
 /** prepare extension functions */
 const acknowledgeNoticeFn = fft.wrap(funcs.acknowledgeNotice);
-const unacknowledgeNoticeFn = fft.wrap(funcs.unAcknowledgeNotice);
+const unacknowledgeNoticeFn = fft.wrap(funcs.unacknowledgeNotice);
 const createNoticeFn = fft.wrap(funcs.createNotice);
 const getNoticeFn = fft.wrap(funcs.getNotices);
 const getAcknowledgements = fft.wrap(funcs.getAcknowledgements);

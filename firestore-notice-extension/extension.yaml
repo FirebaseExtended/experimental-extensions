@@ -58,7 +58,7 @@ resources:
       runtime: nodejs16
       httpsTrigger: {}
 
-  - name: unAcknowledgeNotice
+  - name: unacknowledgeNotice
     type: firebaseextensions.v1beta.function
     properties:
       location: ${LOCATION}
