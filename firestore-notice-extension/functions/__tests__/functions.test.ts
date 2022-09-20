@@ -25,6 +25,11 @@ const noticesCollection = firestore().collection(
   config.default.noticeCollectionPath
 );
 
+/**prepare collections */
+const acknowledgementsCollection = firestore().collection(
+  config.default.acknowlegementsCollectionPath
+);
+
 /** prepare extension functions */
 const acknowledgeNoticeFn = fft.wrap(funcs.acknowledgeNotice);
 const unacknowledgeNoticeFn = fft.wrap(funcs.unAcknowledgeNotice);
@@ -66,25 +71,16 @@ describe("functions testing", () => {
           { auth: { uid: user.uid } }
         );
 
-        const userRecord = await auth.getUser(user.uid);
-
-        expect(userRecord).toBeDefined();
-        expect(userRecord?.customClaims).toBeDefined();
-
-        const notice = userRecord?.customClaims[process.env.EXT_INSTANCE_ID];
-
-        expect(notice).toBeDefined();
-        expect(notice.length).toBe(1);
-
-        const acknowledgement: Acknowledgement = notice[0];
+        const acknowledgement = await acknowledgementsCollection
+          .doc(user.uid)
+          .collection("notices")
+          .where("noticeId", "==", noticeId)
+          .limit(1)
+          .get()
+          .then((doc) => doc.docs[0].data());
 
         expect(acknowledgement).toBeDefined();
-        expect(acknowledgement.noticeId).toBeDefined();
-        expect(acknowledgement.status).toBe(AcknowledgementStatus.SEEN);
-        expect(acknowledgement.creationDate).toBeDefined();
-        expect(acknowledgement.acknowledgedDate).toBeDefined();
-        expect(acknowledgement.unacknowledgedDate).toBeNull();
-        expect(acknowledgement.status).toBe(AcknowledgementStatus.SEEN);
+        expect(acknowledgement.noticeId).toBe(noticeId);
       });
 
       test("can accept multiple notices", async () => {
@@ -135,12 +131,13 @@ describe("functions testing", () => {
         expect(userRecord).toBeDefined();
         expect(userRecord?.customClaims).toBeDefined();
 
-        const notice = userRecord?.customClaims[process.env.EXT_INSTANCE_ID];
-
-        expect(notice).toBeDefined();
-        expect(notice.length).toBe(1);
-
-        const acknowledgement: Acknowledgement = notice[0];
+        const acknowledgement = await acknowledgementsCollection
+          .doc(user.uid)
+          .collection("notices")
+          .where("noticeId", "==", noticeId)
+          .limit(1)
+          .get()
+          .then((doc) => doc.docs[0].data());
 
         expect(acknowledgement).toBeDefined();
         expect(acknowledgement.noticeId).toBeDefined();
@@ -260,17 +257,13 @@ describe("functions testing", () => {
           { auth: { uid: user.uid } }
         );
 
-        const userRecord = await auth.getUser(user.uid);
-
-        expect(userRecord).toBeDefined();
-        expect(userRecord?.customClaims).toBeDefined();
-
-        const notice = userRecord?.customClaims[process.env.EXT_INSTANCE_ID];
-
-        expect(notice).toBeDefined();
-        expect(notice.length).toBe(1);
-
-        const acknowledgement: Acknowledgement = notice[0];
+        const acknowledgement = await acknowledgementsCollection
+          .doc(user.uid)
+          .collection("notices")
+          .where("noticeId", "==", noticeId)
+          .limit(1)
+          .get()
+          .then((doc) => doc.docs[0].data());
 
         expect(acknowledgement).toBeDefined();
         expect(acknowledgement.noticeId).toBeDefined();
@@ -306,17 +299,13 @@ describe("functions testing", () => {
           { auth: { uid: user.uid } }
         );
 
-        const userRecord = await auth.getUser(user.uid);
-
-        expect(userRecord).toBeDefined();
-        expect(userRecord?.customClaims).toBeDefined();
-
-        const notice = userRecord?.customClaims[process.env.EXT_INSTANCE_ID];
-
-        expect(notice).toBeDefined();
-        expect(notice.length).toBe(1);
-
-        const acknowledgement: Acknowledgement = notice[0];
+        const acknowledgement = await acknowledgementsCollection
+          .doc(user.uid)
+          .collection("notices")
+          .where("noticeId", "==", noticeId)
+          .limit(1)
+          .get()
+          .then((doc) => doc.docs[0].data());
 
         expect(acknowledgement).toBeDefined();
         expect(acknowledgement.noticeId).toBeDefined();
@@ -350,12 +339,13 @@ describe("functions testing", () => {
           { auth: { uid: user.uid } }
         );
 
-        const userRecord = await auth.getUser(user.uid);
-        const notice = userRecord?.customClaims[process.env.EXT_INSTANCE_ID];
-
-        const acknowledgement: Acknowledgement = notice.filter(
-          ($) => $.noticeId === noticeId
-        )[0];
+        const acknowledgement = await acknowledgementsCollection
+          .doc(user.uid)
+          .collection("notices")
+          .where("noticeId", "==", noticeId)
+          .limit(1)
+          .get()
+          .then((doc) => doc.docs[0].data());
 
         expect(acknowledgement.status).toBe(AcknowledgementStatus.ACCEPTED);
         expect(acknowledgement.unacknowledgedDate).toBeNull();
@@ -618,6 +608,14 @@ describe("functions testing", () => {
         { auth: { uid: user.uid } }
       );
 
+      /** Check Custom Claims after acknowledgement  */
+      const beforeUserRecord = await auth.getUser(user.uid);
+      const claims =
+        beforeUserRecord?.customClaims[process.env.EXT_INSTANCE_ID];
+
+      expect(claims).toBeDefined();
+      expect(claims.length).toEqual(1);
+
       /** unacknowledge Notice notice */
       await unacknowledgeNoticeFn.call(
         {},
@@ -635,6 +633,14 @@ describe("functions testing", () => {
       expect(acknowledgements).toBeDefined();
       expect(acknowledgements[0].creationDate).toBeDefined();
       expect(acknowledgements[0].unacknowledgedDate).toBeDefined();
+
+      /** Check Custom Claims after unacknowledgement  */
+      const userRecord = await auth.getUser(user.uid);
+
+      expect(userRecord).toBeDefined();
+      expect(
+        userRecord?.customClaims[process.env.EXT_INSTANCE_ID].length
+      ).toEqual(0);
     });
 
     test("can unacknowledge a new notice", async () => {

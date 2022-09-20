@@ -102,7 +102,9 @@ export const acknowledgeNotice = functions.handler.https.onCall(
       .collection(config.noticeCollectionPath)
       .withConverter(acknowledgementConverter)
       .get()
-      .then(($) => $.docs.map((doc) => doc.data()));
+      .then(($) => $.docs.map((doc) => doc.id));
+
+    console.log("acknowledgements >>>>", acknowledgements);
 
     /** Set claims on user and return */
     const claims = {};
@@ -282,7 +284,7 @@ export const unAcknowledgeNotice = functions.handler.https.onCall(
     if (customClaims) {
       const extClaims =
         customClaims[process.env.EXT_INSTANCE_ID]?.filter(
-          (claim) => claim.noticeId !== data.noticeId
+          (claim) => claim !== data.noticeId
         ) || [];
 
       customClaims[process.env.EXT_INSTANCE_ID] = extClaims;
