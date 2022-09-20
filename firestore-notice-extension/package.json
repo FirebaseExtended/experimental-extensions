@@ -1,5 +1,5 @@
 {
-  "name": "@zendesk/firebase-extensions",
+  "name": "firestore-notice-extension",
   "private": true,
   "devDependencies": {
     "@types/jest": "^26.0.23",
