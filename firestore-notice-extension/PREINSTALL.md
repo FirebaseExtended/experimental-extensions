@@ -6,10 +6,11 @@ Allows users to acknowledge notices as part of their application. Ackowledgement
 
 The extension supports multiple use cases:
 
-- Accepting notices
+- Acknowledgements
 - Creating notices
 - Getting notices
 - Getting accepted notices
+- Unacknowledgements
 
 All functions `require authentication` to run, ensure you have a valud Firebase User included in your POST requests.
 
@@ -67,6 +68,8 @@ To install an extension, your project must be on the [Blaze (pay as you go) plan
 - **getNotices:** Callable function to get the current notices.
 
 - **getAcknowledgements:** Callable function to get acknowledgements.
+
+- **unacknowledgeNotice:** Callable function for user to unacknowledge a new or exisitng notice/acknolwedgement.
 
 **Access Required**:
 
