@@ -6,13 +6,13 @@ Allows users to acknowledge notices as part of their application. Ackowledgement
 
 The extension supports multiple use cases:
 
-- Acknowledgements
+- Acknowledging notices
 - Creating notices
 - Getting notices
 - Getting accepted notices
-- Unacknowledgements
+- Unacknowledging notices
 
-All functions `require authentication` to run, ensure you have a valud Firebase User included in your POST requests.
+All functions `require authentication` to run, ensure you have a valid Firebase User included in your POST requests.
 
 Managed documents are stored in a specified Cloud Firestore collection, while providing two configurable collections.
 
