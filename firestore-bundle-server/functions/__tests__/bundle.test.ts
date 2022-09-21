@@ -1,11 +1,10 @@
 import { buildQuery } from "../src/build_bundle";
 import * as admin from "firebase-admin";
-import { expect } from "chai";
 
 describe("buildQuery", () => {
   let db: admin.firestore.Firestore;
-  before(() => {
-    db = admin.initializeApp({ projectId: "example-test" }).firestore();
+  beforeEach(() => {
+    db = admin.initializeApp({ projectId: "demo-experimental" }).firestore();
   });
 
   it("should build expected queries", () => {
@@ -140,7 +139,7 @@ describe("buildQuery", () => {
     for (const [actual, expected] of queries) {
       // Comparing queries in serialized form, the built-in `isEqual` method compares
       // functions, and will mistakenly return false.
-      expect(JSON.stringify(actual)).equal(JSON.stringify(expected));
+      expect(JSON.stringify(actual)).toEqual(JSON.stringify(expected));
     }
   });
 });
