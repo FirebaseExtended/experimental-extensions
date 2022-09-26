@@ -34,35 +34,35 @@ resources:
     type: firebaseextensions.v1beta.function
     properties:
       location: ${LOCATION}
-      runtime: nodejs16
+      runtime: nodejs14
       httpsTrigger: {}
   
   - name: createNotices
     type: firebaseextensions.v1beta.function
     properties:
       location: ${LOCATION}
-      runtime: nodejs16
+      runtime: nodejs14
       httpsTrigger: {}
 
   - name: getNotices
     type: firebaseextensions.v1beta.function
     properties:
       location: ${LOCATION}
-      runtime: nodejs16
+      runtime: nodejs14
       httpsTrigger: {}
 
   - name: getAcknowledgements
     type: firebaseextensions.v1beta.function
     properties:
       location: ${LOCATION}
-      runtime: nodejs16
+      runtime: nodejs14
       httpsTrigger: {}
 
   - name: unacknowledgeNotice
     type: firebaseextensions.v1beta.function
     properties:
       location: ${LOCATION}
-      runtime: nodejs16
+      runtime: nodejs14
       httpsTrigger: {}
 
 params:
