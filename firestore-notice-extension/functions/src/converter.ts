@@ -29,6 +29,7 @@ export const acknowledgementConverter: FirestoreDataConverter<Acknowledgement> =
   ): FirebaseFirestore.DocumentData {
     return {
       acknowledgedAt: FieldValue.serverTimestamp(),
+      userId: data.userId,
       noticeId: data.noticeId,
       status: data.status,
       metadata: data.metadata,
@@ -40,6 +41,7 @@ export const acknowledgementConverter: FirestoreDataConverter<Acknowledgement> =
     // TODO validate
     return {
       id: snapshot.id,
+      userId: data.userId,
       noticeId: data.noticeId,
       acknowledgedAt: data.acknowledgedAt,
       metadata: data.metadata || {},

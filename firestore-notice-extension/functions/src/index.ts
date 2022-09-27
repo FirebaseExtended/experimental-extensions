@@ -135,6 +135,7 @@ async function handleAcknowledgement(
     .withConverter(acknowledgementConverter)
     // @ts-expect-error - cant paritally type set arguments in the converter
     .set({
+      userId: context.auth!.uid,
       noticeId: data.noticeId,
       status,
       metadata: data.metadata || {},
@@ -170,7 +171,7 @@ export const getAcknowledgements = functions.https.onCall(async (data, context) 
 
   const snapshot = await db
     .collectionGroup("acknowledgements")
-    .where(firestore.FieldPath.documentId(), "==", uid)
+    .where('userId', "==", uid)
     .withConverter(acknowledgementConverter)
     .get();
 

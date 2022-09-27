@@ -24,9 +24,16 @@ export enum AcknowledgementStatus {
 }
 
 export interface Acknowledgement {
+  // The document ID.
   id: string;
+  // The UID of the user who acknowledged the notice.
+  userId: string;
+  // The ID of the notice that was acknowledged.
   noticeId: string;
+  // The timestamp when the notice was acknowledged.
   acknowledgedAt: firestore.Timestamp;
+  // The status of the acknowledgement.
   status: AcknowledgementStatus;
+  // The optional metadata of the acknowledgement.
   metadata: any;
 }
