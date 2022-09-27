@@ -1,6 +1,6 @@
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
-import * as log from "./logs";
+import * as logs from "./logs";
 import config from "./config";
 import { noticeConverter, acknowledgementConverter } from "./converter";
 
@@ -19,6 +19,8 @@ if (admin.apps.length === 0) {
 }
 
 const db = admin.firestore();
+
+logs.init();
 
 function assertAuthenticated(context: functions.https.CallableContext) {
   if (!context.auth) {
