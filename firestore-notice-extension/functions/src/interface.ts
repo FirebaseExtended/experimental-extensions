@@ -13,6 +13,8 @@ export interface Notice {
   link?: string;
   // The timestamp when the notice was created.
   createdAt: firestore.Timestamp;
+  // A list of user IDs that are allowed to see the notice.
+  allowList: string[];
 }
 
 export enum AcknowledgementStatus {

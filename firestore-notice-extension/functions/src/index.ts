@@ -5,7 +5,7 @@ import config from "./config";
 import { noticeConverter, acknowledgementConverter } from "./converter";
 
 import { getEventarc } from "firebase-admin/eventarc";
-import { AcknowledgementStatus } from "./interface";
+import { Acknowledgement, AcknowledgementStatus, Notice } from "./interface";
 import { firestore } from "firebase-admin";
 
 const eventChannel =
@@ -26,6 +26,16 @@ function assertAuthenticated(context: functions.https.CallableContext) {
       "unauthenticated",
       "User must be authenticated."
     );
+  }
+}
+
+function assertAllowed(
+  context: functions.https.CallableContext,
+  notice: Notice,
+  error: string
+) {
+  if (notice.allowList.length > 0 && !notice.allowList.includes(context.auth!.uid)) {
+    throw new functions.https.HttpsError("not-found", error);
   }
 }
 
@@ -54,7 +64,14 @@ export const getNotice = functions.https.onCall(async (data, context) => {
     );
   }
 
-  const notice = snapshot.docs[0].data();
+  const noticeData = snapshot.docs[0].data();
+  const { allowList, ...notice } = noticeData;
+
+  assertAllowed(
+    context,
+    noticeData,
+    `No notices with the type ${data.type} could be found.`
+  );
 
   const acknowledgementSnapshot = await db
     .collection(config.noticesCollectionPath)
@@ -64,10 +81,15 @@ export const getNotice = functions.https.onCall(async (data, context) => {
     .withConverter(acknowledgementConverter)
     .get();
 
-  return {
+  // Create a variable to assert a typed response
+  const response: Omit<Notice, "allowList"> & {
+    acknowledgement: Acknowledgement;
+  } = {
     ...notice,
-    acknowledgement:  acknowledgementSnapshot.data(),
+    acknowledgement: acknowledgementSnapshot.data(),
   };
+
+  return response;
 });
 
 async function handleAcknowledgement(
@@ -96,6 +118,12 @@ async function handleAcknowledgement(
       `No notice with the id ${data.noticeId} could be found.`
     );
   }
+
+  assertAllowed(
+    context,
+    noticeSnapshot.data(),
+    `No notice with the id ${data.noticeId} could be found.`
+  );
 
   await db
     .collection(config.noticesCollectionPath)
@@ -145,11 +173,26 @@ export const getAcknowledgements = functions.https.onCall(async (data, context) 
     .get();
 
   const docs = snapshot.docs.map((doc) => doc.data());
-  const noticeReferences = docs.map((doc) => db.collection("notices").doc(doc.noticeId));
-  const noticeSnapshots = await db.getAll(...noticeReferences);
 
-  return docs.map((doc, index) => ({
-    ...doc,
-    notice: noticeSnapshots[index].data(),
-  }));
+  const noticeReferences = docs.map((doc) =>
+    db.collection("notices").doc(doc.noticeId).withConverter(noticeConverter)
+  );
+
+  const noticeSnapshots = (await db.getAll(
+    ...noticeReferences
+  )) as firestore.DocumentSnapshot<Notice>[];
+
+  const response: (Acknowledgement & { notice: Omit<Notice, "allowList"> })[] =
+    docs.map((doc, index) => {
+      const noticeData = noticeSnapshots[index].data();
+      const { allowList, ...notice } = noticeData;
+
+      return {
+        ...doc,
+        notice,
+      };
+    });
+
+  return response;
 });
+

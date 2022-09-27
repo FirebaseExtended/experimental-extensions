@@ -18,6 +18,7 @@ export const noticeConverter: FirestoreDataConverter<Notice> = {
       description: data.description,
       link: data.link,
       createdAt: data.createdAt,
+      allowList: data.allowList || [],
     };
   },
 };
