@@ -1,62 +1,48 @@
-import { NoticeMetadata } from "./interface";
-import { Acknowledgement, AcknowledgementStatus } from "./interface";
+import { FieldValue, FirestoreDataConverter, WithFieldValue } from "firebase-admin/firestore";
 
-export const noticeConverter = {
-  toFirestore(notice: NoticeMetadata): FirebaseFirestore.DocumentData {
-    return {
-      title: notice?.title || "",
-      noticeId: notice.noticeId,
-      link: notice.link,
-      creationDate: notice.creationDate,
-      allowList: notice?.allowList || [],
-      noticeType: notice.noticeType || "",
-      preferences: notice?.preferences || [],
-    };
+import { Notice } from "./interface";
+import { Acknowledgement } from "./interface";
+
+export const noticeConverter: FirestoreDataConverter<Notice> = {
+  toFirestore(notice: any): FirebaseFirestore.DocumentData {
+    throw new Error("Creating a notice is not supported.");
   },
-  fromFirestore(
-    snapshot: FirebaseFirestore.QueryDocumentSnapshot
-  ): NoticeMetadata {
+  fromFirestore(snapshot: FirebaseFirestore.QueryDocumentSnapshot) {
     const data = snapshot.data();
 
+    // TODO throw if data is invalid?
     return {
-      title: data?.title || "",
-      noticeId: data?.noticeId || "",
-      link: data?.link || "",
-      creationDate: data?.creationDate || "",
-      allowList: data?.allowList || [],
-      noticeType: data?.noticeType || "",
-      preferences: data?.preferences || [],
+      id: snapshot.id,
+      type: data.type,
+      title: data.title,
+      description: data.description,
+      link: data.link,
+      createdAt: data.createdAt,
     };
   },
 };
 
-export const acknowledgementConverter = {
-  toFirestore(ack: Acknowledgement): FirebaseFirestore.DocumentData {
+export const acknowledgementConverter: FirestoreDataConverter<Acknowledgement> = {
+  toFirestore(
+    data: WithFieldValue<Acknowledgement>
+  ): FirebaseFirestore.DocumentData {
     return {
-      noticeId: ack?.noticeId || "",
-      noticeType: ack?.noticeType || "",
-      creationDate: ack?.creationDate || "",
-      acknowledgedDate: ack?.acknowledgedDate || null,
-      unacknowledgedDate: ack?.unacknowledgedDate || null,
-      status: ack?.status || AcknowledgementStatus.SEEN,
-      extensionId: `${process.env.EXT_INSTANCE_ID}`,
-      preferences: ack?.preferences || [],
+      acknowledgedAt: FieldValue.serverTimestamp(),
+      noticeId: data.noticeId,
+      status: data.status,
+      metadata: data.metadata,
     };
   },
-  fromFirestore(
-    snapshot: FirebaseFirestore.DocumentSnapshot
-  ): Acknowledgement | {} {
-    const ack = snapshot.data();
+  fromFirestore(snapshot: FirebaseFirestore.DocumentSnapshot) {
+    const data = snapshot.data();
 
+    // TODO validate
     return {
-      noticeId: ack?.noticeId || "",
-      noticeType: ack?.noticeType || "",
-      creationDate: ack?.creationDate || "",
-      acknowledgedDate: ack?.acknowledgedDate || null,
-      unacknowledgedDate: ack?.unacknowledgedDate || null,
-      status: ack?.status || AcknowledgementStatus.SEEN,
-      extensionId: ack?.extensionId || "",
-      preferences: ack?.preferences || [],
+      id: snapshot.id,
+      noticeId: data.noticeId,
+      acknowledgedAt: data.acknowledgedAt,
+      metadata: data.metadata || {},
+      status: data.status,
     };
   },
 };

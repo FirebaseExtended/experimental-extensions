@@ -6,6 +6,7 @@ import { noticeConverter, acknowledgementConverter } from "./converter";
 
 import { getEventarc } from "firebase-admin/eventarc";
 import { AcknowledgementStatus } from "./interface";
+import { firestore } from "firebase-admin";
 
 const eventChannel =
   process.env.EVENTARC_CHANNEL &&
@@ -14,280 +15,141 @@ const eventChannel =
   });
 
 if (admin.apps.length === 0) {
-  admin.initializeApp({ projectId: "demo-test" });
+  admin.initializeApp();
 }
 
-const auth = admin.auth();
 const db = admin.firestore();
 
-export const acknowledgeNotice = functions.handler.https.onCall(
-  async (data, context) => {
-    // Checking that the user is authenticated.
-    if (!context.auth) {
-      throw new functions.https.HttpsError(
-        "unauthenticated",
-        "No valid authentication token provided."
-      );
-    }
-
-    /** check if noticeId has been provided  */
-    if (!data.noticeId) {
-      throw new functions.https.HttpsError(
-        "invalid-argument",
-        "No noticeId provided."
-      );
-    }
-
-    if (data.acknowledged === null) {
-      throw new functions.https.HttpsError(
-        "invalid-argument",
-        "No acknowledgement value provided."
-      );
-    }
-
-    /** check notice documents */
-    const noticeDoc = await db
-      .collection(config.noticeCollectionPath)
-      .doc(data.noticeId)
-      .withConverter(noticeConverter)
-      .get();
-
-    /** Return if no acknowledgement exists  */
-    if (!noticeDoc || !noticeDoc.exists) {
-      throw new functions.https.HttpsError(
-        "not-found",
-        "Notice document does not exist."
-      );
-    }
-
-    const acknowledgementDates = {};
-
-    if (data.status === AcknowledgementStatus.ACCEPTED) {
-      //@ts-ignore
-      acknowledgementDates.acknowledgedDate =
-        admin.firestore.FieldValue.serverTimestamp();
-    }
-
-    if (data.status === AcknowledgementStatus.DECLINED) {
-      //@ts-ignore
-      acknowledgementDates.unacknowledgedDate =
-        admin.firestore.FieldValue.serverTimestamp();
-    }
-
-    /** Set new acknowledgment */
-    const ack = {
-      ...noticeDoc.data(),
-      ...data,
-      ...acknowledgementDates,
-    };
-
-    /** Add Acknowledgment */
-    await db
-      .collection(config.acknowlegementsCollectionPath)
-      .doc(context.auth.uid)
-      .collection(config.noticeCollectionPath)
-      .doc(data.noticeId)
-      .withConverter(acknowledgementConverter)
-      .set(
-        { ...ack },
-        {
-          merge: true,
-        }
-      );
-
-    /** Find current acknowledgements */
-    const acknowledgements = await db
-      .collection(config.acknowlegementsCollectionPath)
-      .doc(context.auth.uid)
-      .collection(config.noticeCollectionPath)
-      .withConverter(acknowledgementConverter)
-      .get()
-      .then(($) => $.docs.map((doc) => doc.id));
-
-    /** Set claims on user and return */
-    const claims = {};
-    claims[process.env.EXT_INSTANCE_ID] = acknowledgements;
-
-    const { customClaims: existingClaims } = await auth.getUser(
-      context.auth.uid
+function assertAuthenticated(context: functions.https.CallableContext) {
+  if (!context.auth) {
+    throw new functions.https.HttpsError(
+      "unauthenticated",
+      "User must be authenticated."
     );
+  }
+}
 
-    const updatedClaims = await auth.setCustomUserClaims(context.auth.uid, {
-      ...existingClaims,
-      ...claims,
+export const getNotice = functions.https.onCall(async (data, context) => {
+  assertAuthenticated(context);
+
+  if (!data.type) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "No notice `type` has been provided."
+    );
+  }
+
+  const snapshot = await db
+    .collection(config.noticesCollectionPath)
+    .where("type", "==", data.type)
+    .orderBy('createdAt', 'desc')
+    .limit(1)
+    .withConverter(noticeConverter)
+    .get();
+
+  if (snapshot.empty) {
+    throw new functions.https.HttpsError(
+      "not-found",
+      `No notices with the type ${data.type} could be found.`
+    );
+  }
+
+  const notice = snapshot.docs[0].data();
+
+  const acknowledgementSnapshot = await db
+    .collection(config.noticesCollectionPath)
+    .doc(notice.id)
+    .collection("acknowledgements")
+    .doc(context.auth!.uid)
+    .withConverter(acknowledgementConverter)
+    .get();
+
+  return {
+    ...notice,
+    acknowledgement:  acknowledgementSnapshot.data(),
+  };
+});
+
+async function handleAcknowledgement(
+  data: any,
+  context: functions.https.CallableContext,
+  status: AcknowledgementStatus
+): Promise<void> {
+  assertAuthenticated(context);
+
+  if (!data.noticeId) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "No `noticeId` has been provided."
+    );
+  }
+
+  const noticeSnapshot = await db
+    .collection(config.noticesCollectionPath)
+    .doc(data.noticeId)
+    .withConverter(noticeConverter)
+    .get();
+
+  if (!noticeSnapshot.exists) {
+    throw new functions.https.HttpsError(
+      "not-found",
+      `No notice with the id ${data.noticeId} could be found.`
+    );
+  }
+
+  await db
+    .collection(config.noticesCollectionPath)
+    .doc(data.noticeId)
+    .collection("acknowledgements")
+    .doc(context.auth!.uid)
+    .withConverter(acknowledgementConverter)
+    // @ts-expect-error - cant paritally type set arguments in the converter
+    .set({
+      noticeId: data.noticeId,
+      status,
+      metadata: data.metadata || {},
     });
 
-    /** send event if configured */
-    await eventChannel?.publish({
-      type: "firebase.google.v1.acknowledgement-accepted",
-      data: JSON.stringify(updatedClaims),
-    });
-  }
-);
+  await eventChannel?.publish({
+    type: `firebase.google.v1.acknowledgement-${status}`,
+    data: JSON.stringify({
+      noticeId: data.noticeId,
+      userId: context.auth!.uid,
+      status,
+      metadata: data.metadata || {},
+    }),
+  });
+}
 
-export const createNotice = functions.handler.https.onCall(
-  async (data, context) => {
-    // Checking that the user is authenticated.
-    if (!context.auth) {
-      throw new functions.https.HttpsError(
-        "unauthenticated",
-        "No valid authentication token provided."
-      );
-    }
+export const acceptNotice = functions.https.onCall(async (data, context) => {
+  await handleAcknowledgement(data, context, AcknowledgementStatus.ACCEPTED);
+});
 
-    /** check if notice data has been provided  */
-    if (!data) {
-      throw new functions.https.HttpsError(
-        "invalid-argument",
-        "No valid data provided."
-      );
-    }
+export const declineNotice = functions.https.onCall(async (data, context) => {
+  await handleAcknowledgement(data, context, AcknowledgementStatus.DECLINED);
+});
 
-    /** Set claims on user and return */
-    return db
-      .collection(config.noticeCollectionPath)
-      .doc(data.noticeId)
-      .withConverter(noticeConverter)
-      .set(
-        {
-          ...data,
-          creationDate: admin.firestore.FieldValue.serverTimestamp(),
-        },
-        { merge: true }
-      );
-  }
-);
+export const seenNotice = functions.https.onCall(async (data, context) => {
+  await handleAcknowledgement(data, context, AcknowledgementStatus.SEEN);
+});
 
-export const getNotices = functions.handler.https.onCall(
-  async (data, context) => {
-    // Checking that the user is authenticated.
-    if (!context.auth) {
-      throw new functions.https.HttpsError(
-        "unauthenticated",
-        "No valid authentication token provided."
-      );
-    }
+export const getAcknowledgements = functions.https.onCall(async (data, context) => {
+  assertAuthenticated(context);
 
-    const { noticeId, latest_only = false, noticeType } = data;
+  const uid = context.auth!.uid;
 
-    const query = db.collection(config.noticeCollectionPath);
+  const snapshot = await db
+    .collectionGroup("acknowledgements")
+    .where(firestore.FieldPath.documentId(), "==", uid)
+    .withConverter(acknowledgementConverter)
+    .get();
 
-    if (noticeType) {
-      return query
-        .where(`noticeType`, "==", noticeType)
-        .withConverter(noticeConverter)
-        .get()
-        .then((doc) => doc.docs.map(($) => $.data()));
-    }
+  const docs = snapshot.docs.map((doc) => doc.data());
+  const noticeReferences = docs.map((doc) => db.collection("notices").doc(doc.noticeId));
+  const noticeSnapshots = await db.getAll(...noticeReferences);
 
-    if (latest_only) {
-      return query
-        .orderBy("creationDate", "desc")
-        .limit(1)
-        .withConverter(noticeConverter)
-        .get()
-        .then((doc) => doc.docs[0].data());
-    }
-
-    if (noticeId)
-      return query
-        .where("noticeId", "==", noticeId)
-        .limit(1)
-        .withConverter(noticeConverter)
-        .get()
-        .then((doc) => doc.docs[0].data());
-
-    return query
-      .withConverter(noticeConverter)
-      .get()
-      .then(({ docs }) => {
-        if (docs.length) return docs.map(($) => $.data());
-        return [];
-      });
-  }
-);
-
-export const getAcknowledgements = functions.handler.https.onCall(
-  async (data, context) => {
-    // Checking that the user is authenticated.
-    if (!context.auth) {
-      throw new functions.https.HttpsError(
-        "unauthenticated",
-        "No valid authentication token provided."
-      );
-    }
-
-    return db
-      .collection(config.acknowlegementsCollectionPath)
-      .doc(context.auth.uid)
-      .collection(config.noticeCollectionPath)
-      .withConverter(acknowledgementConverter)
-      .get()
-      .then((doc) => doc.docs.map(($) => $.data()));
-  }
-);
-
-export const unacknowledgeNotice = functions.handler.https.onCall(
-  async (data, context) => {
-    // Checking that the user is authenticated.
-    if (!context.auth) {
-      throw new functions.https.HttpsError(
-        "unauthenticated",
-        "No valid authentication token provided."
-      );
-    }
-
-    /** check notice documents */
-    const noticeDoc = await db
-      .collection(config.noticeCollectionPath)
-      .doc(data.noticeId)
-      .withConverter(noticeConverter)
-      .get();
-
-    /** Return if no acknowledgement exists  */
-    if (!noticeDoc || !noticeDoc.exists) {
-      throw new functions.https.HttpsError(
-        "not-found",
-        "Notice document does not exist."
-      );
-    }
-
-    /** Set new acknowledgment */
-    const ack = {
-      ...noticeDoc.data(),
-      ...data,
-      unacknowledgedDate: admin.firestore.FieldValue.serverTimestamp(),
-    };
-
-    /** Add Acknowledgment */
-    await db
-      .collection(config.acknowlegementsCollectionPath)
-      .doc(context.auth.uid)
-      .collection(config.noticeCollectionPath)
-      .doc(data.noticeId)
-      .withConverter(acknowledgementConverter)
-      .set(
-        {
-          status: AcknowledgementStatus.DECLINED,
-          unacknowledgedDate: admin.firestore.FieldValue.serverTimestamp(),
-        },
-        {
-          merge: true,
-        }
-      );
-
-    /** Removed unacknowledged claims */
-    const { customClaims } = await auth.getUser(context.auth.uid);
-
-    if (customClaims) {
-      const extClaims =
-        customClaims[process.env.EXT_INSTANCE_ID]?.filter(
-          (claim) => claim !== data.noticeId
-        ) || [];
-
-      customClaims[process.env.EXT_INSTANCE_ID] = extClaims;
-
-      await auth.setCustomUserClaims(context.auth.uid, customClaims);
-    }
-  }
-);
+  return docs.map((doc, index) => ({
+    ...doc,
+    notice: noticeSnapshots[index].data(),
+  }));
+});

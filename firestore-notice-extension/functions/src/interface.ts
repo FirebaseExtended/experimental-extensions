@@ -1,11 +1,18 @@
-export interface NoticeMetadata {
-  noticeId: string;
-  title: string;
-  link: string;
-  creationDate?: string;
-  allowList?: string[];
-  noticeType?: string;
-  preferences?: Record<string, any>[];
+import { firestore } from "firebase-admin";
+
+export interface Notice {
+  // The document ID.
+  id: string;
+  // The type of notice, e.g. `banner` | `terms-and-condition` | `privacy-policy`.
+  type: string;
+  // The optional title of the notice.
+  title?: string;
+  // The optional description of the notice.
+  description?: string;
+  // The optional link of the notice.
+  link?: string;
+  // The timestamp when the notice was created.
+  createdAt: firestore.Timestamp;
 }
 
 export enum AcknowledgementStatus {
@@ -15,22 +22,9 @@ export enum AcknowledgementStatus {
 }
 
 export interface Acknowledgement {
+  id: string;
   noticeId: string;
-  acknowledgedDate: string | null;
-  unacknowledgedDate: string | null;
-  creationDate: string;
-  noticeType: string;
-  extensionId?: string;
+  acknowledgedAt: firestore.Timestamp;
   status: AcknowledgementStatus;
-  preferences?: Record<string, any>[];
-}
-
-export interface Preference {
-  name: string;
-  description: string;
-  duration?: string;
-  value?: string;
-  options?: string[];
-  required: boolean;
-  active?: boolean;
+  metadata: any;
 }

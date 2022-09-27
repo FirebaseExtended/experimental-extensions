@@ -1,8 +1,8 @@
-name: acknowledgements-api
+name: record-user-acknowledgements
 version: 0.0.1
 specVersion: v1beta
 
-displayName: Ackowledgement Management Extension
+displayName: Record User Acknowledgements Extension
 description: Provides an out of the box acknowledgement management extension for Firestore 
 
 license: Apache-2.0
@@ -11,8 +11,8 @@ sourceUrl: https://github.com/invertase/firebase-extensions/tree/main/extensions
 releaseNotesUrl: https://github.com/invertase/firebase-extensions/tree/main/extensions/storage-image-processing-api/CHANGELOG.md
 
 author:
-  authorName: Invertase
-  url: https://invertase.io
+  authorName: Firebase
+  url: https://firebase.google.com
 
 contributors:
   - authorName: Invertase
@@ -22,29 +22,32 @@ contributors:
 billingRequired: true
 
 roles:
-  - role: firebaseauth.admin
-    reason: >-
-      Allows the extension to set custom claims for users.
-
   - role: datastore.user
-    reason: Allows this extension to access Cloud Firestore to read and process notices.
+    reason: Allows this extension to access Cloud Firestore to read and process acknoweldgements.
 
 resources:
-  - name: acknowledgeNotice
+  - name: getNotice
     type: firebaseextensions.v1beta.function
     properties:
       location: ${LOCATION}
       runtime: nodejs14
       httpsTrigger: {}
   
-  - name: createNotices
+  - name: acceptNotice
     type: firebaseextensions.v1beta.function
     properties:
       location: ${LOCATION}
       runtime: nodejs14
       httpsTrigger: {}
 
-  - name: getNotices
+  - name: declineNotice
+    type: firebaseextensions.v1beta.function
+    properties:
+      location: ${LOCATION}
+      runtime: nodejs14
+      httpsTrigger: {}
+
+  - name: seenNotice
     type: firebaseextensions.v1beta.function
     properties:
       location: ${LOCATION}
@@ -52,13 +55,6 @@ resources:
       httpsTrigger: {}
 
   - name: getAcknowledgements
-    type: firebaseextensions.v1beta.function
-    properties:
-      location: ${LOCATION}
-      runtime: nodejs14
-      httpsTrigger: {}
-
-  - name: unacknowledgeNotice
     type: firebaseextensions.v1beta.function
     properties:
       location: ${LOCATION}
@@ -119,8 +115,8 @@ params:
     required: true
     immutable: true
 
-  - param: NOTICE_COLLECTION_PATH
-    label: Collection path
+  - param: NOTICES_COLLECTION_PATH
+    label: Notices collection path
     description: >-
       What is the path of the collection that you would like to use to store notices?
     type: string
@@ -130,31 +126,11 @@ params:
     default: notices
     required: true
 
-  - param: ACKNOWLEDGEMENT_COLLECTION_PATH
-    label: Collection path
-    description: >-
-      What is the path of the collection that you would like to use to store acknowlegements?
-    type: string
-    example: acknowledgement
-    validationRegex: "^[^/]+(/[^/]+/[^/]+)*$"
-    validationErrorMessage: Firestore collection paths must be an odd number of segments separated by slashes, e.g. "path/to/collection".
-    default: acknowledgement
-    required: true
-
-  - param: INCLUDE_AUTH_CLAIMS
-    label: Add to user auth claims
-    description: >-
-      Allows the storage and processing of ackowledgement documents on the authenticated user.
-    type: select
-    options:
-      - label: include
-        value: include
-      - label: exclude
-        value: exclude
-    default: exclude
-    required: true
-
 events:
   - type: firebase.google.v1.acknowledgement-accepted
-    description: Event indicating that the Notice has been accepted and added to the user’s custom claims.
+    description: Event indicating that the Notice has been accepted.
+  - type: firebase.google.v1.acknowledgement-seen
+    description: Event indicating that the Notice has been seen.
+  - type: firebase.google.v1.acknowledgement-decline
+    description: Event indicating that the Notice has been declined.
 
