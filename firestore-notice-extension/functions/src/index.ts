@@ -14,10 +14,7 @@ const eventChannel =
     allowedEventTypes: process.env.EXT_SELECTED_EVENTS,
   });
 
-if (admin.apps.length === 0) {
-  admin.initializeApp();
-}
-
+admin.initializeApp();
 const db = admin.firestore();
 
 logs.init();
@@ -36,7 +33,10 @@ function assertAllowed(
   notice: Notice,
   error: string
 ) {
-  if (notice.allowList.length > 0 && !notice.allowList.includes(context.auth!.uid)) {
+  if (
+    notice.allowList.length > 0 &&
+    !notice.allowList.includes(context.auth!.uid)
+  ) {
     throw new functions.https.HttpsError("not-found", error);
   }
 }
@@ -188,10 +188,11 @@ export const unacknowledgeNotice = functions.https.onCall(async (data, context) 
   });
 });
 
-export const getAcknowledgements = functions.https.onCall(async (data, context) => {
-  assertAuthenticated(context);
+export const getAcknowledgements = functions.https.onCall(
+  async (data, context) => {
+    assertAuthenticated(context);
 
-  const uid = context.auth!.uid;
+    const uid = context.auth!.uid;
 
   const snapshot = await db
     .collectionGroup("acknowledgements")
@@ -207,9 +208,9 @@ export const getAcknowledgements = functions.https.onCall(async (data, context) 
     db.collection("notices").doc(doc.noticeId).withConverter(noticeConverter)
   );
 
-  const noticeSnapshots = (await db.getAll(
-    ...noticeReferences
-  )) as firestore.DocumentSnapshot<Notice>[];
+    const noticeSnapshots = (await db.getAll(
+      ...noticeReferences
+    )) as firestore.DocumentSnapshot<Notice>[];
 
   const response: (Acknowledgement & { notice: Omit<Notice, "allowList"> })[] =
     acknowledements.map((doc) => {
@@ -224,6 +225,6 @@ export const getAcknowledgements = functions.https.onCall(async (data, context) 
       };
     });
 
-  return response;
-});
-
+    return response;
+  }
+);

@@ -5,8 +5,8 @@
     "prepare": "npm run build",
     "build": "tsc",
     "build:watch": "tsc --watch",
-    "local:emulator": "cd ../../_emulator && firebase emulators:start -P demo-test",
-    "test": "cd ../../_emulator && firebase emulators:exec jest -P demo-test",
+    "local:emulator": "cd ../../_emulator && firebase emulators:start -P demo-experimental",
+    "test": "cd ../../_emulator && firebase emulators:exec jest -P demo-experimental",
     "test:local": "jest",
     "test:watch": "concurrently \"npm run local:emulator\" \"jest --watch\"",
     "deploy": "firebase ext:install ../ --project=extensions-testing"
@@ -17,7 +17,7 @@
   "main": "lib/index.js",
   "dependencies": {
     "firebase": "^9.9.0",
-    "firebase-admin": "^11.0.0",
+    "firebase-admin": "11.0.1",
     "firebase-functions": "^3.14.1",
     "typescript": "^4.7.4",
     "jest": "^28.1.2",
