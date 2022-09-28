@@ -22,7 +22,6 @@ import {
   generateUserDocument,
 } from "./helpers";
 import setupEnvironment from "./helpers/setupEnvironment";
-import * as funcs from "../src/index";
 
 const fft = require("firebase-functions-test")();
 
@@ -31,6 +30,10 @@ if (!admin.apps.length) {
 }
 
 setupEnvironment();
+
+jest.spyOn(admin, "initializeApp").mockImplementation();
+
+import * as funcs from "../src/index";
 
 /** prepare extension functions */
 const exportUserDatafn = fft.wrap(funcs.exportUserData);

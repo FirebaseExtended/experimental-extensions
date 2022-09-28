@@ -16,4 +16,8 @@
 
 export default {
   storageBucket: process.env.STORAGE_BUCKET,
+  storageExportDirectory: process.env.STORAGE_EXPORT_DIRECTORY,
+  firestorePaths: process.env.FIRESTORE_PATHS,
+  databasePaths: process.env.DATABASE_PATHS,
+  customHookEndpoint: process.env.CUSTOM_HOOK_ENDPOINT,
 };
