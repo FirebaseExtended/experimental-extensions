@@ -2,10 +2,10 @@ import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
 import * as logs from "./logs";
 import config from "./config";
-import { noticeConverter, acknowledgementConverter } from "./converter";
+import { noticeConverter, acknowledgementConverter, unacknowledgementConverter } from "./converter";
 
 import { getEventarc } from "firebase-admin/eventarc";
-import { Acknowledgement, AcknowledgementStatus, Notice } from "./interface";
+import { Acknowledgement, Notice } from "./interface";
 import { firestore } from "firebase-admin";
 
 const eventChannel =
@@ -51,9 +51,15 @@ export const getNotice = functions.https.onCall(async (data, context) => {
     );
   }
 
-  const snapshot = await db
+  let query = db
     .collection(config.noticesCollectionPath)
-    .where("type", "==", data.type)
+    .where("type", "==", data.type);
+
+  if (data.version) {
+    query = query.where("version", "==", data.version);
+  }
+
+  const snapshot = await query
     .orderBy("createdAt", "desc")
     .limit(1)
     .withConverter(noticeConverter)
@@ -75,29 +81,28 @@ export const getNotice = functions.https.onCall(async (data, context) => {
     `No notices with the type ${data.type} could be found.`
   );
 
-  const acknowledgementSnapshot = await db
+  const acknowledgementsSnapshot = await db
     .collection(config.noticesCollectionPath)
     .doc(notice.id)
     .collection("acknowledgements")
-    .doc(context.auth!.uid)
+    .where("userId", "==", context.auth!.uid)
     .withConverter(acknowledgementConverter)
     .get();
 
   // Create a variable to assert a typed response
   const response: Omit<Notice, "allowList"> & {
-    acknowledgement: Acknowledgement;
+    acknowledgements: Acknowledgement[];
   } = {
     ...notice,
-    acknowledgement: acknowledgementSnapshot.data(),
+    acknowledgements: acknowledgementsSnapshot.docs.map((doc) => doc.data()),
   };
 
   return response;
 });
 async function handleAcknowledgement(
   data: any,
-  context: functions.https.CallableContext,
-  status: AcknowledgementStatus
-): Promise<void> {
+  context: functions.https.CallableContext
+): Promise<firestore.DocumentSnapshot<Notice>> {
   assertAuthenticated(context);
 
   if (!data.noticeId) {
@@ -126,41 +131,60 @@ async function handleAcknowledgement(
     `No notice with the id ${data.noticeId} could be found.`
   );
 
-  await db
+  return noticeSnapshot;
+}
+
+export const acknowledgeNotice = functions.https.onCall(async (data, context) => {
+  const snapshot = await handleAcknowledgement(data, context);
+
+  const documentData = {
+    userId: context.auth!.uid,
+    noticeId: snapshot.id,
+    type: data.type || "seen",
+    metadata: data.metadata || {},
+  };
+
+  const result = await db
     .collection(config.noticesCollectionPath)
     .doc(data.noticeId)
     .collection("acknowledgements")
-    .doc(context.auth!.uid)
     .withConverter(acknowledgementConverter)
     // @ts-expect-error - cant paritally type set arguments in the converter
-    .set({
-      userId: context.auth!.uid,
-      noticeId: data.noticeId,
-      status,
-      metadata: data.metadata || {},
-    });
+    .add(documentData);
 
   await eventChannel?.publish({
-    type: `firebase.google.v1.acknowledgement-${status}`,
+    type: `firebase.google.v1.acknowledgement`,
     data: JSON.stringify({
-      noticeId: data.noticeId,
-      userId: context.auth!.uid,
-      status,
-      metadata: data.metadata || {},
+      ...documentData,
+      id: result.id,
     }),
   });
-}
-
-export const acceptNotice = functions.https.onCall(async (data, context) => {
-  await handleAcknowledgement(data, context, AcknowledgementStatus.ACCEPTED);
 });
 
-export const declineNotice = functions.https.onCall(async (data, context) => {
-  await handleAcknowledgement(data, context, AcknowledgementStatus.DECLINED);
-});
+export const unacknowledgeNotice = functions.https.onCall(async (data, context) => {
+  const snapshot = await handleAcknowledgement(data, context);
 
-export const seenNotice = functions.https.onCall(async (data, context) => {
-  await handleAcknowledgement(data, context, AcknowledgementStatus.SEEN);
+  const documentData = {
+    userId: context.auth!.uid,
+    noticeId: snapshot.id,
+    metadata: data.metadata || {},
+  };
+
+  const result = await db
+    .collection(config.noticesCollectionPath)
+    .doc(data.noticeId)
+    .collection("acknowledgements")
+    .withConverter(unacknowledgementConverter)
+    // @ts-expect-error - cant paritally type set arguments in the converter
+    .add(documentData);
+
+  await eventChannel?.publish({
+    type: `firebase.google.v1.unacknowledgement`,
+    data: JSON.stringify({
+      ...documentData,
+      id: result.id,
+    }),
+  });
 });
 
 export const getAcknowledgements = functions.https.onCall(
@@ -169,26 +193,29 @@ export const getAcknowledgements = functions.https.onCall(
 
     const uid = context.auth!.uid;
 
-    const snapshot = await db
-      .collectionGroup("acknowledgements")
-      .where("userId", "==", uid)
-      .withConverter(acknowledgementConverter)
-      .get();
+  const snapshot = await db
+    .collectionGroup("acknowledgements")
+    .where('userId', "==", uid)
+    // TODO this can't work with a differing acknowledgement structure
+    // .withConverter(acknowledgementConverter)
+    .get();
 
-    const docs = snapshot.docs.map((doc) => doc.data());
+  // TODO casting
+  const acknowledements = snapshot.docs.map((doc) => doc.data()) as Acknowledgement[];
 
-    const noticeReferences = docs.map((doc) =>
-      db.collection("notices").doc(doc.noticeId).withConverter(noticeConverter)
-    );
+  const noticeReferences = acknowledements.map((doc) =>
+    db.collection("notices").doc(doc.noticeId).withConverter(noticeConverter)
+  );
 
     const noticeSnapshots = (await db.getAll(
       ...noticeReferences
     )) as firestore.DocumentSnapshot<Notice>[];
 
-    const response: (Acknowledgement & {
-      notice: Omit<Notice, "allowList">;
-    })[] = docs.map((doc, index) => {
-      const noticeData = noticeSnapshots[index].data();
+  const response: (Acknowledgement & { notice: Omit<Notice, "allowList"> })[] =
+    acknowledements.map((doc) => {
+      const noticeData = noticeSnapshots
+        .find((notice) => notice.id === doc.noticeId)!
+        .data();
       const { allowList, ...notice } = noticeData;
 
       return {

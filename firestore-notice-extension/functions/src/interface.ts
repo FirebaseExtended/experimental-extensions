@@ -5,6 +5,8 @@ export interface Notice {
   id: string;
   // The type of notice, e.g. `banner` | `terms-and-condition` | `privacy-policy`.
   type: string;
+  // An optional notice version. This can be used to filter a specific notice versions via the `getNotice` callable function.
+  version?: number;
   // The optional title of the notice.
   title?: string;
   // The optional description of the notice.
@@ -17,12 +19,6 @@ export interface Notice {
   allowList: string[];
 }
 
-export enum AcknowledgementStatus {
-  SEEN = "seen",
-  ACCEPTED = "accepted",
-  DECLINED = "declined",
-}
-
 export interface Acknowledgement {
   // The document ID.
   id: string;
@@ -32,8 +28,12 @@ export interface Acknowledgement {
   noticeId: string;
   // The timestamp when the notice was acknowledged.
   acknowledgedAt: firestore.Timestamp;
-  // The status of the acknowledgement.
-  status: AcknowledgementStatus;
+  // The type of the acknowledgement. Defaults to `seen`.
+  type: string;
   // The optional metadata of the acknowledgement.
   metadata: any;
+}
+
+export type Unacknowledgement = Omit<Acknowledgement, 'acknowledgedAt' | 'type'> & {
+  unacknowledgedAt: firestore.Timestamp;
 }
