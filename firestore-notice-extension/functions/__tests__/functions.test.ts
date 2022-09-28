@@ -4,7 +4,6 @@ import { firestore } from "firebase-admin";
 import setupEnvironment from "./helpers/setupEnvironment";
 import * as config from "../src/config";
 
-import { Acknowledgement, AcknowledgementStatus } from "../src/interface";
 const fft = require("firebase-functions-test")();
 
 /** Initialize app for the emulator */
@@ -20,11 +19,9 @@ setupEnvironment();
 jest.spyOn(admin, "initializeApp").mockImplementation();
 
 import * as funcs from "../src/index";
-import { waitForDocumentUpdate } from "./helpers";
+import { waitForDocumentToExistInCollection } from "./helpers";
 /** prepare extension functions */
-const acceptNoticeFn = fft.wrap(funcs.acceptNotice);
-const acknowledgeNoticeFn = fft.wrap(funcs.seenNotice);
-const unacknowledgeNoticeFn = fft.wrap(funcs.declineNotice);
+const acknowledgeNoticeFn = fft.wrap(funcs.acknowledgeNotice);
 const getNoticeFn = fft.wrap(funcs.getNotice);
 const getAcknowledgements = fft.wrap(funcs.getAcknowledgements);
 
@@ -54,7 +51,7 @@ describe("functions testing", () => {
     user = await auth.createUser({});
   });
 
-  describe("accept notice", () => {
+  describe("acknowledge notice", () => {
     let noticeId;
 
     beforeEach(async () => {
@@ -66,34 +63,33 @@ describe("functions testing", () => {
       noticeId = notice.id;
     });
 
-    test("can accept a notice", async () => {
+    test("can acknowledge a notice", async () => {
       /** Accept notice */
-      await acceptNoticeFn.call(
+      await acknowledgeNoticeFn.call(
         {},
         { noticeId, metadata: { test: "value" } },
         { auth: { uid: user.uid } }
       );
 
       /** Get notice */
-      const doc = noticesCollection
+      const AckCollection = noticesCollection
         .doc(noticeId)
-        .collection("acknowledgements")
-        .doc(user.uid);
+        .collection("acknowledgements");
+
+      /** Set query */
+      const query = AckCollection.where("userId", "==", user.uid);
 
       /** Wait for update */
-      const acknoweldgement = await waitForDocumentUpdate(
-        doc,
-        "status",
-        `accepted`
-      );
+      const snapshot = await query.limit(1).get();
+
+      /** Get the Acknolwedgement document */
+      const acknoweldgement = snapshot.docs[0].data();
 
       /** Assert data */
-      const response = acknoweldgement.data();
-
-      expect(response.status).toBe("accepted");
-      expect(response.noticeId).toBe(noticeId);
-      expect(response.userId).toBe(user.uid);
-      expect(response.metadata.test).toEqual("value");
+      expect(acknoweldgement.type).toBe("seen");
+      expect(acknoweldgement.noticeId).toBe(noticeId);
+      expect(acknoweldgement.userId).toBe(user.uid);
+      expect(acknoweldgement.metadata.test).toEqual("value");
     });
   });
 
