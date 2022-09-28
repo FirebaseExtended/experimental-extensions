@@ -14,10 +14,22 @@
  * limitations under the License.
  */
 
+// export default {
+//   storageBucket: process.env.STORAGE_BUCKET,
+//   storageExportDirectory: process.env.STORAGE_EXPORT_DIRECTORY,
+//   firestorePaths: process.env.FIRESTORE_PATHS,
+//   databasePaths: process.env.DATABASE_PATHS,
+//   databaseLocation: process.env.DATABASE_LOCATION,
+//   customHookEndpoint: process.env.CUSTOM_HOOK_ENDPOINT,
+// };
+
 export default {
-  storageBucket: process.env.STORAGE_BUCKET,
-  storageExportDirectory: process.env.STORAGE_EXPORT_DIRECTORY,
-  firestorePaths: process.env.FIRESTORE_PATHS,
-  databasePaths: process.env.DATABASE_PATHS,
-  customHookEndpoint: process.env.CUSTOM_HOOK_ENDPOINT,
+  storageBucket: "storage-bucket",
+  storageExportDirectory: "storage-export-dir",
+  firestorePaths: "users/{UID}/comments,posts/{UID}",
+  databasePaths: "users/{UID},posts/{UID}",
+  databaseLocation:
+    process.env.DATABASE_LOCATION ||
+    "http://localhost:9000/?ns=extensions-testing",
+  customHookEndpoint: process.env.CUSTOM_HOOK_ENDPOINT || "",
 };

@@ -25,7 +25,9 @@ import {
 import { getPaths } from "./getPaths";
 
 // Initialize the Firebase Admin SDK
-admin.initializeApp();
+admin.initializeApp({
+  databaseURL: config.databaseLocation,
+});
 
 const initializeExport = async (uid: string, startedAt) => {
   const exportDoc = await admin.firestore().collection("exports").add({
@@ -38,14 +40,17 @@ const initializeExport = async (uid: string, startedAt) => {
 };
 
 export const exportUserData = functions.https.onCall(async (_data, context) => {
-  const startedAt = admin.firestore.Timestamp.now();
-  // const uid = context.auth.uid;
+  // console.log(admin.firestore);
+  const startedAt = "now";
+
+  // const startedAt = admin.firestore.FieldValue.serverTimestamp();
+
+  // TODO get from call
   const uid = "123";
 
   const exportId = await initializeExport(uid, startedAt);
 
   const { firestorePaths, databasePaths } = await getPaths(uid);
-
   const { collections, docs } = firestorePaths;
 
   const promises = [];
@@ -73,7 +78,7 @@ export const exportUserData = functions.https.onCall(async (_data, context) => {
 
     if (snap.exists()) {
       const csv = await constructDatabaseCSV(snap, path);
-      promises.push(uploadToStorage(csv, uid, exportId, path));
+      promises.push(uploadToStorage(csv, uid, exportId, `database/${path}`));
     }
   }
 
