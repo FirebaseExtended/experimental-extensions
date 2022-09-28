@@ -36,11 +36,12 @@ const createNotice = async ({
   name = "banner",
   metadata = {},
   type = "banner",
+  allowList = null,
 }) => {
   return admin
     .firestore()
     .collection("notices")
-    .add({ name, metadata, createdAt: new Date(), type });
+    .add({ name, metadata, createdAt: new Date(), type, allowList });
 };
 
 describe("functions testing", () => {
@@ -51,7 +52,7 @@ describe("functions testing", () => {
     user = await auth.createUser({});
   });
 
-  describe("acknowledge notice", () => {
+  describe("acknowledgements", () => {
     let noticeId;
 
     beforeEach(async () => {
@@ -91,6 +92,12 @@ describe("functions testing", () => {
       expect(acknoweldgement.userId).toBe(user.uid);
       expect(acknoweldgement.metadata.test).toEqual("value");
     });
+
+    test("will throw an error with no authentication provided", () => {
+      expect(acknowledgeNoticeFn.call({}, {}, {})).rejects.toThrowError(
+        "User must be authenticated."
+      );
+    });
   });
 
   describe("get notice", () => {
@@ -99,7 +106,7 @@ describe("functions testing", () => {
 
     beforeEach(async () => {
       type = "banner";
-      const notice = await createNotice({ type });
+      const notice = await createNotice({ type, allowList: [user.uid] });
 
       noticeId = notice.id;
     });
@@ -118,12 +125,29 @@ describe("functions testing", () => {
     });
 
     test("will throw an error when a notice type has not been provided", async () => {
-      /** Find notice */
-      const resp = await getNoticeFn.call(
-        {},
-        { type },
-        { auth: { uid: user.uid } }
+      expect(
+        getNoticeFn.call({}, {}, { auth: { uid: user.uid } })
+      ).rejects.toThrow("No notice `type` has been provided.");
+    });
+
+    test("will throw an error with a notice cannot be found", () => {
+      expect(
+        getNoticeFn.call({}, { type: "unknown" }, { auth: { uid: user.uid } })
+      ).rejects.toThrowError(
+        "No notices with the type unknown could be found."
       );
+    });
+
+    test("will throw an error with no authentication provided", () => {
+      expect(getNoticeFn.call({}, {}, {})).rejects.toThrowError(
+        "User must be authenticated."
+      );
+    });
+
+    test("will throw an error if user is not in the allow list", () => {
+      expect(
+        getNoticeFn.call({}, { type }, { auth: { uid: "unknown" } })
+      ).rejects.toThrowError("No notices with the type banner could be found.");
     });
   });
 });
