@@ -3,7 +3,7 @@ version: 0.0.1
 specVersion: v1beta
 
 displayName: Record User Acknowledgements Extension
-description: Provides an out of the box acknowledgement management extension for Firestore 
+description: Provides an out of the box acknowledgement management extension for Firestore
 
 license: Apache-2.0
 
@@ -32,22 +32,15 @@ resources:
       location: ${LOCATION}
       runtime: nodejs14
       httpsTrigger: {}
-  
-  - name: acceptNotice
+
+  - name: acknowledgeNotice
     type: firebaseextensions.v1beta.function
     properties:
       location: ${LOCATION}
       runtime: nodejs14
       httpsTrigger: {}
 
-  - name: declineNotice
-    type: firebaseextensions.v1beta.function
-    properties:
-      location: ${LOCATION}
-      runtime: nodejs14
-      httpsTrigger: {}
-
-  - name: seenNotice
+  - name: unacknowledgeNotice
     type: firebaseextensions.v1beta.function
     properties:
       location: ${LOCATION}
@@ -127,10 +120,7 @@ params:
     required: true
 
 events:
-  - type: firebase.google.v1.acknowledgement-accepted
-    description: Event indicating that the Notice has been accepted.
-  - type: firebase.google.v1.acknowledgement-seen
-    description: Event indicating that the Notice has been seen.
-  - type: firebase.google.v1.acknowledgement-decline
-    description: Event indicating that the Notice has been declined.
-
+  - type: firebase.google.v1.acknowledgement
+    description: Event indicating that the Notice has been acknowledged.
+  - type: firebase.google.v1.unacknowledgement
+    description: Event indicating that the Notice has been unacknowledged.
