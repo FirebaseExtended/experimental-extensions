@@ -33,21 +33,14 @@ resources:
       runtime: nodejs14
       httpsTrigger: {}
   
-  - name: acceptNotice
+  - name: acknowledgeNotice
     type: firebaseextensions.v1beta.function
     properties:
       location: ${LOCATION}
       runtime: nodejs14
       httpsTrigger: {}
 
-  - name: declineNotice
-    type: firebaseextensions.v1beta.function
-    properties:
-      location: ${LOCATION}
-      runtime: nodejs14
-      httpsTrigger: {}
-
-  - name: seenNotice
+  - name: unacknowledgeNotice
     type: firebaseextensions.v1beta.function
     properties:
       location: ${LOCATION}
