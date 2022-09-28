@@ -18,6 +18,7 @@
     "generate-readme": "firebase ext:info .. --markdown > ../README.md"
   },
   "dependencies": {
+    "csv-stringify": "^6.2.0",
     "firebase-admin": "^11.0.1",
     "firebase-functions": "^3.6.1",
     "fs": "0.0.1-security",

@@ -22,9 +22,9 @@ import {
   generateUserDocument,
 } from "./helpers";
 import setupEnvironment from "./helpers/setupEnvironment";
+import * as funcs from "../src/index";
 
 const fft = require("firebase-functions-test")();
-import * as funcs from "../src/index";
 
 if (!admin.apps.length) {
   admin.initializeApp();

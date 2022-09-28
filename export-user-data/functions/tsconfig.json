@@ -10,6 +10,7 @@
     "allowSyntheticDefaultImports": true,
     "types": ["node", "jest", "@types/jest"]
   },
+  "sourceMap": true,
   "compileOnSave": true,
   "include": ["src"]
 }
