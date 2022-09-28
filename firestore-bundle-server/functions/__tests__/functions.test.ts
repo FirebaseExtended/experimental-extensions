@@ -27,8 +27,6 @@ const extUrl = (bundle) => `${domain}/bundles/${bundle}`;
 const extHostedUrl = (bundle) => `${hostedDomain}/bundles/${bundle}`;
 
 describe("functions", () => {
-  xit("returns a 404 if no bundle spec provided or exists", async () => {});
-
   it("successfully returns a bundle with queries, documents and params combined", async () => {
     const bundleName = "documents-queries-params";
     const url = extUrl(bundleName);
@@ -254,23 +252,16 @@ describe("functions", () => {
     expect(document.documentMetadata.queries[0]).toEqual("example");
   });
 
-  xit("returns an invalid response if an unknown bundle is provided", async () => {
+  it("returns a 404 response if an unknown bundle is provided", async () => {
     const bundleName = "unknown-bundle";
     const url = extHostedUrl(bundleName);
-    console.log(url);
-    const { data: bundle } = await axios(url);
 
-    const [metadata, documentMetadata, document] =
-      extractObjectfromBuffer(bundle);
-
-    /*** check metadata */
-    expect(metadata.metadata.id).toEqual(bundleName);
-    expect(metadata.metadata.totalDocuments).toEqual(2);
-
-    /*** check document metadata */
-    expect(documentMetadata.namedQuery.name).toEqual("example");
-
-    /*** check document */
-    expect(document.documentMetadata.queries[0]).toEqual("example");
+    return axios(url)
+      .then(() => {
+        fail("should not succeed");
+      })
+      .catch((ex) => {
+        expect(ex.response.status).toEqual(404);
+      });
   });
 });
