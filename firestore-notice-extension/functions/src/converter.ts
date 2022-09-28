@@ -1,6 +1,6 @@
 import { FieldValue, FirestoreDataConverter, WithFieldValue } from "firebase-admin/firestore";
 
-import { Notice } from "./interface";
+import { Notice, Unacknowledgement } from "./interface";
 import { Acknowledgement } from "./interface";
 
 export const noticeConverter: FirestoreDataConverter<Notice> = {
@@ -31,7 +31,7 @@ export const acknowledgementConverter: FirestoreDataConverter<Acknowledgement> =
       acknowledgedAt: FieldValue.serverTimestamp(),
       userId: data.userId,
       noticeId: data.noticeId,
-      status: data.status,
+      type: data.type,
       metadata: data.metadata,
     };
   },
@@ -45,7 +45,32 @@ export const acknowledgementConverter: FirestoreDataConverter<Acknowledgement> =
       noticeId: data.noticeId,
       acknowledgedAt: data.acknowledgedAt,
       metadata: data.metadata || {},
-      status: data.status,
+      type: data.type,
+    };
+  },
+};
+
+export const unacknowledgementConverter: FirestoreDataConverter<Unacknowledgement> = {
+  toFirestore(
+    data: WithFieldValue<Unacknowledgement>
+  ): FirebaseFirestore.DocumentData {
+    return {
+      unacknowledgedAt: FieldValue.serverTimestamp(),
+      userId: data.userId,
+      noticeId: data.noticeId,
+      metadata: data.metadata,
+    };
+  },
+  fromFirestore(snapshot: FirebaseFirestore.DocumentSnapshot) {
+    const data = snapshot.data();
+
+    // TODO validate
+    return {
+      id: snapshot.id,
+      userId: data.userId,
+      noticeId: data.noticeId,
+      unacknowledgedAt: data.acknowledgedAt,
+      metadata: data.metadata || {},
     };
   },
 };
