@@ -35,25 +35,44 @@ const noticesCollection = firestore().collection(
   config.default.noticesCollectionPath
 );
 
+const createNotice = async ({
+  name = "banner",
+  metadata = {},
+  type = "banner",
+}) => {
+  return admin
+    .firestore()
+    .collection("notices")
+    .add({ name, metadata, createdAt: new Date(), type });
+};
+
 describe("functions testing", () => {
+  let user;
+
+  beforeEach(async () => {
+    /** create example user */
+    user = await auth.createUser({});
+  });
+
   describe("accept notice", () => {
-    let user;
     let noticeId;
 
     beforeEach(async () => {
-      // create a notice
-      const randomId = Math.random().toString(36).substring(2, 15);
-      noticeId = `notice_v${randomId}`;
+      const notice = await admin
+        .firestore()
+        .collection("notices")
+        .add({ name: "banner", metadata: { test: "value" } });
 
-      await admin.firestore().collection("notices").doc(noticeId).set({});
-
-      /** create example user */
-      user = await auth.createUser({});
+      noticeId = notice.id;
     });
 
     test("can accept a notice", async () => {
       /** Accept notice */
-      await acceptNoticeFn.call({}, { noticeId }, { auth: { uid: user.uid } });
+      await acceptNoticeFn.call(
+        {},
+        { noticeId, metadata: { test: "value" } },
+        { auth: { uid: user.uid } }
+      );
 
       /** Get notice */
       const doc = noticesCollection
@@ -74,6 +93,41 @@ describe("functions testing", () => {
       expect(response.status).toBe("accepted");
       expect(response.noticeId).toBe(noticeId);
       expect(response.userId).toBe(user.uid);
+      expect(response.metadata.test).toEqual("value");
+    });
+  });
+
+  describe("get notice", () => {
+    let noticeId;
+    let type;
+
+    beforeEach(async () => {
+      type = "banner";
+      const notice = await createNotice({ type });
+
+      noticeId = notice.id;
+    });
+
+    test("can get a notice", async () => {
+      /** Find notice */
+      const resp = await getNoticeFn.call(
+        {},
+        { type },
+        { auth: { uid: user.uid } }
+      );
+
+      expect(resp.id).toEqual(noticeId);
+      expect(resp.type).toEqual(type);
+      expect(resp.createdAt).toBeDefined();
+    });
+
+    test("will throw an error when a notice type has not been provided", async () => {
+      /** Find notice */
+      const resp = await getNoticeFn.call(
+        {},
+        { type },
+        { auth: { uid: user.uid } }
+      );
     });
   });
 });

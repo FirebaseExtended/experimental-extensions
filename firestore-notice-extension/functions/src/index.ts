@@ -93,7 +93,6 @@ export const getNotice = functions.https.onCall(async (data, context) => {
 
   return response;
 });
-
 async function handleAcknowledgement(
   data: any,
   context: functions.https.CallableContext,
