@@ -66,3 +66,14 @@ export const constructDatabaseCSV = async (snap: any, databasePath: string) => {
 
   return sync.stringify(csvData);
 };
+
+export const constructStorageCSV = async (files, storagePath) => {
+  const csvData = [["TYPE", "path"]];
+
+  for (let file of files) {
+    const path = `${storagePath}/${file.name}`;
+    csvData.push([dataSources.storage, path]);
+  }
+
+  return sync.stringify(csvData);
+};

@@ -41,6 +41,10 @@ export const firestorePathExported = (path: string) => {
   logger.log(`Exported: '${path}' from Cloud Firestore`);
 };
 
+export const storagePathExported = (path: string) => {
+  logger.log(`Exported: '${path}' from Cloud Storage`);
+};
+
 export const firestorePathExporting = (path: string) => {
   logger.log(`Exporting: '${path}' from Cloud Firestore`);
 };
@@ -119,4 +123,8 @@ export const rtdbLocationNotConfigured = () => {
   logger.log(
     "Realtime Database paths are provided but no database location is configured, skipping Realtime Database exports"
   );
+};
+
+export const storageConfigPathsNotConfigured = () => {
+  logger.log("Cloud Storage paths are not configured, skipping");
 };

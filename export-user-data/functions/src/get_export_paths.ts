@@ -20,11 +20,13 @@ import * as log from "./logs";
 export interface ExportPaths {
   firestorePaths: unknown[];
   databasePaths: unknown[];
+  storagePaths: unknown[];
 }
 
 const emptyPaths: ExportPaths = {
   firestorePaths: [],
   databasePaths: [],
+  storagePaths: [],
 };
 
 /**
@@ -35,12 +37,14 @@ const emptyPaths: ExportPaths = {
 export async function getExportPaths(uid: string): Promise<ExportPaths> {
   let firestorePaths = [];
   let databasePaths = [];
+  let storagePaths = [];
 
   if (config.customHookEndpoint) {
     const pathsFromCustomHook = await getPathsFromCustomHook(uid);
 
     firestorePaths = [...firestorePaths, ...pathsFromCustomHook.firestorePaths];
     databasePaths = [...databasePaths, ...pathsFromCustomHook.databasePaths];
+    storagePaths = [...storagePaths, ...pathsFromCustomHook.storagePaths];
   } else {
     log.customHookNotConfigured();
   }
@@ -49,6 +53,7 @@ export async function getExportPaths(uid: string): Promise<ExportPaths> {
     const pathsFromConfig = getPathsFromConfig(uid);
     firestorePaths = [...firestorePaths, ...pathsFromConfig.firestorePaths];
     databasePaths = [...databasePaths, ...pathsFromConfig.databasePaths];
+    storagePaths = [...storagePaths, ...pathsFromConfig.storagePaths];
   }
   if (databasePaths.length && !config.selectedDatabaseInstance) {
     log.rtdbLocationNotConfigured();
@@ -57,6 +62,7 @@ export async function getExportPaths(uid: string): Promise<ExportPaths> {
   return {
     firestorePaths,
     databasePaths,
+    storagePaths,
   };
 }
 /**
@@ -88,10 +94,12 @@ async function getPathsFromCustomHook(uid: string): Promise<ExportPaths> {
 
   const firestorePaths = data.firestorePaths || [];
   const databasePaths = data.databasePaths || [];
+  const storagePaths = data.storagePaths || [];
 
   return {
     firestorePaths,
     databasePaths,
+    storagePaths,
   };
 }
 /**
@@ -102,21 +110,30 @@ async function getPathsFromCustomHook(uid: string): Promise<ExportPaths> {
 function getPathsFromConfig(uid: string): ExportPaths {
   let firestorePathsList: string[] = [];
   let databasePathsList: string[] = [];
+  let storagePathsList: string[] = [];
 
   if (config.firestorePaths) {
     firestorePathsList = config.firestorePaths.split(",");
   } else {
     log.firestoreConfigPathsNotConfigured();
   }
+
   if (config.databasePaths) {
     databasePathsList = config.databasePaths.split(",");
   } else {
     log.rtdbConfigPathsNotConfigured();
   }
 
+  if (config.storagePaths) {
+    storagePathsList = config.storagePaths.split(",");
+  } else {
+    log.storageConfigPathsNotConfigured();
+  }
+
   return {
     firestorePaths: firestorePathsList,
     databasePaths: databasePathsList,
+    storagePaths: storagePathsList,
   };
 }
 
@@ -126,6 +143,7 @@ function getPathsFromConfig(uid: string): ExportPaths {
 interface ValidatedReponseJson {
   firestorePaths?: unknown[];
   databasePaths?: unknown[];
+  storagePaths?: unknown[];
 }
 
 function validateResponseJson(
@@ -135,6 +153,9 @@ function validateResponseJson(
     throw new Error();
   }
   if (data.databasePaths && !Array.isArray(data.databasePaths)) {
+    throw new Error();
+  }
+  if (data.storagePaths && !Array.isArray(data.storagePaths)) {
     throw new Error();
   }
   return data as ValidatedReponseJson;

@@ -21,6 +21,7 @@ import {
   constructDatabaseCSV,
   constructFirestoreCollectionCSV,
   constructFirestoreDocumentCSV,
+  constructStorageCSV,
 } from "./construct_exports";
 import { ExportPaths } from "./get_export_paths";
 import { replaceUID } from "./utils";
@@ -86,6 +87,30 @@ export async function uploadAsCSVs(
             ".database.csv"
           ).then(() => {
             log.rtdbPathExported(pathWithUID);
+          })
+        );
+      }
+    }
+  }
+
+  for (let path of exportPaths.storagePaths) {
+    if (typeof path === "string") {
+      const pathWithUID = replaceUID(path, uid);
+      const files = await admin
+        .storage()
+        .bucket(config.storageBucket)
+        .getFiles({ prefix: pathWithUID });
+
+      for (let file of files[0]) {
+        const csv = await constructStorageCSV(file, pathWithUID);
+        promises.push(
+          uploadCSVToStorage(
+            csv,
+            storagePrefix,
+            pathWithUID,
+            ".database.csv"
+          ).then(() => {
+            log.storagePathExported(pathWithUID);
           })
         );
       }
