@@ -23,6 +23,7 @@ import {
   constructDatabaseCSV,
   constructFirestoreCollectionCSV,
   constructFirestoreDocumentCSV,
+  constructStorageCSV,
 } from "./construct_exports";
 import { replaceUID } from "./utils";
 
@@ -100,6 +101,22 @@ async function appendToArchive(
       }
     } else {
       log.rtdbPathNotString();
+    }
+  }
+
+  for (let path of exportPaths.storagePaths) {
+    if (typeof path === "string") {
+      const pathWithUID = replaceUID(path, uid);
+      const files = await admin
+        .storage()
+        .bucket(config.storageBucket)
+        .getFiles({ prefix: pathWithUID });
+
+      for (let file of files[0]) {
+        const csv = await constructStorageCSV(file, pathWithUID);
+        const buffer = Buffer.from(csv);
+        archive.append(buffer, { name: `${pathWithUID}.storage.csv` });
+      }
     }
   }
 }
