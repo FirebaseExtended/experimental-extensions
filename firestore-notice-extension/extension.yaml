@@ -23,11 +23,13 @@ billingRequired: true
 
 roles:
   - role: datastore.user
-    reason: Allows this extension to access Cloud Firestore to read and process acknoweldgements.
+    reason: Allows this extension to access Cloud Firestore to read and process acknowledgements.
 
 resources:
   - name: getNotice
     type: firebaseextensions.v1beta.function
+    description:
+      Returns the latest notice document type along with any user acknowledgement documents. Optionally, a version can be specified to return a specific notice. 
     properties:
       location: ${LOCATION}
       runtime: nodejs14
@@ -35,6 +37,8 @@ resources:
 
   - name: acknowledgeNotice
     type: firebaseextensions.v1beta.function
+    description:
+      Acknowledges a notice by ID.
     properties:
       location: ${LOCATION}
       runtime: nodejs14
@@ -42,6 +46,8 @@ resources:
 
   - name: unacknowledgeNotice
     type: firebaseextensions.v1beta.function
+    description:
+      Unacknowledges a notice by ID.
     properties:
       location: ${LOCATION}
       runtime: nodejs14
@@ -49,6 +55,8 @@ resources:
 
   - name: getAcknowledgements
     type: firebaseextensions.v1beta.function
+    description:
+      Returns a list of all user acknowledgements in creation order, including the notice document.
     properties:
       location: ${LOCATION}
       runtime: nodejs14
