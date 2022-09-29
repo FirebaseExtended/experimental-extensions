@@ -23,19 +23,23 @@ import { getExportPaths } from "./get_export_paths";
 import { uploadDataAsZip } from "./upload_as_zip";
 import { uploadAsCSVs } from "./upload_as_csv";
 
-// validate config
-if (!config.cloudStorageExportDirectory) {
-  throw new Error("STORAGE_EXPORT_DIRECTORY is not configured");
-}
 // Initialize the Firebase Admin SDK
 admin.initializeApp({
   databaseURL: config.selectedDatabaseInstance,
 });
-
+/**
+ * Export user data from Cloud Firestore, Realtime Database, and Cloud Storage.
+ */
 export const exportUserData = functions.https.onCall(async (_data, context) => {
+  // get the user id
   const uid = context.auth.uid;
+  // create a record of the export in firestore and get its id
   const exportId = await initializeExport(uid);
-  const storagePrefix = `${config.cloudStorageExportDirectory}/${uid}/${exportId}`;
+  // this is the path to the exported data in Cloud Storage
+  const storagePrefix = `${
+    config.cloudStorageExportDirectory || ""
+  }/${uid}/${exportId}`;
+  // get the paths specified by config and/or custom hook.
   const exportPaths = await getExportPaths(uid);
 
   if (config.zip) {
@@ -53,6 +57,11 @@ export const exportUserData = functions.https.onCall(async (_data, context) => {
   return { exportId };
 });
 
+/**
+ * Initialize the export by creating a record in the exports collection.
+ * @param uid userId
+ * @returns exportId, the id of the export document in the exports collection
+ */
 const initializeExport = async (uid: string) => {
   const startedAt = FieldValue.serverTimestamp();
 
@@ -67,6 +76,12 @@ const initializeExport = async (uid: string) => {
   return exportDoc.id;
 };
 
+/**
+ * On completion of the export, updates the export document in the exports collection.
+ * @param storagePrefix the path to the exported data in Cloud Storage
+ * @param uid userId
+ * @param exportId the id of the record of the export in firestore
+ */
 const finalizeExport = async (
   storagePrefix: string,
   uid: string,
