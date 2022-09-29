@@ -238,12 +238,16 @@ export const getAcknowledgements = functions.https.onCall(
       query = query.where("acknowledgement", "==", "acknowledged");
     }
 
-    const snapshot = await db
-      .collectionGroup("acknowledgements")
-      .where("userId", "==", uid)
+    // Get a list of all the acknowledgements for a single user.
+    const snapshot = await query
       .orderBy("createdAt", "desc")
       .withConverter(acknowledgementConverter)
       .get();
+
+    // Return early if no acknowledgements exist.
+    if (snapshot.empty) {
+      return [];
+    }
 
     const acknowledements = snapshot.docs.map((doc) => doc.data());
 
