@@ -1,7 +1,6 @@
 import { FieldValue, FirestoreDataConverter, WithFieldValue } from "firebase-admin/firestore";
 
-import { Notice, Unacknowledgement } from "./interface";
-import { Acknowledgement } from "./interface";
+import { Notice, Acknowledgement } from "./interface";
 
 export const noticeConverter: FirestoreDataConverter<Notice> = {
   toFirestore(notice: any): FirebaseFirestore.DocumentData {
@@ -27,50 +26,42 @@ export const acknowledgementConverter: FirestoreDataConverter<Acknowledgement> =
   toFirestore(
     data: WithFieldValue<Acknowledgement>
   ): FirebaseFirestore.DocumentData {
-    return {
-      acknowledgedAt: FieldValue.serverTimestamp(),
-      userId: data.userId,
-      noticeId: data.noticeId,
-      type: data.type,
-      metadata: data.metadata,
-    };
-  },
-  fromFirestore(snapshot: FirebaseFirestore.DocumentSnapshot) {
-    const data = snapshot.data();
-
-    // TODO validate
-    return {
-      id: snapshot.id,
-      userId: data.userId,
-      noticeId: data.noticeId,
-      acknowledgedAt: data.acknowledgedAt,
-      metadata: data.metadata || {},
-      type: data.type,
-    };
-  },
-};
-
-export const unacknowledgementConverter: FirestoreDataConverter<Unacknowledgement> = {
-  toFirestore(
-    data: WithFieldValue<Unacknowledgement>
-  ): FirebaseFirestore.DocumentData {
-    return {
-      unacknowledgedAt: FieldValue.serverTimestamp(),
+    const acknowledement = {
+      createdAt: FieldValue.serverTimestamp(),
+      acknowledgement: data.acknowledgement,
       userId: data.userId,
       noticeId: data.noticeId,
       metadata: data.metadata,
     };
+
+    if (data.acknowledgement === 'acknowledged') {
+      return {
+        ...acknowledement,
+        type: data.type || 'seen',
+      };
+    }
+
+    return acknowledement;
   },
   fromFirestore(snapshot: FirebaseFirestore.DocumentSnapshot) {
     const data = snapshot.data();
 
-    // TODO validate
-    return {
+    const acknowledgement = {
       id: snapshot.id,
       userId: data.userId,
       noticeId: data.noticeId,
-      unacknowledgedAt: data.acknowledgedAt,
+      createdAt: data.createdAt,
       metadata: data.metadata || {},
+      acknowledgement: data.acknowledgement,
     };
+
+    if (data.acknowledgement === 'acknowledged') {
+      return {
+        ...acknowledgement,
+        type: data.type,
+      };
+    }
+
+    return acknowledgement;
   },
 };

@@ -4,7 +4,6 @@ import { firestore } from "firebase-admin";
 import setupEnvironment from "./helpers/setupEnvironment";
 import * as config from "../src/config";
 
-import { Acknowledgement, AcknowledgementStatus } from "../src/interface";
 const fft = require("firebase-functions-test")();
 
 /** Initialize app for the emulator */
@@ -20,11 +19,9 @@ setupEnvironment();
 jest.spyOn(admin, "initializeApp").mockImplementation();
 
 import * as funcs from "../src/index";
-import { waitForDocumentUpdate } from "./helpers";
+import { waitForDocumentToExistInCollection } from "./helpers";
 /** prepare extension functions */
-const acceptNoticeFn = fft.wrap(funcs.acceptNotice);
-const acknowledgeNoticeFn = fft.wrap(funcs.seenNotice);
-const unacknowledgeNoticeFn = fft.wrap(funcs.declineNotice);
+const acknowledgeNoticeFn = fft.wrap(funcs.acknowledgeNotice);
 const getNoticeFn = fft.wrap(funcs.getNotice);
 const getAcknowledgements = fft.wrap(funcs.getAcknowledgements);
 
@@ -35,45 +32,122 @@ const noticesCollection = firestore().collection(
   config.default.noticesCollectionPath
 );
 
+const createNotice = async ({
+  name = "banner",
+  metadata = {},
+  type = "banner",
+  allowList = null,
+}) => {
+  return admin
+    .firestore()
+    .collection("notices")
+    .add({ name, metadata, createdAt: new Date(), type, allowList });
+};
+
 describe("functions testing", () => {
-  describe("accept notice", () => {
-    let user;
+  let user;
+
+  beforeEach(async () => {
+    /** create example user */
+    user = await auth.createUser({});
+  });
+
+  describe("acknowledgements", () => {
     let noticeId;
 
     beforeEach(async () => {
-      // create a notice
-      const randomId = Math.random().toString(36).substring(2, 15);
-      noticeId = `notice_v${randomId}`;
+      const notice = await admin
+        .firestore()
+        .collection("notices")
+        .add({ name: "banner", metadata: { test: "value" } });
 
-      await admin.firestore().collection("notices").doc(noticeId).set({});
-
-      /** create example user */
-      user = await auth.createUser({});
+      noticeId = notice.id;
     });
 
-    test("can accept a notice", async () => {
+    test("can acknowledge a notice", async () => {
       /** Accept notice */
-      await acceptNoticeFn.call({}, { noticeId }, { auth: { uid: user.uid } });
-
-      /** Get notice */
-      const doc = noticesCollection
-        .doc(noticeId)
-        .collection("acknowledgements")
-        .doc(user.uid);
-
-      /** Wait for update */
-      const acknoweldgement = await waitForDocumentUpdate(
-        doc,
-        "status",
-        `accepted`
+      await acknowledgeNoticeFn.call(
+        {},
+        { noticeId, metadata: { test: "value" } },
+        { auth: { uid: user.uid } }
       );
 
-      /** Assert data */
-      const response = acknoweldgement.data();
+      /** Get notice */
+      const AckCollection = noticesCollection
+        .doc(noticeId)
+        .collection("acknowledgements");
 
-      expect(response.status).toBe("accepted");
-      expect(response.noticeId).toBe(noticeId);
-      expect(response.userId).toBe(user.uid);
+      /** Set query */
+      const query = AckCollection.where("userId", "==", user.uid);
+
+      /** Wait for update */
+      const snapshot = await query.limit(1).get();
+
+      /** Get the Acknolwedgement document */
+      const acknoweldgement = snapshot.docs[0].data();
+
+      /** Assert data */
+      expect(acknoweldgement.type).toBe("seen");
+      expect(acknoweldgement.noticeId).toBe(noticeId);
+      expect(acknoweldgement.userId).toBe(user.uid);
+      expect(acknoweldgement.metadata.test).toEqual("value");
+    });
+
+    test("will throw an error with no authentication provided", () => {
+      expect(acknowledgeNoticeFn.call({}, {}, {})).rejects.toThrowError(
+        "User must be authenticated."
+      );
+    });
+  });
+
+  describe("get notice", () => {
+    let noticeId;
+    let type;
+
+    beforeEach(async () => {
+      type = "banner";
+      const notice = await createNotice({ type, allowList: [user.uid] });
+
+      noticeId = notice.id;
+    });
+
+    test("can get a notice", async () => {
+      /** Find notice */
+      const resp = await getNoticeFn.call(
+        {},
+        { type },
+        { auth: { uid: user.uid } }
+      );
+
+      expect(resp.id).toEqual(noticeId);
+      expect(resp.type).toEqual(type);
+      expect(resp.createdAt).toBeDefined();
+    });
+
+    test("will throw an error when a notice type has not been provided", async () => {
+      expect(
+        getNoticeFn.call({}, {}, { auth: { uid: user.uid } })
+      ).rejects.toThrow("No notice `type` has been provided.");
+    });
+
+    test("will throw an error with a notice cannot be found", () => {
+      expect(
+        getNoticeFn.call({}, { type: "unknown" }, { auth: { uid: user.uid } })
+      ).rejects.toThrowError(
+        "No notices with the type unknown could be found."
+      );
+    });
+
+    test("will throw an error with no authentication provided", () => {
+      expect(getNoticeFn.call({}, {}, {})).rejects.toThrowError(
+        "User must be authenticated."
+      );
+    });
+
+    test("will throw an error if user is not in the allow list", () => {
+      expect(
+        getNoticeFn.call({}, { type }, { auth: { uid: "unknown" } })
+      ).rejects.toThrowError("No notices with the type banner could be found.");
     });
   });
 });
