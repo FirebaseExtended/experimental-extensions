@@ -6,6 +6,10 @@ export interface ExportPaths {
   firestorePaths: unknown[];
   databasePaths: unknown[];
 }
+const emptyPaths: ExportPaths = {
+  firestorePaths: [],
+  databasePaths: [],
+};
 
 export async function getExportPaths(uid: string): Promise<ExportPaths> {
   let firestorePaths = [];
@@ -19,13 +23,16 @@ export async function getExportPaths(uid: string): Promise<ExportPaths> {
   } else {
     log.customHookNotConfigured();
   }
+
   if (config.firestorePaths || config.databasePaths) {
     const pathsFromConfig = getPathsFromConfig(uid);
-
     firestorePaths = [...firestorePaths, ...pathsFromConfig.firestorePaths];
     databasePaths = [...databasePaths, ...pathsFromConfig.databasePaths];
   }
-
+  if (databasePaths.length && !config.databaseLocation) {
+    log.rtdbLocationNotConfigured();
+    databasePaths = [];
+  }
   return {
     firestorePaths,
     databasePaths,
@@ -100,8 +107,3 @@ function validateResponseJson(
   }
   return data as ValidatedReponseJson;
 }
-
-const emptyPaths: ExportPaths = {
-  firestorePaths: [],
-  databasePaths: [],
-};

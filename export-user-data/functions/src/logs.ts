@@ -114,3 +114,9 @@ export const customHookInvalidData = (endpoint: string) => {
     `Custom hook endpoint ${endpoint} did not return JSON in the valid format`
   );
 };
+
+export const rtdbLocationNotConfigured = () => {
+  logger.log(
+    "Realtime Database paths are provided but no database location is configured, skipping Realtime Database exports"
+  );
+};

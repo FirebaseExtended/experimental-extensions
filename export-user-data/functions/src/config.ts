@@ -14,23 +14,12 @@
  * limitations under the License.
  */
 
-// export default {
-//   storageBucket: process.env.STORAGE_BUCKET,
-//   storageExportDirectory: process.env.STORAGE_EXPORT_DIRECTORY,
-//   firestorePaths: process.env.FIRESTORE_PATHS,
-//   databasePaths: process.env.DATABASE_PATHS,
-//   databaseLocation: process.env.DATABASE_LOCATION,
-//   customHookEndpoint: process.env.CUSTOM_HOOK_ENDPOINT,
-// };
-
 export default {
-  storageBucket: "storage-bucket",
-  storageExportDirectory: "storage-export-dir",
-  firestorePaths: "",
-  databasePaths: "users/{UID},posts/{UID}",
-  databaseLocation:
-    process.env.DATABASE_LOCATION ||
-    "http://localhost:9000/?ns=extensions-testing",
-  customHookEndpoint: process.env.CUSTOM_HOOK_ENDPOINT || "",
-  zip: true,
+  storageBucket: process.env.STORAGE_BUCKET,
+  cloudStoragePath: process.env.CLOUD_STORAGE_DIRECTORY,
+  firestorePaths: process.env.FIRESTORE_PATHS,
+  databasePaths: process.env.DATABASE_PATHS,
+  databaseLocation: process.env.DATABASE_LOCATION,
+  customHookEndpoint: process.env.CUSTOM_HOOK_ENDPOINT,
+  zip: process.env.ZIP === "true",
 };

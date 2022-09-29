@@ -17,15 +17,20 @@
 import * as admin from "firebase-admin";
 import { FieldValue } from "firebase-admin/firestore";
 import * as functions from "firebase-functions";
+import archiver, { Archiver } from "archiver";
 import config from "./config";
+import * as log from "./logs";
 import {
   constructDatabaseCSV,
   constructFirestoreCollectionCSV,
   constructFirestoreDocumentCSV,
 } from "./construct_exports";
 import { ExportPaths, getExportPaths } from "./get_export_paths";
-import archiver, { Archiver } from "archiver";
-import * as log from "./logs";
+
+// validate config
+if (!config.cloudStoragePath) {
+  throw new Error("STORAGE_EXPORT_DIRECTORY is not configured");
+}
 
 // Initialize the Firebase Admin SDK
 admin.initializeApp({
@@ -33,9 +38,7 @@ admin.initializeApp({
 });
 
 export const exportUserData = functions.https.onCall(async (_data, context) => {
-  // TODO get from call
-  const uid = "123";
-  // const uid = context.auth.uid;
+  const uid = context.auth.uid;
 
   const exportId = await initializeExport(uid);
 
@@ -76,7 +79,7 @@ const finalizeExport = async (uid: string, exportId: string) => {
     .doc(`exports/${exportId}`)
     .update({
       status: "complete",
-      storagePath: `${config.storageExportDirectory}/${uid}/${exportId}${
+      storagePath: `${config.cloudStoragePath}/${uid}/${exportId}${
         config.zip ? ".zip" : ""
       }`,
     });
@@ -156,7 +159,7 @@ const uploadCSVToStorage = async (
   extension: string = ".csv"
 ) => {
   const formattedPath = path.replace(/\//g, "_");
-  const storagePath = `${config.storageExportDirectory}/${uid}/${exportId}/${formattedPath}${extension}`;
+  const storagePath = `${config.cloudStoragePath}/${uid}/${exportId}/${formattedPath}${extension}`;
 
   const file = admin.storage().bucket(config.storageBucket).file(storagePath);
 
@@ -180,7 +183,7 @@ async function archiveFilesAsZip(
     });
     archive.on("error", reject);
 
-    const storagePath = `${config.storageExportDirectory}/${uid}/${exportId}.zip`;
+    const storagePath = `${config.cloudStoragePath}/${uid}/${exportId}.zip`;
 
     const stream = admin
       .storage()
