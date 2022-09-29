@@ -2,7 +2,7 @@ import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
 import * as logs from "./logs";
 import config from "./config";
-import { noticeConverter, acknowledgementConverter, unacknowledgementConverter } from "./converter";
+import { noticeConverter, acknowledgementConverter } from "./converter";
 
 import { getEventarc } from "firebase-admin/eventarc";
 import { Acknowledgement, Notice } from "./interface";
@@ -86,6 +86,7 @@ export const getNotice = functions.https.onCall(async (data, context) => {
     .doc(notice.id)
     .collection("acknowledgements")
     .where("userId", "==", context.auth!.uid)
+    .orderBy('createdAt', 'desc')
     .withConverter(acknowledgementConverter)
     .get();
 
@@ -138,6 +139,7 @@ export const acknowledgeNotice = functions.https.onCall(async (data, context) =>
   const snapshot = await handleAcknowledgement(data, context);
 
   const documentData = {
+    event: 'acknowledgement',
     userId: context.auth!.uid,
     noticeId: snapshot.id,
     type: data.type || "seen",
@@ -165,6 +167,7 @@ export const unacknowledgeNotice = functions.https.onCall(async (data, context) 
   const snapshot = await handleAcknowledgement(data, context);
 
   const documentData = {
+    event: 'unacknowledgement',
     userId: context.auth!.uid,
     noticeId: snapshot.id,
     metadata: data.metadata || {},
@@ -174,7 +177,7 @@ export const unacknowledgeNotice = functions.https.onCall(async (data, context) 
     .collection(config.noticesCollectionPath)
     .doc(data.noticeId)
     .collection("acknowledgements")
-    .withConverter(unacknowledgementConverter)
+    .withConverter(acknowledgementConverter)
     // @ts-expect-error - cant paritally type set arguments in the converter
     .add(documentData);
 
@@ -195,13 +198,12 @@ export const getAcknowledgements = functions.https.onCall(
 
   const snapshot = await db
     .collectionGroup("acknowledgements")
-    .where('userId', "==", uid)
-    // TODO this can't work with a differing acknowledgement structure
-    // .withConverter(acknowledgementConverter)
+    .where("userId", "==", uid)
+    .orderBy("createdAt", "desc")
+    .withConverter(acknowledgementConverter)
     .get();
 
-  // TODO casting
-  const acknowledements = snapshot.docs.map((doc) => doc.data()) as Acknowledgement[];
+  const acknowledements = snapshot.docs.map((doc) => doc.data());
 
   const noticeReferences = acknowledements.map((doc) =>
     db.collection("notices").doc(doc.noticeId).withConverter(noticeConverter)
@@ -211,11 +213,18 @@ export const getAcknowledgements = functions.https.onCall(
       ...noticeReferences
     )) as firestore.DocumentSnapshot<Notice>[];
 
+  const cache = new Map<string, Notice>();
+
   const response: (Acknowledgement & { notice: Omit<Notice, "allowList"> })[] =
     acknowledements.map((doc) => {
-      const noticeData = noticeSnapshots
-        .find((notice) => notice.id === doc.noticeId)!
-        .data();
+      const noticeData =
+        cache.get(doc.noticeId) ||
+        noticeSnapshots.find((notice) => notice.id === doc.noticeId)!.data();
+
+      if (!cache.has(doc.noticeId)) {
+        cache.set(doc.noticeId, noticeData);
+      }
+
       const { allowList, ...notice } = noticeData;
 
       return {

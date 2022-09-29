@@ -19,7 +19,7 @@ export interface Notice {
   allowList: string[];
 }
 
-export interface Acknowledgement {
+type BaseAcknowledgement = {
   // The document ID.
   id: string;
   // The UID of the user who acknowledged the notice.
@@ -27,13 +27,19 @@ export interface Acknowledgement {
   // The ID of the notice that was acknowledged.
   noticeId: string;
   // The timestamp when the notice was acknowledged.
-  acknowledgedAt: firestore.Timestamp;
-  // The type of the acknowledgement. Defaults to `seen`.
-  type: string;
+  createdAt: firestore.Timestamp;
   // The optional metadata of the acknowledgement.
   metadata: any;
-}
+};
 
-export type Unacknowledgement = Omit<Acknowledgement, 'acknowledgedAt' | 'type'> & {
-  unacknowledgedAt: firestore.Timestamp;
-}
+export type Acknowledgement =
+  | (BaseAcknowledgement & {
+      // The event type of the acknowledgement.
+      event: "acknowledgement";
+      // The type of the acknowledgement. Defaults to `seen`.
+      type: string;
+    })
+  | (BaseAcknowledgement & {
+      // The event type of the acknowledgement.
+      event: "unacknowledgement";
+    });
