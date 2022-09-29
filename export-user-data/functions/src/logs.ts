@@ -29,8 +29,12 @@ export const firestoreExporting = () => {
   logger.log("Exporting user data from Cloud Firestore");
 };
 
-export const firestoreNotConfigured = () => {
+export const firestoreConfigPathsNotConfigured = () => {
   logger.log("Cloud Firestore paths are not configured, skipping");
+};
+
+export const customHookNotConfigured = () => {
+  logger.log("paths from a custom hook are not configured, skipping");
 };
 
 export const firestorePathExported = (path: string) => {
@@ -69,7 +73,7 @@ export const rtdbPathExported = (path: string) => {
   logger.log(`Exported: '${path}' from the Realtime Database`);
 };
 
-export const rtdbNotConfigured = () => {
+export const rtdbConfigPathsNotConfigured = () => {
   logger.log("Realtime Database paths are not configured, skipping");
 };
 

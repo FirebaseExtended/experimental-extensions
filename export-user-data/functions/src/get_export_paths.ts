@@ -1,7 +1,7 @@
 // fetch from a hook
-import config from "./config";
-import { customHookBadResponse, customHookInvalidData } from "./logs";
 import fetch from "node-fetch";
+import config from "./config";
+import * as log from "./logs";
 export interface ExportPaths {
   firestorePaths: unknown[];
   databasePaths: unknown[];
@@ -16,6 +16,8 @@ export async function getExportPaths(uid: string): Promise<ExportPaths> {
 
     firestorePaths = [...firestorePaths, ...pathsFromCustomHook.firestorePaths];
     databasePaths = [...databasePaths, ...pathsFromCustomHook.databasePaths];
+  } else {
+    log.customHookNotConfigured();
   }
   if (config.firestorePaths || config.databasePaths) {
     const pathsFromConfig = getPathsFromConfig(uid);
@@ -38,7 +40,7 @@ async function getPathsFromCustomHook(uid: string): Promise<ExportPaths> {
   });
 
   if (!response.ok) {
-    customHookBadResponse(config.customHookEndpoint);
+    log.customHookBadResponse(config.customHookEndpoint);
     return emptyPaths;
   }
 
@@ -48,7 +50,7 @@ async function getPathsFromCustomHook(uid: string): Promise<ExportPaths> {
     const parsedBody = JSON.parse(await response.json());
     data = validateResponseJson(parsedBody);
   } catch (e) {
-    customHookInvalidData(config.customHookEndpoint);
+    log.customHookInvalidData(config.customHookEndpoint);
     return emptyPaths;
   }
 
@@ -67,9 +69,13 @@ function getPathsFromConfig(uid: string): ExportPaths {
 
   if (config.firestorePaths) {
     firestorePathsList = config.firestorePaths.split(",");
+  } else {
+    log.firestoreConfigPathsNotConfigured();
   }
   if (config.databasePaths) {
     databasePathsList = config.databasePaths.split(",");
+  } else {
+    log.rtdbConfigPathsNotConfigured();
   }
 
   return {
