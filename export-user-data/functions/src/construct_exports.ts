@@ -2,6 +2,12 @@ import * as sync from "csv-stringify/sync";
 
 const HEADERS = ["TYPE", "path", "data"];
 
+const dataSources = {
+  firestore: "FIRESTORE",
+  database: "DATABASE",
+  storage: "STORAGE",
+};
+
 export const constructFirestoreCollectionCSV = async (
   snap: FirebaseFirestore.QuerySnapshot,
   collectionPath: string
@@ -9,7 +15,7 @@ export const constructFirestoreCollectionCSV = async (
   const csvData = snap.docs.map((doc) => {
     const path = `${collectionPath}/${doc.id}`;
 
-    return ["FIRESTORE", path, JSON.stringify(doc.data())];
+    return [dataSources.firestore, path, JSON.stringify(doc.data())];
   });
 
   csvData.unshift(HEADERS);
@@ -27,7 +33,7 @@ export const constructFirestoreDocumentCSV = async (
 
   for (let key in data) {
     const path = `${documentPath}/${key}`;
-    csvData.push(["FIRESTORE", path, JSON.stringify(data[key])]);
+    csvData.push([dataSources.firestore, path, JSON.stringify(data[key])]);
   }
 
   return sync.stringify(csvData);
@@ -40,7 +46,7 @@ export const constructDatabaseCSV = async (snap: any, databasePath: string) => {
 
   for (let key in data) {
     const path = `${databasePath}/${key}`;
-    csvData.push(["DATABASE", path, JSON.stringify(data[key])]);
+    csvData.push([dataSources.database, path, JSON.stringify(data[key])]);
   }
 
   return sync.stringify(csvData);

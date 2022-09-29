@@ -21,8 +21,8 @@ import {
   constructDatabaseCSV,
   constructFirestoreCollectionCSV,
   constructFirestoreDocumentCSV,
-} from "./construct";
-import { getPaths } from "./getPaths";
+} from "./construct_exports";
+import { getExportPaths } from "./get_export_paths";
 
 // Initialize the Firebase Admin SDK
 admin.initializeApp({
@@ -50,7 +50,7 @@ export const exportUserData = functions.https.onCall(async (_data, context) => {
 
   const exportId = await initializeExport(uid, startedAt);
 
-  const { firestorePaths, databasePaths } = await getPaths(uid);
+  const { firestorePaths, databasePaths } = await getExportPaths(uid);
   const { collections, docs } = firestorePaths;
 
   const promises = [];
@@ -103,7 +103,6 @@ const uploadToStorage = async (
   const file = admin.storage().bucket(config.storageBucket).file(storagePath);
 
   await file.save(csv);
-  console.log("gets to here");
 
   await admin.firestore().doc(`exports/${exportId}`).update({
     status: "complete",

@@ -32,4 +32,5 @@ export default {
     process.env.DATABASE_LOCATION ||
     "http://localhost:9000/?ns=extensions-testing",
   customHookEndpoint: process.env.CUSTOM_HOOK_ENDPOINT || "",
+  zip: true,
 };

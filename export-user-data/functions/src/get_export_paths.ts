@@ -1,7 +1,15 @@
 // fetch from a hook
 import config from "./config";
 
-export async function getPaths(uid: string): Promise<ExportPaths> {
+export interface ExportPaths {
+  firestorePaths: {
+    collections: string[];
+    docs: string[];
+  };
+  databasePaths: string[];
+}
+
+export async function getExportPaths(uid: string): Promise<ExportPaths> {
   let collections = [];
   let docs = [];
   let databasePaths = [];
@@ -34,14 +42,6 @@ export async function getPaths(uid: string): Promise<ExportPaths> {
     },
     databasePaths,
   };
-}
-
-export interface ExportPaths {
-  firestorePaths: {
-    collections: string[];
-    docs: string[];
-  };
-  databasePaths: string[];
 }
 
 async function getPathsFromCustomHook(uid: string): Promise<ExportPaths> {
