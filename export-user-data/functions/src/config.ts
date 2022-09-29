@@ -16,10 +16,11 @@
 
 export default {
   storageBucket: process.env.STORAGE_BUCKET,
-  cloudStoragePath: process.env.CLOUD_STORAGE_DIRECTORY,
+  cloudStorageExportDirectory: process.env.CLOUD_STORAGE_EXPORT_DIRECTORY,
   firestorePaths: process.env.FIRESTORE_PATHS,
-  databasePaths: process.env.DATABASE_PATHS,
-  databaseLocation: process.env.DATABASE_LOCATION,
+  databasePaths: process.env.RTDB_PATHS,
+  storagePaths: process.env.STORAGE_PATHS,
+  selectedDatabaseInstance: process.env.SELECTED_DATABASE_INSTANCE,
   customHookEndpoint: process.env.CUSTOM_HOOK_ENDPOINT,
   zip: process.env.ZIP === "true",
 };

@@ -28,13 +28,13 @@ import {
 import { ExportPaths, getExportPaths } from "./get_export_paths";
 
 // validate config
-if (!config.cloudStoragePath) {
+if (!config.cloudStorageExportDirectory) {
   throw new Error("STORAGE_EXPORT_DIRECTORY is not configured");
 }
 
 // Initialize the Firebase Admin SDK
 admin.initializeApp({
-  databaseURL: config.databaseLocation,
+  databaseURL: config.selectedDatabaseInstance,
 });
 
 export const exportUserData = functions.https.onCall(async (_data, context) => {
@@ -79,7 +79,7 @@ const finalizeExport = async (uid: string, exportId: string) => {
     .doc(`exports/${exportId}`)
     .update({
       status: "complete",
-      storagePath: `${config.cloudStoragePath}/${uid}/${exportId}${
+      storagePath: `${config.cloudStorageExportDirectory}/${uid}/${exportId}${
         config.zip ? ".zip" : ""
       }`,
     });
@@ -159,7 +159,7 @@ const uploadCSVToStorage = async (
   extension: string = ".csv"
 ) => {
   const formattedPath = path.replace(/\//g, "_");
-  const storagePath = `${config.cloudStoragePath}/${uid}/${exportId}/${formattedPath}${extension}`;
+  const storagePath = `${config.cloudStorageExportDirectory}/${uid}/${exportId}/${formattedPath}${extension}`;
 
   const file = admin.storage().bucket(config.storageBucket).file(storagePath);
 
@@ -183,7 +183,7 @@ async function archiveFilesAsZip(
     });
     archive.on("error", reject);
 
-    const storagePath = `${config.cloudStoragePath}/${uid}/${exportId}.zip`;
+    const storagePath = `${config.cloudStorageExportDirectory}/${uid}/${exportId}.zip`;
 
     const stream = admin
       .storage()
@@ -250,4 +250,57 @@ async function appendToArchive(
 
 function replaceUID(path: string, uid: string) {
   return path.replace(/{UID}/g, uid);
+}
+
+const admin = require("firebase-admin");
+const archiver = require("archiver");
+
+export function zipDirectory(storagePath, bucketName, outPath) {
+  const archive = archiver("zip", { zlib: { level: 9 } });
+  const stream = fs.createWriteStream(outPath);
+  archive.pipe(stream);
+
+  return new Promise((resolve, reject) => {
+    admin
+      .storage(bucketName)
+      .getFiles({
+        prefix: storagePath,
+      })
+      .then((files) => {
+        files.forEach((file) => {
+          archive.append(file.createReadStream(), { name: file.name });
+        });
+        archive.finalize();
+      });
+
+    stream.on("close", () => resolve(false));
+  });
+}
+
+const archive = archiver("zip", {
+  zlib: { level: 9 }, // Sets the compression level.
+});
+
+archive.on("error", function (err) {
+  throw err;
+});
+archive.on("finish", function () {
+  console.log("Zipped files!");
+});
+
+const output = fs.createWriteStream(__dirname + "/example.zip");
+
+archive.pipe(output);
+
+async function downloadZips() {
+  const files = await admin.storage().bucket("storage-bucket").getFiles({
+    // get storage path from extension:
+    prefix: storagePath,
+  });
+
+  for (let file of files) {
+    const stream = file.createReadStream();
+    archive.append(stream, { name: file.name });
+  }
+  archive.finalize();
 }

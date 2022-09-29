@@ -1,5 +1,6 @@
 // fetch from a hook
 import fetch from "node-fetch";
+import { addSyntheticLeadingComment } from "typescript";
 import config from "./config";
 import * as log from "./logs";
 export interface ExportPaths {
@@ -29,7 +30,7 @@ export async function getExportPaths(uid: string): Promise<ExportPaths> {
     firestorePaths = [...firestorePaths, ...pathsFromConfig.firestorePaths];
     databasePaths = [...databasePaths, ...pathsFromConfig.databasePaths];
   }
-  if (databasePaths.length && !config.databaseLocation) {
+  if (databasePaths.length && !config.selectedDatabaseInstance) {
     log.rtdbLocationNotConfigured();
     databasePaths = [];
   }
