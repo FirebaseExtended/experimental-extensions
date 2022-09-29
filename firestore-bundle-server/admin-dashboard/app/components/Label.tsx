@@ -1,7 +1,7 @@
 export function Label(props: {
   label: string;
   description?: string;
-  children: React.ReactNode;
+  children?: React.ReactNode;
 }) {
   return (
     <label className="block mt-6">
@@ -13,7 +13,9 @@ export function Label(props: {
       )}
       <div
         className="[&_input]:w-full [&_input]:border [&_input]:p-2
-        [&_textarea]:w-full [&_textarea]:border [&_textarea]:p-2"
+        [&_textarea]:w-full [&_textarea]:border [&_textarea]:p-2
+        [&_select]:w-full [&_select]:border [&_select]:p-2
+        "
       >
         {props.children}
       </div>

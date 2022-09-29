@@ -3,6 +3,8 @@ import { getFirestore } from 'firebase-admin/firestore';
 import type { QuerySnapshot } from 'firebase-admin/firestore';
 import type { Bundle } from './types';
 
+export { Timestamp } from 'firebase-admin/firestore';
+
 const projectId = process.env.PROJECT_ID;
 const bundlesCollectionPath = process.env.BUNDLESPEC_COLLECTION || 'bundles';
 

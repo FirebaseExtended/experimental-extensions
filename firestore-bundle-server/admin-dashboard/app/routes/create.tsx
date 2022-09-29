@@ -5,11 +5,8 @@ import { useEffect, useState } from "react";
 import { useActionData } from "@remix-run/react";
 import qs from "qs";
 import { Label } from "~/components/Label";
-import { Timestamp } from "firebase-admin/firestore";
-import { createBundle, getBundle } from "~/firebase.server";
+import { createBundle, getBundle, Timestamp } from "~/firebase.server";
 import type { Bundle } from "~/types";
-
-// TODO: params object
 
 export const action: ActionFunction = async ({ request }) => {
   const text = await request.text();
@@ -29,13 +26,37 @@ export const action: ActionFunction = async ({ request }) => {
       ? Timestamp.fromDate(new Date(form.notBefore as string))
       : null,
     docs: form.docs ? (form.docs as string).split(",") : null,
+    params: {},
     queries: {},
   };
 
+  if (Array.isArray(form.params)) {
+    for (const _param of form.params) {
+      const param = _param as any;
+      const { name, required, type } = param;
+
+      if (!name) {
+        continue;
+      }
+
+      data.params![name] = {
+        required: required === "true",
+        type: type || "string",
+      };
+    }
+  }
+
+
   if (Array.isArray(form.query)) {
-    form.query.forEach((query: any) => {
+    for (const _query of form.query) {
+      const query = _query as any;
       const id = query.id;
       const collection = query.collection;
+
+      if (!id || !collection) {
+        continue;
+      }
+
       data.queries![id] = {
         collection,
         conditions: [],
@@ -78,15 +99,16 @@ export const action: ActionFunction = async ({ request }) => {
           }
         });
       }
-    });
+    }
   }
-
+  
   await createBundle(id, data);
   return redirect(`/bundles/${id}`);
 };
 
 export default function Create() {
   const [queries, setQueries] = useState(0);
+  const [params, setParams] = useState(0);
   const action = useActionData();
 
   useEffect(() => {
@@ -136,21 +158,45 @@ export default function Create() {
           <input name="docs" type="string" />
         </Label>
         <Label
+          label="Params"
+          description="Optional params to define. Can be referenced in queries via the `$param` notation and provided via HTTP query params (e.g. ?name=)."
+        />
+        <button
+          type="button"
+          onClick={() => setParams(($) => $ + 1)}
+          className="rounded border px-3 py-2 text-sm"
+        >
+          Add Param +
+        </button>
+        {Array(params)
+          .fill("")
+          .map((_, i) => {
+            return <Param index={i} key={i} />;
+          })}
+        <Label
           label="Queries"
           description="A list of queries to include in the bundle. Each query has its own unique ID a client can use via the `namedQuery` API."
-        >
-          <div>
-            <button type="button" onClick={() => setQueries(($) => $ + 1)}>
-              Add Query
-            </button>
-          </div>
+        />
 
+        <div className="mb-2">
+          <button
+            type="button"
+            onClick={() => {
+              console.log("Click");
+              setQueries(($) => $ + 1);
+            }}
+            className="rounded border px-3 py-2 text-sm"
+          >
+            Add Query +
+          </button>
+        </div>
+        <div>
           {Array(queries)
             .fill("")
             .map((_, i) => {
               return <Queries index={i} key={i} />;
             })}
-        </Label>
+        </div>
         <div className="mt-6 flex justify-end">
           <button type="submit">Create Bundle &rarr;</button>
         </div>
@@ -159,11 +205,38 @@ export default function Create() {
   );
 }
 
+function Param(props: { index: number }) {
+  return (
+    <div className="grid grid-cols-3 gap-3">
+      <Label label="Name">
+        <input name={`params[${props.index}][name]`} type="string" required />
+      </Label>
+      <Label label="Required">
+        <select name={`params[${props.index}][required]`}>
+          <option value="true">Required</option>
+          <option value="false">Not Required</option>
+        </select>
+      </Label>
+      <Label label="Type">
+        <select name={`params[${props.index}][type]`}>
+          <option value="string">string</option>
+          <option value="integer">integer</option>
+          <option value="float">float</option>
+          <option value="boolean">boolean</option>
+          <option value="integer-array">integer-array</option>
+          <option value="float-array">float-array</option>
+          <option value="string-array">string-array</option>
+        </select>
+      </Label>
+    </div>
+  );
+}
+
 function Queries(props: { index: number }) {
   const [conditions, setConditions] = useState(0);
 
   return (
-    <div className="border p-3 mb-3">
+    <div className="border px-3 mb-3">
       <Label
         label="Query ID"
         description="The unique query ID to be added to the bundle."
@@ -174,11 +247,19 @@ function Queries(props: { index: number }) {
         label="The collection ID to perform the query on."
         description="The unique query ID to be added to the bundle."
       >
-        <input name={`query[${props.index}][collection]`} type="string" required />
+        <input
+          name={`query[${props.index}][collection]`}
+          type="string"
+          required
+        />
       </Label>
-      <div>
-        <button type="button" onClick={() => setConditions(($) => $ + 1)}>
-          Add Condition
+      <div className="my-3">
+        <button
+          type="button"
+          onClick={() => setConditions(($) => $ + 1)}
+          className="rounded border px-3 py-2 text-sm"
+        >
+          Add Condition +
         </button>
       </div>
       {Array(conditions)
