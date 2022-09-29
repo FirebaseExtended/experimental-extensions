@@ -15,6 +15,7 @@
  */
 
 import * as admin from "firebase-admin";
+import { FieldValue } from "firebase-admin/firestore";
 import * as functions from "firebase-functions";
 import config from "./config";
 import {
@@ -22,11 +23,32 @@ import {
   constructFirestoreCollectionCSV,
   constructFirestoreDocumentCSV,
 } from "./construct_exports";
-import { getExportPaths } from "./get_export_paths";
+import { ExportPaths, getExportPaths } from "./get_export_paths";
+import archiver, { Archiver } from "archiver";
 
 // Initialize the Firebase Admin SDK
 admin.initializeApp({
   databaseURL: config.databaseLocation,
+});
+
+export const exportUserData = functions.https.onCall(async (_data, context) => {
+  const startedAt = FieldValue.serverTimestamp();
+
+  // TODO get from call
+  const uid = "123";
+  // const uid = context.auth.uid;
+
+  const exportId = await initializeExport(uid, startedAt);
+
+  const exportPaths = await getExportPaths(uid);
+
+  if (config.zip) {
+    await archiveFilesAsZip(exportPaths, uid, exportId);
+  } else {
+    await exportAsCSVs(exportPaths, uid, exportId);
+  }
+
+  return { exportId };
 });
 
 const initializeExport = async (uid: string, startedAt) => {
@@ -39,57 +61,52 @@ const initializeExport = async (uid: string, startedAt) => {
   return exportDoc.id;
 };
 
-export const exportUserData = functions.https.onCall(async (_data, context) => {
-  // console.log(admin.firestore);
-  const startedAt = "now";
+//TODO: Should these be put in their own file?
 
-  // const startedAt = admin.firestore.FieldValue.serverTimestamp();
-
-  // TODO get from call
-  const uid = "123";
-
-  const exportId = await initializeExport(uid, startedAt);
-
-  const { firestorePaths, databasePaths } = await getExportPaths(uid);
-  const { collections, docs } = firestorePaths;
-
+async function exportAsCSVs(
+  exportPaths: ExportPaths,
+  uid: string,
+  exportId: string
+) {
   const promises = [];
 
-  for (let collection of collections) {
+  for (let collection of exportPaths.firestorePaths.collections) {
     const snap = await admin.firestore().collection(collection).get();
 
     if (!snap.empty) {
       const csv = await constructFirestoreCollectionCSV(snap, collection);
       promises.push(
-        uploadToStorage(csv, uid, exportId, collection, ".firestore.csv")
+        uploadCSVToStorage(csv, uid, exportId, collection, ".firestore.csv")
       );
     }
   }
 
-  for (let doc of docs) {
+  for (let doc of exportPaths.firestorePaths.docs) {
     const snap = await admin.firestore().doc(doc).get();
 
     if (snap.exists) {
       const csv = await constructFirestoreDocumentCSV(snap, doc);
-      promises.push(uploadToStorage(csv, uid, exportId, doc, ".firestore.csv"));
+      promises.push(
+        uploadCSVToStorage(csv, uid, exportId, doc, ".firestore.csv")
+      );
     }
   }
 
-  for (let path of databasePaths) {
+  for (let path of exportPaths.databasePaths) {
     const snap = await admin.database().ref(path).get();
 
     if (snap.exists()) {
       const csv = await constructDatabaseCSV(snap, path);
-      promises.push(uploadToStorage(csv, uid, exportId, path, ".database.csv"));
+      promises.push(
+        uploadCSVToStorage(csv, uid, exportId, path, ".database.csv")
+      );
     }
   }
 
-  await Promise.all(promises);
+  return Promise.all(promises);
+}
 
-  return { exportId };
-});
-
-const uploadToStorage = async (
+const uploadCSVToStorage = async (
   csv: string,
   uid: string,
   exportId: string,
@@ -97,13 +114,13 @@ const uploadToStorage = async (
   extension: string = ".csv"
 ) => {
   const formattedPath = path.replace(/\//g, "_");
-
   const storagePath = `${config.storageExportDirectory}/${uid}/${exportId}/${formattedPath}${extension}`;
 
   const file = admin.storage().bucket(config.storageBucket).file(storagePath);
 
   await file.save(csv);
 
+  // TODO: should happen only once after all promises have resolved (all csvs have uploaded)
   await admin.firestore().doc(`exports/${exportId}`).update({
     status: "complete",
     storagePath: storagePath,
@@ -111,3 +128,68 @@ const uploadToStorage = async (
 
   return storagePath;
 };
+
+async function archiveFilesAsZip(
+  exportPaths: ExportPaths,
+  uid: string,
+  exportId: string
+) {
+  return new Promise<void>(async (resolve, reject) => {
+    const archive = archiver("zip", {
+      zlib: { level: 9 }, // Sets the compression level.
+    });
+    archive.on("error", reject);
+
+    const storagePath = `${config.storageExportDirectory}/${uid}/${exportId}.zip`;
+
+    const stream = admin
+      .storage()
+      .bucket(config.storageBucket)
+      .file(storagePath)
+      .createWriteStream();
+
+    archive.pipe(stream);
+
+    await appendToArchive(archive, exportPaths, uid, exportId);
+
+    await archive.finalize();
+    resolve();
+  });
+}
+
+async function appendToArchive(
+  archive: Archiver,
+  exportPaths: ExportPaths,
+  uid: string,
+  exportId: string
+) {
+  for (let collection of exportPaths.firestorePaths.collections) {
+    const snap = await admin.firestore().collection(collection).get();
+
+    if (!snap.empty) {
+      const csv = await constructFirestoreCollectionCSV(snap, collection);
+      const buffer = Buffer.from(csv);
+      archive.append(buffer, { name: `${collection}.firestore.csv` });
+    }
+  }
+
+  for (let doc of exportPaths.firestorePaths.docs) {
+    const snap = await admin.firestore().doc(doc).get();
+
+    if (snap.exists) {
+      const csv = await constructFirestoreDocumentCSV(snap, doc);
+      const buffer = Buffer.from(csv);
+      archive.append(buffer, { name: `${doc}.firestore.csv` });
+    }
+  }
+
+  for (let path of exportPaths.databasePaths) {
+    const snap = await admin.database().ref(path).get();
+
+    if (snap.exists()) {
+      const csv = await constructDatabaseCSV(snap, path);
+      const buffer = Buffer.from(csv);
+      archive.append(buffer, { name: `${path}.database.csv` });
+    }
+  }
+}

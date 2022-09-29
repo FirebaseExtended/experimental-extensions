@@ -51,6 +51,11 @@ async function getPathsFromCustomHook(uid: string): Promise<ExportPaths> {
     headers: { "Content-Type": "application/json" },
   });
 
+  if (!response.ok) {
+    // TODO log and then return dummy object
+  }
+  // TODO validate reponse, log and then return dummy object.
+
   const data = await response.json();
 
   const firestorePaths = data.firestorePaths || [];
