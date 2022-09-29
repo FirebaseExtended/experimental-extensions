@@ -60,7 +60,9 @@ export const exportUserData = functions.https.onCall(async (_data, context) => {
 
     if (!snap.empty) {
       const csv = await constructFirestoreCollectionCSV(snap, collection);
-      promises.push(uploadToStorage(csv, uid, exportId, collection));
+      promises.push(
+        uploadToStorage(csv, uid, exportId, collection, ".firestore.csv")
+      );
     }
   }
 
@@ -69,16 +71,16 @@ export const exportUserData = functions.https.onCall(async (_data, context) => {
 
     if (snap.exists) {
       const csv = await constructFirestoreDocumentCSV(snap, doc);
-      promises.push(uploadToStorage(csv, uid, exportId, doc));
+      promises.push(uploadToStorage(csv, uid, exportId, doc, ".firestore.csv"));
     }
   }
 
   for (let path of databasePaths) {
-    const snap = await admin.database().ref(path).once("value");
+    const snap = await admin.database().ref(path).get();
 
     if (snap.exists()) {
       const csv = await constructDatabaseCSV(snap, path);
-      promises.push(uploadToStorage(csv, uid, exportId, `database/${path}`));
+      promises.push(uploadToStorage(csv, uid, exportId, path, ".database.csv"));
     }
   }
 
@@ -91,15 +93,17 @@ const uploadToStorage = async (
   csv: string,
   uid: string,
   exportId: string,
-  path: string
+  path: string,
+  extension: string = ".csv"
 ) => {
   const formattedPath = path.replace(/\//g, "_");
 
-  const storagePath = `${config.storageExportDirectory}/${uid}/${exportId}/${formattedPath}.csv`;
+  const storagePath = `${config.storageExportDirectory}/${uid}/${exportId}/${formattedPath}${extension}`;
 
   const file = admin.storage().bucket(config.storageBucket).file(storagePath);
 
   await file.save(csv);
+  console.log("gets to here");
 
   await admin.firestore().doc(`exports/${exportId}`).update({
     status: "complete",

@@ -79,13 +79,15 @@ function getPathsFromConfig(uid: string): ExportPaths {
     firestorePathsList = config.firestorePaths.split(",");
   }
   if (config.databasePaths) {
-    databasePathsList = config.databasePaths.split(",");
+    databasePathsList = config.databasePaths
+      .split(",")
+      .map((path) => replaceUID(path, uid));
   }
 
   const { passed: collections, failed: docs } = splitList<string>(
     firestorePathsList,
     (path) => path.split("/").length % 2 === 1,
-    (path) => path.replace(/{UID}/g, uid)
+    (path) => replaceUID(path, uid)
   );
 
   return {
@@ -116,4 +118,8 @@ function splitList<T>(
     passed,
     failed,
   };
+}
+
+function replaceUID(path: string, uid: string) {
+  return path.replace(/{UID}/g, uid);
 }

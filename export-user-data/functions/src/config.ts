@@ -26,7 +26,7 @@
 export default {
   storageBucket: "storage-bucket",
   storageExportDirectory: "storage-export-dir",
-  firestorePaths: "users/{UID}/comments,posts/{UID}",
+  firestorePaths: "",
   databasePaths: "users/{UID},posts/{UID}",
   databaseLocation:
     process.env.DATABASE_LOCATION ||
