@@ -111,6 +111,7 @@ export default function NoticePage() {
         <thead>
           <tr className="text-left [&>th]:p-4 bg-slate-100">
             <th>ID</th>
+            <th>Acknowledgement Type</th>
             <th>User ID</th>
             <th>Timestamp</th>
             <th>Type</th>
@@ -118,12 +119,17 @@ export default function NoticePage() {
           </tr>
         </thead>
         <tbody>
-          {acknowledgements.map((acknowledgement: any) => (
+          {acknowledgements.map((acknowledgement) => (
             <tr key={acknowledgement.id}>
               <td>{acknowledgement.id}</td>
+              <td>{acknowledgement.acknowledgement}</td>
               <td>{acknowledgement.userId}</td>
               <td>todo</td>
-              <td>{acknowledgement.type}</td>
+              <td>
+                {acknowledgement.acknowledgement === "acknowledged"
+                  ? acknowledgement.type
+                  : "N/A"}
+              </td>
               <td>{JSON.stringify(acknowledgement.metadata || {})}</td>
             </tr>
           ))}

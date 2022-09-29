@@ -43,6 +43,21 @@ function assertAllowed(
   }
 }
 
+function catchQueryIndexError<T>(query: firestore.Query<T>) {
+  try {
+    return query.get();
+  } catch (e) {
+    console.log('e', e);
+    console.log('e.code', e?.code);
+    console.log('e.message', e?.message);
+    if (e?.code === 'failed-precondition') {
+      throw new functions.https.HttpsError("failed-precondition", e?.message);
+    }
+
+    throw e;
+  }
+}
+
 type GetNoticeResponse = Omit<Notice, "allowList"> & {
   unacknowledgedAt?: firestore.Timestamp;
   acknowledgements: Acknowledgement[];
@@ -66,11 +81,10 @@ export const getNotice = functions.https.onCall(async (data, context) => {
     query = query.where("version", "==", data.version);
   }
 
-  const snapshot = await query
+  const snapshot = await catchQueryIndexError(query
     .orderBy("createdAt", "desc")
     .limit(1)
-    .withConverter(noticeConverter)
-    .get();
+    .withConverter(noticeConverter))
 
   if (snapshot.empty) {
     throw new functions.https.HttpsError(
@@ -88,14 +102,15 @@ export const getNotice = functions.https.onCall(async (data, context) => {
     `No notices with the type ${data.type} could be found.`
   );
 
-  const acknowledgementsSnapshot = await db
-    .collection(config.noticesCollectionPath)
-    .doc(notice.id)
-    .collection("acknowledgements")
-    .where("userId", "==", context.auth!.uid)
-    .orderBy("createdAt", "desc")
-    .withConverter(acknowledgementConverter)
-    .get();
+  const acknowledgementsSnapshot = await catchQueryIndexError(
+    db
+      .collection(config.noticesCollectionPath)
+      .doc(notice.id)
+      .collection("acknowledgements")
+      .where("userId", "==", context.auth!.uid)
+      .orderBy("createdAt", "desc")
+      .withConverter(acknowledgementConverter)
+  );
 
   // Get an array of plain acknowledgement objects.
   const acknowledgements = acknowledgementsSnapshot.docs.map((doc) =>
@@ -239,10 +254,9 @@ export const getAcknowledgements = functions.https.onCall(
     }
 
     // Get a list of all the acknowledgements for a single user.
-    const snapshot = await query
-      .orderBy("createdAt", "desc")
-      .withConverter(acknowledgementConverter)
-      .get();
+    const snapshot = await catchQueryIndexError(
+      query.orderBy("createdAt", "desc").withConverter(acknowledgementConverter)
+    );
 
     // Return early if no acknowledgements exist.
     if (snapshot.empty) {
