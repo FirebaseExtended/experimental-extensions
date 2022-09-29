@@ -41,7 +41,6 @@ async function getPathsFromCustomHook(uid: string): Promise<ExportPaths> {
     customHookBadResponse(config.customHookEndpoint);
     return emptyPaths;
   }
-  // TODO validate reponse, log and then return dummy object.
 
   let data: ValidatedReponseJson;
 

@@ -32,13 +32,11 @@ admin.initializeApp({
 });
 
 export const exportUserData = functions.https.onCall(async (_data, context) => {
-  const startedAt = FieldValue.serverTimestamp();
-
   // TODO get from call
   const uid = "123";
   // const uid = context.auth.uid;
 
-  const exportId = await initializeExport(uid, startedAt);
+  const exportId = await initializeExport(uid);
 
   const exportPaths = await getExportPaths(uid);
 
@@ -48,10 +46,14 @@ export const exportUserData = functions.https.onCall(async (_data, context) => {
     await exportAsCSVs(exportPaths, uid, exportId);
   }
 
+  await finalizeExport(uid, exportId);
+
   return { exportId };
 });
 
-const initializeExport = async (uid: string, startedAt) => {
+const initializeExport = async (uid: string) => {
+  const startedAt = FieldValue.serverTimestamp();
+
   const exportDoc = await admin.firestore().collection("exports").add({
     uid,
     status: "pending",
@@ -61,7 +63,17 @@ const initializeExport = async (uid: string, startedAt) => {
   return exportDoc.id;
 };
 
-//TODO: Should these be put in their own file?
+const finalizeExport = async (uid: string, exportId: string) => {
+  await admin
+    .firestore()
+    .doc(`exports/${exportId}`)
+    .update({
+      status: "complete",
+      storagePath: `${config.storageExportDirectory}/${uid}/${exportId}${
+        config.zip ? ".zip" : ""
+      }`,
+    });
+};
 
 async function exportAsCSVs(
   exportPaths: ExportPaths,
@@ -127,12 +139,6 @@ const uploadCSVToStorage = async (
   const file = admin.storage().bucket(config.storageBucket).file(storagePath);
 
   await file.save(csv);
-
-  // TODO: should happen only once after all promises have resolved (all csvs have uploaded)
-  await admin.firestore().doc(`exports/${exportId}`).update({
-    status: "complete",
-    storagePath: storagePath,
-  });
 
   return storagePath;
 };
