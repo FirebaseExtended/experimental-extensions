@@ -70,36 +70,44 @@ async function exportAsCSVs(
 ) {
   const promises = [];
 
-  for (let collection of exportPaths.firestorePaths.collections) {
-    const snap = await admin.firestore().collection(collection).get();
+  for (let path of exportPaths.firestorePaths) {
+    if (typeof path === "string") {
+      const pathWithUID = replaceUID(path, uid);
+      if (pathWithUID.split("/").length % 2 === 1) {
+        const snap = await admin.firestore().collection(pathWithUID).get();
 
-    if (!snap.empty) {
-      const csv = await constructFirestoreCollectionCSV(snap, collection);
-      promises.push(
-        uploadCSVToStorage(csv, uid, exportId, collection, ".firestore.csv")
-      );
-    }
-  }
-
-  for (let doc of exportPaths.firestorePaths.docs) {
-    const snap = await admin.firestore().doc(doc).get();
-
-    if (snap.exists) {
-      const csv = await constructFirestoreDocumentCSV(snap, doc);
-      promises.push(
-        uploadCSVToStorage(csv, uid, exportId, doc, ".firestore.csv")
-      );
+        if (!snap.empty) {
+          const csv = await constructFirestoreCollectionCSV(snap, pathWithUID);
+          promises.push(
+            uploadCSVToStorage(
+              csv,
+              uid,
+              exportId,
+              pathWithUID,
+              ".firestore.csv"
+            )
+          );
+        }
+      } else {
+        const doc = await admin.firestore().doc(pathWithUID).get();
+        const csv = await constructFirestoreDocumentCSV(doc, pathWithUID);
+        promises.push(
+          uploadCSVToStorage(csv, uid, exportId, pathWithUID, ".firestore.csv")
+        );
+      }
     }
   }
 
   for (let path of exportPaths.databasePaths) {
-    const snap = await admin.database().ref(path).get();
-
-    if (snap.exists()) {
-      const csv = await constructDatabaseCSV(snap, path);
-      promises.push(
-        uploadCSVToStorage(csv, uid, exportId, path, ".database.csv")
-      );
+    if (typeof path === "string") {
+      const pathWithUID = replaceUID(path, uid);
+      const snap = await admin.database().ref(pathWithUID).get();
+      if (snap.exists()) {
+        const csv = await constructDatabaseCSV(snap, pathWithUID);
+        promises.push(
+          uploadCSVToStorage(csv, uid, exportId, pathWithUID, ".database.csv")
+        );
+      }
     }
   }
 
@@ -150,7 +158,7 @@ async function archiveFilesAsZip(
 
     archive.pipe(stream);
 
-    await appendToArchive(archive, exportPaths, uid, exportId);
+    await appendToArchive(archive, exportPaths, uid);
 
     await archive.finalize();
     resolve();
@@ -160,36 +168,48 @@ async function archiveFilesAsZip(
 async function appendToArchive(
   archive: Archiver,
   exportPaths: ExportPaths,
-  uid: string,
-  exportId: string
+  uid: string
 ) {
-  for (let collection of exportPaths.firestorePaths.collections) {
-    const snap = await admin.firestore().collection(collection).get();
+  for (let path of exportPaths.firestorePaths) {
+    if (typeof path === "string") {
+      const pathWithUID = replaceUID(path, uid);
+      if (pathWithUID.split("/").length % 2 === 1) {
+        const snap = await admin.firestore().collection(pathWithUID).get();
+        if (!snap.empty) {
+          const csv = await constructFirestoreCollectionCSV(snap, path);
+          const buffer = Buffer.from(csv);
+          archive.append(buffer, { name: `${pathWithUID}.firestore.csv` });
+        }
+      } else {
+        const snap = await admin.firestore().doc(pathWithUID).get();
 
-    if (!snap.empty) {
-      const csv = await constructFirestoreCollectionCSV(snap, collection);
-      const buffer = Buffer.from(csv);
-      archive.append(buffer, { name: `${collection}.firestore.csv` });
-    }
-  }
-
-  for (let doc of exportPaths.firestorePaths.docs) {
-    const snap = await admin.firestore().doc(doc).get();
-
-    if (snap.exists) {
-      const csv = await constructFirestoreDocumentCSV(snap, doc);
-      const buffer = Buffer.from(csv);
-      archive.append(buffer, { name: `${doc}.firestore.csv` });
+        if (snap.exists) {
+          const csv = await constructFirestoreDocumentCSV(snap, pathWithUID);
+          const buffer = Buffer.from(csv);
+          archive.append(buffer, { name: `${pathWithUID}.firestore.csv` });
+        }
+      }
+    } else {
+      // log that paths must be strings
     }
   }
 
   for (let path of exportPaths.databasePaths) {
-    const snap = await admin.database().ref(path).get();
+    if (typeof path === "string") {
+      const pathWithUID = replaceUID(path, uid);
+      const snap = await admin.database().ref(pathWithUID).get();
 
-    if (snap.exists()) {
-      const csv = await constructDatabaseCSV(snap, path);
-      const buffer = Buffer.from(csv);
-      archive.append(buffer, { name: `${path}.database.csv` });
+      if (snap.exists()) {
+        const csv = await constructDatabaseCSV(snap, pathWithUID);
+        const buffer = Buffer.from(csv);
+        archive.append(buffer, { name: `${pathWithUID}.database.csv` });
+      }
+    } else {
+      // log that paths must be strings
     }
   }
+}
+
+function replaceUID(path: string, uid: string) {
+  return path.replace(/{UID}/g, uid);
 }
