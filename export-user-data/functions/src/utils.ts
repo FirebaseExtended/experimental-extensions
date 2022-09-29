@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Google LLC
+ * Copyright 2019 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,6 @@
  * limitations under the License.
  */
 
-export default {
-  storageBucket: process.env.STORAGE_BUCKET,
-  cloudStorageExportDirectory: process.env.CLOUD_STORAGE_EXPORT_DIRECTORY,
-  firestorePaths: process.env.FIRESTORE_PATHS,
-  databasePaths: process.env.RTDB_PATHS,
-  storagePaths: process.env.STORAGE_PATHS,
-  selectedDatabaseInstance: process.env.SELECTED_DATABASE_INSTANCE,
-  customHookEndpoint: process.env.CUSTOM_HOOK_ENDPOINT,
-  zip: process.env.ZIP === "true",
-};
+export function replaceUID(path: string, uid: string) {
+  return path.replace(/{UID}/g, uid);
+}
