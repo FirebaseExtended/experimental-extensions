@@ -108,7 +108,7 @@ export async function uploadAsCSVs(
             csv,
             storagePrefix,
             pathWithUID,
-            ".database.csv"
+            ".storage.csv"
           ).then(() => {
             log.storagePathExported(pathWithUID);
           })
