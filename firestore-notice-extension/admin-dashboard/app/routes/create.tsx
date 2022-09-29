@@ -15,7 +15,7 @@ export const action: ActionFunction = async ({ request }) => {
     title: form.get("title"),
     description: form.get("description"),
     link: form.get("link"),
-    allowList: form.get("allowList"),
+    allowList: form.get("allowList") ? (form.get("allowList") as string).split(",") : [],
   };
 
   // TODO: should we check if a version already exists for this type?
