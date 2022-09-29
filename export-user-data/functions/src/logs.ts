@@ -17,7 +17,7 @@
 import { logger } from "firebase-functions";
 import config from "./config";
 
-export const complete = (uid: string) => {
+export const completeExport = (uid: string) => {
   logger.log(`Successfully exported data for user: ${uid}`);
 };
 
@@ -41,20 +41,28 @@ export const firestorePathExporting = (path: string) => {
   logger.log(`Exporting: '${path}' from Cloud Firestore`);
 };
 
-export const firestorePathError = (path: string, err: Error) => {
-  logger.error(`Error when exporting: '${path}' from Cloud Firestore`, err);
+export const exportError = (err: Error, path?: string) => {
+  if (path) {
+    logger.error(`Error exporting: '${path}'`, err);
+  } else {
+    logger.error("Error exporting", err);
+  }
+};
+
+export const firestorePathNotString = () => {
+  logger.error(
+    "Firestore paths must be strings, skipping. Check your custom hook response."
+  );
+};
+
+export const rtdbPathNotString = () => {
+  logger.error(
+    "Database paths must be strings, skipping. Check your custom hook response."
+  );
 };
 
 export const init = () => {
   logger.log("Initializing extension with configuration", config);
-};
-
-export const rtdbExported = () => {
-  logger.log("Finished Exporting user data from the Realtime Database");
-};
-
-export const rtdbExporting = () => {
-  logger.log("Exporting user data from the Realtime Database");
 };
 
 export const rtdbPathExported = (path: string) => {
@@ -76,28 +84,11 @@ export const rtdbPathError = (path: string, err: Error) => {
   );
 };
 
-export const start = () => {
-  logger.log("Started extension execution with configuration", config);
-};
-
-export const storageExported = () => {
-  logger.log("Finished Exporting user data from Cloud Storage");
-};
-
-export const storageExporting = () => {
-  logger.log("Exporting user data from Cloud Storage");
-};
-
-export const storageNotConfigured = () => {
-  logger.log("Cloud Storage paths are not configured, skipping");
-};
-
-export const storagePathExported = (path: string) => {
-  logger.log(`Exported: '${path}' from Cloud Storage`);
-};
-
-export const storagePathExporting = (path: string) => {
-  logger.log(`Exporting: '${path}' from Cloud Storage`);
+export const startExport = (uid: string) => {
+  logger.log(
+    `Started extension execution with configuration for ${uid}`,
+    config
+  );
 };
 
 export const storagePath404 = (path: string) => {
