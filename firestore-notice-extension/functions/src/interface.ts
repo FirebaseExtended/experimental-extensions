@@ -34,12 +34,12 @@ type BaseAcknowledgement = {
 
 export type Acknowledgement =
   | (BaseAcknowledgement & {
-      // The event type of the acknowledgement.
-      event: "acknowledgement";
+      // The type of the acknowledgement.
+      acknowledgement: "acknowledged";
       // The type of the acknowledgement. Defaults to `seen`.
       type: string;
     })
   | (BaseAcknowledgement & {
-      // The event type of the acknowledgement.
-      event: "unacknowledgement";
+      // The type of the acknowledgement.
+      acknowledgement: "unacknowledged";
     });

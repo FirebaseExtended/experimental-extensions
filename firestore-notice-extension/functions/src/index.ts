@@ -19,6 +19,7 @@ const db = admin.firestore();
 
 logs.init();
 
+// Throws an error if the user is not authenticated.
 function assertAuthenticated(context: functions.https.CallableContext) {
   if (!context.auth) {
     throw new functions.https.HttpsError(
@@ -28,6 +29,7 @@ function assertAuthenticated(context: functions.https.CallableContext) {
   }
 }
 
+// Throws an error if the user is not allowed to see the notice.
 function assertAllowed(
   context: functions.https.CallableContext,
   notice: Notice,
@@ -40,6 +42,11 @@ function assertAllowed(
     throw new functions.https.HttpsError("not-found", error);
   }
 }
+
+type GetNoticeResponse = Omit<Notice, "allowList"> & {
+  unacknowledgedAt?: firestore.Timestamp;
+  acknowledgements: Acknowledgement[];
+};
 
 export const getNotice = functions.https.onCall(async (data, context) => {
   assertAuthenticated(context);
@@ -86,20 +93,33 @@ export const getNotice = functions.https.onCall(async (data, context) => {
     .doc(notice.id)
     .collection("acknowledgements")
     .where("userId", "==", context.auth!.uid)
-    .orderBy('createdAt', 'desc')
+    .orderBy("createdAt", "desc")
     .withConverter(acknowledgementConverter)
     .get();
 
+  // Get an array of plain acknowledgement objects.
+  const acknowledgements = acknowledgementsSnapshot.docs.map((doc) =>
+    doc.data()
+  );
+
+  // Check if the user has acknowledged the notice.
+  const unacknowledgedAt =
+    acknowledgements.length === 0
+      ? undefined
+      : acknowledgements[0].acknowledgement === "unacknowledged"
+      ? acknowledgements[0].createdAt
+      : undefined;
+
   // Create a variable to assert a typed response
-  const response: Omit<Notice, "allowList"> & {
-    acknowledgements: Acknowledgement[];
-  } = {
+  const response: GetNoticeResponse = {
     ...notice,
-    acknowledgements: acknowledgementsSnapshot.docs.map((doc) => doc.data()),
+    unacknowledgedAt,
+    acknowledgements,
   };
 
   return response;
 });
+
 async function handleAcknowledgement(
   data: any,
   context: functions.https.CallableContext
@@ -135,60 +155,72 @@ async function handleAcknowledgement(
   return noticeSnapshot;
 }
 
-export const acknowledgeNotice = functions.https.onCall(async (data, context) => {
-  const snapshot = await handleAcknowledgement(data, context);
+export const acknowledgeNotice = functions.https.onCall(
+  async (data, context) => {
+    const snapshot = await handleAcknowledgement(data, context);
 
-  const documentData = {
-    event: 'acknowledgement',
-    userId: context.auth!.uid,
-    noticeId: snapshot.id,
-    type: data.type || "seen",
-    metadata: data.metadata || {},
-  };
+    const documentData = {
+      event: "acknowledgement",
+      userId: context.auth!.uid,
+      noticeId: snapshot.id,
+      type: data.type || "seen",
+      metadata: data.metadata || {},
+    };
 
-  const result = await db
-    .collection(config.noticesCollectionPath)
-    .doc(data.noticeId)
-    .collection("acknowledgements")
-    .withConverter(acknowledgementConverter)
-    // @ts-expect-error - cant paritally type set arguments in the converter
-    .add(documentData);
+    const result = await db
+      .collection(config.noticesCollectionPath)
+      .doc(data.noticeId)
+      .collection("acknowledgements")
+      .withConverter(acknowledgementConverter)
+      // @ts-expect-error - cant paritally type set arguments in the converter
+      .add(documentData);
 
-  await eventChannel?.publish({
-    type: `firebase.google.v1.acknowledgement`,
-    data: JSON.stringify({
-      ...documentData,
-      id: result.id,
-    }),
-  });
-});
+    await eventChannel?.publish({
+      type: `firebase.google.v1.acknowledgement`,
+      data: JSON.stringify({
+        ...documentData,
+        id: result.id,
+      }),
+    });
 
-export const unacknowledgeNotice = functions.https.onCall(async (data, context) => {
-  const snapshot = await handleAcknowledgement(data, context);
+    logs.acknowledgeNotice(documentData);
+  }
+);
 
-  const documentData = {
-    event: 'unacknowledgement',
-    userId: context.auth!.uid,
-    noticeId: snapshot.id,
-    metadata: data.metadata || {},
-  };
+export const unacknowledgeNotice = functions.https.onCall(
+  async (data, context) => {
+    const snapshot = await handleAcknowledgement(data, context);
 
-  const result = await db
-    .collection(config.noticesCollectionPath)
-    .doc(data.noticeId)
-    .collection("acknowledgements")
-    .withConverter(acknowledgementConverter)
-    // @ts-expect-error - cant paritally type set arguments in the converter
-    .add(documentData);
+    const documentData = {
+      event: "unacknowledgement",
+      userId: context.auth!.uid,
+      noticeId: snapshot.id,
+      metadata: data.metadata || {},
+    };
 
-  await eventChannel?.publish({
-    type: `firebase.google.v1.unacknowledgement`,
-    data: JSON.stringify({
-      ...documentData,
-      id: result.id,
-    }),
-  });
-});
+    const result = await db
+      .collection(config.noticesCollectionPath)
+      .doc(data.noticeId)
+      .collection("acknowledgements")
+      .withConverter(acknowledgementConverter)
+      // @ts-expect-error - cant paritally type set arguments in the converter
+      .add(documentData);
+
+    await eventChannel?.publish({
+      type: `firebase.google.v1.unacknowledgement`,
+      data: JSON.stringify({
+        ...documentData,
+        id: result.id,
+      }),
+    });
+
+    logs.unacknowledgeNotice(documentData);
+  }
+);
+
+type GetAcknowledgementsResponse = (Acknowledgement & {
+  notice: Omit<Notice, "allowList">;
+})[];
 
 export const getAcknowledgements = functions.https.onCall(
   async (data, context) => {
@@ -196,27 +228,36 @@ export const getAcknowledgements = functions.https.onCall(
 
     const uid = context.auth!.uid;
 
-  const snapshot = await db
-    .collectionGroup("acknowledgements")
-    .where("userId", "==", uid)
-    .orderBy("createdAt", "desc")
-    .withConverter(acknowledgementConverter)
-    .get();
+    let query = db
+      .collectionGroup("acknowledgements")
+      .where("userId", "==", uid);
 
-  const acknowledements = snapshot.docs.map((doc) => doc.data());
+    // If `includeUnacknowledgements` is true, we want to include all acknowledgements.
+    // By default, this will include everything.
+    if (data.includeUnacknowledgements !== true) {
+      query = query.where("acknowledgement", "==", "acknowledged");
+    }
 
-  const noticeReferences = acknowledements.map((doc) =>
-    db.collection("notices").doc(doc.noticeId).withConverter(noticeConverter)
-  );
+    const snapshot = await db
+      .collectionGroup("acknowledgements")
+      .where("userId", "==", uid)
+      .orderBy("createdAt", "desc")
+      .withConverter(acknowledgementConverter)
+      .get();
+
+    const acknowledements = snapshot.docs.map((doc) => doc.data());
+
+    const noticeReferences = acknowledements.map((doc) =>
+      db.collection("notices").doc(doc.noticeId).withConverter(noticeConverter)
+    );
 
     const noticeSnapshots = (await db.getAll(
       ...noticeReferences
     )) as firestore.DocumentSnapshot<Notice>[];
 
-  const cache = new Map<string, Notice>();
+    const cache = new Map<string, Notice>();
 
-  const response: (Acknowledgement & { notice: Omit<Notice, "allowList"> })[] =
-    acknowledements.map((doc) => {
+    const response: GetAcknowledgementsResponse = acknowledements.map((doc) => {
       const noticeData =
         cache.get(doc.noticeId) ||
         noticeSnapshots.find((notice) => notice.id === doc.noticeId)!.data();
