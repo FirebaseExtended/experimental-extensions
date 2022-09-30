@@ -1,163 +1,121 @@
-### See it in action
+## See it in action
 
-You can test out this extension right away!
+The first thing you’ll want to do is create a notice in Firestore. To do this, you can use the admin dashboard for this extension by running the following commands:
 
-1. Go to your [Authentication dashboard](https://console.firebase.google.com/project/${param:PROJECT_ID}/authentication/users) in the Firebase console.
+```bash
+git clone git@github.com:FirebaseExtended/experimental-extensions.git
+cd experimental-extensions/firestore-notice-extension/admin-dashboard
+npm install
+npm run dev
+```
 
-1. Click **Add User** to add a test user, then copy the test user's UID to your clipboard.
+Head over to the locally running application and create a new notice. View the dashboard [README](https://github.com/FirebaseExtended/experimental-extensions/blob/%40invertase/firestore-tos-extension/firestore-notice-extension/admin-dashboard/README.md) for more information.
 
-2. Access the user through any of the authentication methods.
+This extension requires a number of [Firestore indexes](https://firebase.google.com/docs/firestore/query-data/indexing) - view the deployed function logs for more information on how to create them if an error occurs.
+
+### Retrieving a notice
+
+After the notice has been created, you’ll want to show this notice to your users once they are authenticated on your application. You can retrieve a notice by specifying the `type` to the `getNotice` function, for example:
 
 ```js
-   // v9
-   import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { getFunctions, httpsCallable } from "firebase/functions";
 
-   const auth = getAuth();
-   const user = await auth.getUser(uid);
+const functions = getFunctions();
+const notice = await httpsCallable(functions, 'ext-firestore-notice-extension-getNotice')({
+  type: 'banner',
+});
+```
+
+The response of the function call will contain the notice document data, along with whether the current authenticated user has acknowledged the notice.
+
+To retrieve a notice by a specific version, provide the `version` parameter:
+
+```js
+import { getFunctions, httpsCallable } from "firebase/functions";
+
+const functions = getFunctions();
+const notice = await httpsCallable(functions, 'ext-firestore-notice-extension-getNotice')({
+  type: ‘banner’,
+  version: 2,
+});
+```
+
+A user acknowledgment contains the following data:
+- `userId`: The authenticated users UID.
+- `noticeId` The notice ID of this acknowledgement.
+- `createdAt`: A Timestamp indicating the time of acknowledgement.
+- `ack_event`: Whether this document is `acknowledged` or `unacknowledged`.
+- `type`: If the `ack_event` is `acknowledged`, the customizable type of acknowledgement. Defaults to `seen`.
+- `metadata`: An optional object containing custom values relevant to the acknowledgement.
+
+### Acknowledging a notice
+
+To acknowledge a notice, the extension provides two callable functions which accept the notice ID: `acknowledgeNotice` & `unacknowledgeNotice`. The extension will keep historical records of each acknowledgement the callable functions are called multiple times for the same user and notice.
+
+For example, to acknowledge a notice:
+
+```js
+import { getFunctions, httpsCallable } from "firebase/functions";
+
+const functions = getFunctions();
+await httpsCallable(functions, 'ext-firestore-notice-extension-acknowledgeNotice)({
+  noticeId: 'EA9QhZKKta9KXcckiasc', // The notice ID from the `getNotice` call.
+});
+```
+
+In-case you need to capture custom preferences relating to a acknowledgement, you can provide custom metadata to the function, for example:
+
+```js
+await httpsCallable(functions, 'ext-firestore-notice-extension-acknowledgeNotice)({
+  noticeId: 'EA9QhZKKta9KXcckiasc',
+  metadata: { readDuration: 30_000 },
+});
+```
+
+You can also provide a custom “type” of acknowledgement (the default type is “seen”), for example:
+
+```js
+await httpsCallable(functions, 'ext-firestore-notice-extension-acknowledgeNotice)({
+  noticeId: 'EA9QhZKKta9KXcckiasc',
+  type: 'accepted',
+});
+```
+
+If you wish to unacknowledge a notice, call the `unacknowledgeNotice` function:
+
+```js
+await httpsCallable(functions, 'ext-firestore-notice-extension-unacknowledgeNotice)({
+   noticeId: 'EA9QhZKKta9KXcckiasc',
+  metadata: { reason: '...' },
+});
+```
+
+### Retrieving acknowledgements
+
+To retrieve all previous user notice acknowledgements, call the `getAcknowledgements` callable function. This function will return an ordered array of all acknowledgements along with the notice data:
+
+```js
+import { getFunctions, httpsCallable } from "firebase/functions";
+
+const functions = getFunctions();
+const acknowledgements = await httpsCallable(functions, 'ext-firestore-notice-extension-getAcknowledgements)();
 ```
 
 ```js
-   // < v9
-   import firebase from "firebase-admin";
-
-   const user = await firebase.auth().getUser(uid);
+const acknowledgements = await httpsCallable(functions, 'ext-firestore-notice-extension-getAcknowledgements)({
+  includeUnacknowledgements: true,
+});
 ```
 
-3. Provide the user / userId into one of the available functions.
+### User specific acknowledgements
 
-### Using the extension
+In-case a notice is only specific to certain users, specify an `allowList` array of UIDs to the notice document. If the user requesting a notice by type is not within the list of UIDs and `not-found` error will be returned.
 
-All ackowledgement documents are managed in the Cloud Firestore database.
+### Updating a notice
 
-These can be found in the `${param:COLLECTION_PATH}` collection.
+When it’s time to update a notice, for example when additional user preferences are required, create a new notice document with the same `type` of the existing notice you wish to update.
 
-This will also contain two pre-defined subcollections:
-
-- acknowledgements
-- notices
-
-The extension will provide `4` new functions for managing ackowledgement for users.
-
-**Create Notices**
-
-  Creates a new notice, based on the following schema:
-
-  ```js
-    export interface NoticeMetadata {
-        noticeId: string;
-        link: string;
-        creationDate: string;
-        allowList?: string[];
-        noticeType?: {
-            [key: string]: any;
-        };
-    }
-  ```
-
-  This can be called via:
-
-  ```js
-    // < v9
-    var createNotice = firebase.functions().httpsCallable('createNotice');
-    await createNotice( { noticeId, link, creationDate });
-  ```
-
-  ```js
-    // v9
-    import { getFunctions, httpsCallable } from "firebase/functions";
-
-    const functions = getFunctions();
-    const createNotice = httpsCallable(functions, 'createNotice');
-    await createNotice( { noticeId, link, creationDate });
-  ```
-
-  **Using Preferences**
-
-  Preferences can also be included as part of a notice type.
-
-  ```js
-  export interface Preference {
-    name: string;
-    description: string;
-    duration?: string;
-    value?: string;
-    options?: string[];
-    required: boolean;
-    active?: boolean;
-}
-  ```
-
-  There are two types of preference
-
-- Singular, this contains a singular value.
-- Multi-select, by defining a list for multiple options.
-
-**Accept Notice**
-
-  ```js
-    // < v9
-    var acknowledgeNotice = firebase.functions().httpsCallable('acknowledgeNotice');
-    await acknowledgeNotice({ noticeId });
-  ```
-
-  ```js
-    // v9
-    import { getFunctions, httpsCallable } from "firebase/functions";
-
-    const functions = getFunctions();
-    const acknowledgeNotice = httpsCallable(functions, 'acknowledgeNotice');
-    await acknowledgeNotice({ noticeId });
-  ```
-
-**Accepting preferences**
-
-  By including the a `Notice Type` with a list of preferences. These will be stored as part of the accepted document.
-
-  Use the preferences provided from an already created notices document as a guide on what to provide.
-
-**Get Notice**
-
-  ```js
-    // < v9
-    var getNotices = firebase.functions().httpsCallable('createNotice');
-    await getNotices( noticeId);
-  ```
-
-  ```js
-    // v9
-    import { getFunctions, httpsCallable } from "firebase/functions";
-
-    const functions = getFunctions();
-    const getNotices = httpsCallable(functions, 'getNotices');
-    await getNotices({ noticeId });
-  ```
-
-**Get Acknowledgements**
-
-  ```js
-    // < v9
-    var getNotices = firebase.functions().httpsCallable('createNotice');
-    await getNotices({ noticeId });
-  ```
-
-  ```js
-    // v9
-    import { getFunctions, httpsCallable } from "firebase/functions";
-
-    const functions = getFunctions();
-    const getAcknowledgements = httpsCallable(functions, 'getAcknowledgements');
-    await getAcknowledgements();
-  ```
-
-#### Versioning
-
-  If you need versioning for your notices, we support that out of the box. You can simply create multiple notices with the same notice_type, and the extension will give you a way to query the latest version of the a given notice_type.
-
-### Custom notices
-
-  If you have custom notices that are shown to specific users (for example, enterprise clients with custom requirements), you can specify a new notice_type and set an allow-list that only certain emails/phone numbers can view and accept.
-
-
+When the notice is retrieved, a new notice document will be returned with no user acknowledgement, allowing users to acknowledge the newer notice.
 
 ### Monitoring
 
