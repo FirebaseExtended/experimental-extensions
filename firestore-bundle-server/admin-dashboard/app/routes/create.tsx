@@ -103,7 +103,7 @@ export const action: ActionFunction = async ({ request }) => {
   }
   
   await createBundle(id, data);
-  return redirect(`/bundles/${id}`);
+  return redirect(`/`);
 };
 
 export default function Create() {

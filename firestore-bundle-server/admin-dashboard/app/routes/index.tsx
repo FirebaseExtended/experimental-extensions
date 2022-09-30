@@ -8,15 +8,19 @@ import type { Bundle } from "~/types";
 export const loader: LoaderFunction = async () => {
   return json({
     bundles: await getBundles(),
+    projectId: process.env.PROJECT_ID,
+    bundlesCollectionPath: process.env.BUNDLESPEC_COLLECTION || 'bundles',
   });
 };
 
 type LoaderData = {
   bundles: Bundle[];
+  projectId: string;
+  bundlesCollectionPath: string;
 };
 
 export default function Index() {
-  const { bundles } = useLoaderData<LoaderData>();
+  const { bundles, projectId, bundlesCollectionPath } = useLoaderData<LoaderData>();
   
   return (
     <div className="max-w-5xl mx-auto">
@@ -38,7 +42,12 @@ export default function Index() {
             >
               <td className="code">{bundle.id}</td>
               <td>
-                <a href={`/bundles/${bundle.id}`}>Manage &rarr;</a>
+                <a
+                  target="_blank"
+                  href={`https://console.firebase.google.com/project/${projectId}/firestore/data/~2F${bundlesCollectionPath}~2F${bundle.id}`}
+                >
+                  Manage &rarr;
+                </a>
               </td>
             </tr>
           ))}

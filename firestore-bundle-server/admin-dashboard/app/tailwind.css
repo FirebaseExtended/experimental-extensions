@@ -556,11 +556,6 @@ video {
   margin-right: auto;
 }
 
-.my-2 {
-  margin-top: 0.5rem;
-  margin-bottom: 0.5rem;
-}
-
 .my-3 {
   margin-top: 0.75rem;
   margin-bottom: 0.75rem;
@@ -576,10 +571,6 @@ video {
 
 .mb-3 {
   margin-bottom: 0.75rem;
-}
-
-.mt-2 {
-  margin-top: 0.5rem;
 }
 
 .block {
@@ -622,12 +613,12 @@ video {
   border-spacing: var(--tw-border-spacing-x) var(--tw-border-spacing-y);
 }
 
-.grid-cols-2 {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
 .grid-cols-3 {
   grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.grid-cols-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .justify-end {
@@ -725,30 +716,6 @@ video {
   padding: 0.5rem;
 }
 
-.\[\&\>th\]\:p-4>th {
-  padding: 1rem;
-}
-
-.\[\&\>td\]\:p-3>td {
-  padding: 0.75rem;
-}
-
-.\[\&\>\.code\]\:font-mono>.code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-}
-
-.\[\&_\]\:w-full {
-  width: 100%;
-}
-
-.\[\&_\]\:border {
-  border-width: 1px;
-}
-
-.\[\&_\]\:p-2 {
-  padding: 0.5rem;
-}
-
 .\[\&_select\]\:w-full select {
   width: 100%;
 }
@@ -759,4 +726,16 @@ video {
 
 .\[\&_select\]\:p-2 select {
   padding: 0.5rem;
+}
+
+.\[\&\>th\]\:p-4>th {
+  padding: 1rem;
+}
+
+.\[\&\>td\]\:p-3>td {
+  padding: 0.75rem;
+}
+
+.\[\&\>\.code\]\:font-mono>.code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 }
