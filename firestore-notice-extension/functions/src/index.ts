@@ -121,7 +121,7 @@ export const getNotice = functions.https.onCall(async (data, context) => {
   const unacknowledgedAt =
     acknowledgements.length === 0
       ? undefined
-      : acknowledgements[0].acknowledgement === "unacknowledged"
+      : acknowledgements[0].ack_event === "unacknowledged"
       ? acknowledgements[0].createdAt
       : undefined;
 
@@ -250,7 +250,7 @@ export const getAcknowledgements = functions.https.onCall(
     // If `includeUnacknowledgements` is true, we want to include all acknowledgements.
     // By default, this will include everything.
     if (data.includeUnacknowledgements !== true) {
-      query = query.where("acknowledgement", "==", "acknowledged");
+      query = query.where("ack_event", "==", "acknowledged");
     }
 
     // Get a list of all the acknowledgements for a single user.

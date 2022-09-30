@@ -28,13 +28,13 @@ export const acknowledgementConverter: FirestoreDataConverter<Acknowledgement> =
   ): FirebaseFirestore.DocumentData {
     const acknowledement = {
       createdAt: FieldValue.serverTimestamp(),
-      acknowledgement: data.acknowledgement,
+      ack_event: data.ack_event,
       userId: data.userId,
       noticeId: data.noticeId,
       metadata: data.metadata,
     };
 
-    if (data.acknowledgement === 'acknowledged') {
+    if (data.ack_event === 'acknowledged') {
       return {
         ...acknowledement,
         type: data.type || 'seen',
@@ -52,10 +52,10 @@ export const acknowledgementConverter: FirestoreDataConverter<Acknowledgement> =
       noticeId: data.noticeId,
       createdAt: data.createdAt,
       metadata: data.metadata || {},
-      acknowledgement: data.acknowledgement,
+      ack_event: data.ack_event,
     };
 
-    if (data.acknowledgement === 'acknowledged') {
+    if (data.ack_event === 'acknowledged') {
       return {
         ...acknowledgement,
         type: data.type,

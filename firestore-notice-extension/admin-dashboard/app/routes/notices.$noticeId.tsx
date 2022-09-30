@@ -33,7 +33,7 @@ export const action: ActionFunction = async ({ request }) => {
     title: form.get("title"),
     description: form.get("description"),
     link: form.get("link"),
-    allowList: form.get("allowList"),
+    allowList: form.get("allowList") ? (form.get("allowList") as string).split(",") : [],
   };
 
   // TODO: validate form fields
@@ -98,7 +98,9 @@ export default function NoticePage() {
           <input
             name="allowList"
             type="text"
-            defaultValue={notice.allowList || ""}
+            defaultValue={
+              Array.isArray(notice.allowList) ? notice.allowList.join(",") : ""
+            }
           />
         </Label>
         <div className="mt-6 flex justify-end">
@@ -111,7 +113,7 @@ export default function NoticePage() {
         <thead>
           <tr className="text-left [&>th]:p-4 bg-slate-100">
             <th>ID</th>
-            <th>Acknowledgement Type</th>
+            <th>Event Type</th>
             <th>User ID</th>
             <th>Timestamp</th>
             <th>Type</th>
@@ -122,11 +124,11 @@ export default function NoticePage() {
           {acknowledgements.map((acknowledgement) => (
             <tr key={acknowledgement.id}>
               <td>{acknowledgement.id}</td>
-              <td>{acknowledgement.acknowledgement}</td>
+              <td>{acknowledgement.ack_event}</td>
               <td>{acknowledgement.userId}</td>
               <td>todo</td>
               <td>
-                {acknowledgement.acknowledgement === "acknowledged"
+                {acknowledgement.ack_event === "acknowledged"
                   ? acknowledgement.type
                   : "N/A"}
               </td>
