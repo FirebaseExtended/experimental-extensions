@@ -175,7 +175,7 @@ export const acknowledgeNotice = functions.https.onCall(
     const snapshot = await handleAcknowledgement(data, context);
 
     const documentData = {
-      ack_event: "acknowledgement",
+      ack_event: "acknowledged",
       userId: context.auth!.uid,
       noticeId: snapshot.id,
       type: data.type || "seen",
@@ -207,7 +207,7 @@ export const unacknowledgeNotice = functions.https.onCall(
     const snapshot = await handleAcknowledgement(data, context);
 
     const documentData = {
-      ack_event: "unacknowledgement",
+      ack_event: "unacknowledged",
       userId: context.auth!.uid,
       noticeId: snapshot.id,
       metadata: data.metadata || {},
@@ -248,7 +248,7 @@ export const getAcknowledgements = functions.https.onCall(
       .where("userId", "==", uid);
 
     // If `includeUnacknowledgements` is true, we want to include all acknowledgements.
-    // By default, this will include everything.
+    // By default, this will include on acknowledged.
     if (data.includeUnacknowledgements !== true) {
       query = query.where("ack_event", "==", "acknowledged");
     }
