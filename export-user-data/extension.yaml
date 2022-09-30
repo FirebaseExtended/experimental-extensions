@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: firestore-export-user-data
+name: export-user-data
 version: 0.1.1
 specVersion: v1beta
 
@@ -23,7 +23,7 @@ description: >-
 
 license: Apache-2.0
 
-sourceUrl: https://github.com/FirebaseExtended/firestore-nlp-extension 
+sourceUrl: https://github.com/FirebaseExtended/firestore-nlp-extension
 
 author:
   authorName: Firebase
@@ -49,8 +49,7 @@ roles:
 resources:
   - name: firestoreExportUserData
     type: firebaseextensions.v1beta.function
-    description:
-      Reads and stores user data from Cloud Firestore to a Google Cloud Storage bucket.
+    description: Reads and stores user data from Cloud Firestore to a Google Cloud Storage bucket.
     properties:
       location: ${LOCATION}
       eventTrigger:
@@ -137,5 +136,3 @@ params:
 events:
   - type: firebase.google.v1.exported-data
     description: Event indicating that user data has been exported to Cloud Storage.
-
- 
