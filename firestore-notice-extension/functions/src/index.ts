@@ -175,7 +175,7 @@ export const acknowledgeNotice = functions.https.onCall(
     const snapshot = await handleAcknowledgement(data, context);
 
     const documentData = {
-      event: "acknowledgement",
+      ack_event: "acknowledgement",
       userId: context.auth!.uid,
       noticeId: snapshot.id,
       type: data.type || "seen",
@@ -207,7 +207,7 @@ export const unacknowledgeNotice = functions.https.onCall(
     const snapshot = await handleAcknowledgement(data, context);
 
     const documentData = {
-      event: "unacknowledgement",
+      ack_event: "unacknowledgement",
       userId: context.auth!.uid,
       noticeId: snapshot.id,
       metadata: data.metadata || {},
