@@ -14,6 +14,7 @@ export const noticeConverter: FirestoreDataConverter<Notice> = {
       id: snapshot.id,
       type: data.type,
       title: data.title,
+      version: data.version,
       description: data.description,
       link: data.link,
       createdAt: data.createdAt,
