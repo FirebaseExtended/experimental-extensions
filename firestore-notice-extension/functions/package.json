@@ -9,7 +9,8 @@
     "test": "cd ../../_emulator && firebase emulators:exec jest -P demo-experimental",
     "test:local": "jest",
     "test:watch": "concurrently \"npm run local:emulator\" \"jest --watch\"",
-    "deploy": "firebase ext:install ../ --project=extensions-testing"
+    "deploy": "firebase ext:install ../ --project=extensions-testing",
+    "generate-readme": "firebase ext:info .. --markdown > ../README.md"
   },
   "engines": {
     "node": "14"
