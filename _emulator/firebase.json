@@ -1,6 +1,6 @@
 {
   "extensions": {
-    "firestore-export-user-data": "../firestore-export-user-data"
+    "export-user-data": "../export-user-data"
   },
   "storage": {
     "rules": "storage.rules"
