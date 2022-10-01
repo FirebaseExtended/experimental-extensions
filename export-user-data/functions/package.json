@@ -18,17 +18,18 @@
     "generate-readme": "firebase ext:info .. --markdown > ../README.md"
   },
   "dependencies": {
+    "@types/archiver": "^5.3.1",
+    "@types/jest": "^26.0.4",
+    "archiver": "^5.3.1",
     "csv-stringify": "^6.2.0",
     "firebase-admin": "^11.0.1",
     "firebase-functions": "^3.6.1",
     "fs": "0.0.1-security",
+    "jest": "^26.1.0",
     "json2csv": "^5.0.7",
     "node-fetch": "^2.6.7",
     "rimraf": "^3.0.2",
-    "typescript": "^4.6.4",
-    "@types/archiver": "^5.3.1",
-    "@types/jest": "^26.0.4",
-    "jest": "^26.1.0"
+    "typescript": "^4.6.4"
   },
   "devDependencies": {
     "@types/node-fetch": "^2.6.2",
