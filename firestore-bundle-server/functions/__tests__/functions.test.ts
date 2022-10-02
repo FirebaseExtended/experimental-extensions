@@ -243,7 +243,6 @@ describe("functions", () => {
   it("successfully returns a request through a webiste hosted by Firebase", async () => {
     const bundleName = "documents-queries-params";
     const url = extHostedUrl(bundleName);
-    console.log(url);
     const { data: bundle } = await axios(url);
 
     const [metadata, documentMetadata, document] =
