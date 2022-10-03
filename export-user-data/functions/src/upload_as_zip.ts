@@ -25,7 +25,7 @@ import {
   constructFirestoreDocumentCSV,
   constructStorageCSV,
 } from "./construct_exports";
-import { replaceUID } from "./utils";
+import { getFilesFromStoragePath, replaceUID } from "./utils";
 
 export async function uploadDataAsZip(
   exportPaths: ExportPaths,
@@ -42,7 +42,7 @@ export async function uploadDataAsZip(
 
     const stream = admin
       .storage()
-      .bucket(config.storageBucket)
+      .bucket(config.storageBucketDefault)
       .file(storagePath)
       .createWriteStream();
 
@@ -107,10 +107,7 @@ async function appendToArchive(
   for (let path of exportPaths.storagePaths) {
     if (typeof path === "string") {
       const pathWithUID = replaceUID(path, uid);
-      const files = await admin
-        .storage()
-        .bucket(config.storageBucket)
-        .getFiles({ prefix: pathWithUID });
+      const files = await getFilesFromStoragePath(pathWithUID);
 
       for (let file of files[0]) {
         const csv = await constructStorageCSV(file, pathWithUID);

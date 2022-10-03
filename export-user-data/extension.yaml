@@ -135,7 +135,7 @@ params:
       Which paths in your Cloud Firestore instance contain user data? Leave
       empty if you don't use Cloud Firestore.
       Enter the full paths, separated by commas. You can represent the User ID
-      of the deleted user with `{UID}`.
+      of the user with `{UID}`.
       For example, if you have the collections `users` and `admins`, and each
       collection has documents with User ID as document IDs, then you can enter
       `users/{UID},admins/{UID}`.
@@ -146,12 +146,27 @@ params:
   - param: SELECTED_DATABASE_INSTANCE
     label: Realtime Database instance
     description: >
-      From which Realtime Database instance do you want to delete user data?
+      From which Realtime Database instance do you want to export user data?
       If this parameter is not specified, this extension will use your default database instance.
     type: string
     example: my-instance
     validationRegex: ^([0-9a-z_.-]*)$
     validationErrorMessage: Invalid database instance
+    required: false
+
+  - param: SELECTED_DATABASE_LOCATION
+    label: Realtime Database location
+    description: >
+      (Only applicable if you provided the `Realtime Database instance` parameter.) From which Realtime Database location do you want to export user data?
+    type: select
+    options:
+      - label: United States
+        value: us-central1
+      - label: Belgium
+        value: europe-west1
+      - label: Singapore
+        value: asia-southeast1
+    default: us-central1
     required: false
 
   - param: RTDB_PATHS
@@ -160,7 +175,7 @@ params:
       Which paths in your Realtime Database instance contain user data? Leave
       empty if you don't use Realtime Database.
       Enter the full paths, separated by commas. You can represent the User ID
-      of the deleted user with `{UID}`.
+      of the exported user with `{UID}`.
       For example: `users/{UID},admins/{UID}`.
     type: string
     example: users/{UID},admins/{UID}
@@ -172,21 +187,21 @@ params:
       Where in Google Cloud Storage do you store user data? Leave empty if you
       don't use Cloud Storage.
       Enter the full paths to files or directories in your Storage buckets,
-      separated by commas. Use `{UID}` to represent the User ID of the deleted
-      user, and use `{DEFAULT}` to represent your default Storage bucket.
-      Here's a series of examples. To delete all the files in your default
+      separated by commas. Use `{UID}` to represent the User ID of the
+      user who's data we're exporting, and use `{DEFAULT}` to represent your default Storage bucket.
+      Here's a series of examples. To export all the files in your default
       bucket with the file naming scheme `{UID}-pic.png`, enter
-      `{DEFAULT}/{UID}-pic.png`. To also delete all the files in another bucket
+      `{DEFAULT}/{UID}-pic.png`. To also export all the files in another bucket
       called my-app-logs with the file naming scheme `{UID}-logs.txt`, enter
-      `{DEFAULT}/{UID}-pic.png,my-app-logs/{UID}-logs.txt`. To *also* delete a User
+      `{DEFAULT}/{UID}-pic.png,my-app-logs/{UID}-logs.txt`. To *also* export a User
       ID-labeled directory and all its files (like `media/{UID}`), enter
       `{DEFAULT}/{UID}-pic.png,my-app-logs/{UID}-logs.txt,{DEFAULT}/media/{UID}`.
     type: string
     example: "{DEFAULT}/{UID}-pic.png,my-awesome-app-logs/{UID}-logs.txt"
     required: false
 
-  - param: SEARCH_FUNCTION
-    label: Search function URL
+  - param: CUSTOM_HOOK_ENDPOINT
+    label: Custom hook endpoint
     description: >-
       Specify a function URL to call that will return an object listing paths in services to export data from.
       See the pre-install documentation for more details.

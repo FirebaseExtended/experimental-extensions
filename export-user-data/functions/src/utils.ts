@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+import admin from "firebase-admin";
+import config from "./config";
+
 export const replaceUID = (path: string, uid: string) =>
   path.replace(/{UID}/g, uid);
 
@@ -27,4 +30,18 @@ export const getDatabaseUrl = (
     return `https://${selectedDatabaseInstance}.firebaseio.com`;
 
   return `https://${selectedDatabaseInstance}.${selectedDatabaseLocation}.firebasedatabase.app`;
+};
+
+export const getFilesFromStoragePath = async (path: string) => {
+  const parts = path.split("/");
+  const bucketName = parts[0];
+  const bucket =
+    bucketName === "{DEFAULT}"
+      ? admin.storage().bucket(config.storageBucketDefault)
+      : admin.storage().bucket(bucketName);
+
+  const prefix = parts.slice(1).join("/");
+  const files = await bucket.getFiles({ prefix });
+
+  return files;
 };

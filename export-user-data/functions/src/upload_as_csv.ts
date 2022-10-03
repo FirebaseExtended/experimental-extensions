@@ -24,7 +24,7 @@ import {
   constructStorageCSV,
 } from "./construct_exports";
 import { ExportPaths } from "./get_export_paths";
-import { replaceUID } from "./utils";
+import { getFilesFromStoragePath, replaceUID } from "./utils";
 
 export async function uploadAsCSVs(
   exportPaths: ExportPaths,
@@ -96,10 +96,7 @@ export async function uploadAsCSVs(
   for (let path of exportPaths.storagePaths) {
     if (typeof path === "string") {
       const pathWithUID = replaceUID(path, uid);
-      const files = await admin
-        .storage()
-        .bucket(config.storageBucket)
-        .getFiles({ prefix: pathWithUID });
+      const files = await getFilesFromStoragePath(pathWithUID);
 
       for (let file of files[0]) {
         const csv = await constructStorageCSV(file, pathWithUID);
@@ -129,7 +126,10 @@ const uploadCSVToStorage = async (
   const formattedPath = path.replace(/\//g, "_");
   const storagePath = `${storagePrefix}/${formattedPath}${extension}`;
 
-  const file = admin.storage().bucket(config.storageBucket).file(storagePath);
+  const file = admin
+    .storage()
+    .bucket(config.storageBucketDefault)
+    .file(storagePath);
 
   try {
     await file.save(csv);
