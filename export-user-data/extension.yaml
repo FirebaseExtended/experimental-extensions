@@ -198,7 +198,7 @@ params:
       don't use Cloud Storage.
       Enter the full paths to files or directories in your Storage buckets,
       separated by commas. Use `{UID}` to represent the User ID of the
-      user who's data we're exporting, and use `{DEFAULT}` to represent your default Storage bucket.
+      user whose data we're exporting, and use `{DEFAULT}` to represent your default Storage bucket.
       Here's a series of examples. To export all the files in your default
       bucket with the file naming scheme `{UID}-pic.png`, enter
       `{DEFAULT}/{UID}-pic.png`. To also export all the files in another bucket
