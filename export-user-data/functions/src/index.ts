@@ -57,7 +57,7 @@ export const exportUserData = functions.https.onCall(async (_data, context) => {
 
   if (config.zip) {
     try {
-      await uploadDataAsZip(exportPaths, storagePrefix, uid);
+      await uploadDataAsZip(exportPaths, storagePrefix, uid, exportId);
     } catch (e) {
       log.exportError(e);
     }
@@ -90,11 +90,14 @@ const initializeExport = async (uid: string) => {
 
   log.startExport(uid);
 
-  const exportDoc = await admin.firestore().collection("exports").add({
-    uid,
-    status: "pending",
-    started_at: startedAt,
-  });
+  const exportDoc = await admin
+    .firestore()
+    .collection(config.firestoreExportsCollection || "exports")
+    .add({
+      uid,
+      status: "pending",
+      startedAt,
+    });
 
   return exportDoc.id;
 };
@@ -115,7 +118,8 @@ const finalizeExport = async (
     .doc(`exports/${exportId}`)
     .update({
       status: "complete",
-      storagePath: `${storagePrefix}${config.zip ? ".zip" : ""}`,
+      storagePath: `${storagePrefix}`,
+      zipPath: config.zip ? `${storagePrefix}/${exportId}_${uid}.zip` : null,
     });
   log.completeExport(uid);
 };

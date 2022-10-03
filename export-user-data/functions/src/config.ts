@@ -17,6 +17,7 @@
 export default {
   storageBucketDefault: process.env.STORAGE_BUCKET,
   cloudStorageExportDirectory: process.env.CLOUD_STORAGE_EXPORT_DIRECTORY,
+  firestoreExportsCollection: process.env.FIRESTORE_EXPORTS_COLLECTION,
   firestorePaths: process.env.FIRESTORE_PATHS,
   databasePaths: process.env.RTDB_PATHS,
   storagePaths: process.env.STORAGE_PATHS,

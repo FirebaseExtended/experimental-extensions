@@ -128,6 +128,14 @@ params:
     type: string
     required: true
 
+  - param: FIRESTORE_EXPORTS_COLLECTION
+    label: Firestore collection to record export metadata
+    description: >
+      Where do you want to keep track of your exports?
+    type: string
+    default: exports
+    example: exports
+    required: false
 
   - param: FIRESTORE_PATHS
     label: Cloud Firestore paths

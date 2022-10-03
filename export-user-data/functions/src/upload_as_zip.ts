@@ -31,7 +31,8 @@ import { eventChannel } from ".";
 export async function uploadDataAsZip(
   exportPaths: ExportPaths,
   storagePrefix: string,
-  uid: string
+  uid: string,
+  exportId: string
 ) {
   return new Promise<void>(async (resolve, reject) => {
     const archive = archiver("zip", {
@@ -39,7 +40,7 @@ export async function uploadDataAsZip(
     });
     archive.on("error", reject);
 
-    const storagePath = `${storagePrefix}.zip`;
+    const storagePath = `${storagePrefix}/${exportId}_${uid}.zip`;
 
     const stream = admin
       .storage()
