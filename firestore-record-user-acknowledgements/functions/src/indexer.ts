@@ -164,13 +164,17 @@ export function createIndexUrlOnRequestHandler(
     return;
   }
 
-  const { params } = req;
-  const { collection, queryScope, fields } = params;
-  if (!collection) {
+  const { query } = req;
+  const { collection, queryScope, fields } = query;
+  if (!collection || typeof collection != "string") {
     res.status(400).send("Invalid collection name.");
     return;
   }
-  if (!queryScope || !["collection", "collectionGroup"].includes(queryScope)) {
+  if (
+    !queryScope ||
+    typeof queryScope != "string" ||
+    !["collection", "collectionGroup"].includes(queryScope)
+  ) {
     res
       .status(400)
       .send(
@@ -180,7 +184,7 @@ export function createIndexUrlOnRequestHandler(
   }
   const fieldsError =
     'Invalid fields, must be a comma delimited sting of fields and orders, e.g. "name,asc,surname,desc".';
-  if (!fields || !fields.includes(",")) {
+  if (!fields || typeof fields != "string" || !fields.includes(",")) {
     res.status(400).send(fieldsError);
     return;
   }
