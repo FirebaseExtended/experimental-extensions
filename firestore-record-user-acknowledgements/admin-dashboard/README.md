@@ -36,5 +36,6 @@ If you have a none default path for where notices are stored in Firestore (defau
 
 ```bash
 NOTICES_COLLECTION=app_notices
+ACKNOWLEDGEMENTS_COLLECTION=app_acknowledgements
 ```
 
