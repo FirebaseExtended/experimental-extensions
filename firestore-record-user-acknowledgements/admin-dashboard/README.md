@@ -35,6 +35,6 @@ npm run dev
 If you have a none default path for where notices are stored in Firestore (default is `notices`), you can configure this in the `.env` file, for example:
 
 ```bash
-NOTICES_COLLECTION_PATH=app_notices
+NOTICES_COLLECTION=app_notices
 ```
 

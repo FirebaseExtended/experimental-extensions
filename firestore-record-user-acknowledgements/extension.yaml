@@ -124,16 +124,14 @@ params:
     required: true
     immutable: true
 
-  - param: NOTICES_COLLECTION_PATH
-    label: Notices collection path
+  - param: NOTICES_COLLECTION
+    label: Notices collection
     description: >-
-      What is the path of the collection that you would like to use to store notices?
+      What is the collection name that you would like to use to store notices?
     type: string
-    example: notices
-    validationRegex: "^[^/]+(/[^/]+/[^/]+)*$"
-    validationErrorMessage: Firestore collection paths must be an odd number of segments separated by slashes, e.g. "path/to/collection".
     default: notices
     required: true
+    immutable: false
 
 events:
   - type: firebase.extensions.firestore-record-user-acknowledgements.v1.acknowledgement

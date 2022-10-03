@@ -4,7 +4,7 @@ import type { QuerySnapshot } from "firebase-admin/firestore";
 import type { Acknowledgement, Notice } from "./types";
 
 const projectId = process.env.PROJECT_ID;
-const noticesCollectionPath = process.env.NOTICES_COLLECTION_PATH || "notices";
+const noticesCollectionPath = process.env.NOTICES_COLLECTION || "notices";
 
 if (getApps().length === 0) {
   if (!projectId) {
