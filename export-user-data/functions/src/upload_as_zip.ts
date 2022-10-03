@@ -26,6 +26,7 @@ import {
   constructStorageCSV,
 } from "./construct_exports";
 import { getFilesFromStoragePath, replaceUID } from "./utils";
+import { eventChannel } from ".";
 
 export async function uploadDataAsZip(
   exportPaths: ExportPaths,
@@ -70,6 +71,15 @@ async function appendToArchive(
       if (pathWithUID.split("/").length % 2 === 1) {
         const snap = await admin.firestore().collection(pathWithUID).get();
         if (!snap.empty) {
+          if (eventChannel) {
+            await eventChannel.publish({
+              type: `firebase.extensions.export-user-data.firestore`,
+              data: JSON.stringify({
+                uid,
+                pathName: pathWithUID,
+              }),
+            });
+          }
           const csv = await constructFirestoreCollectionCSV(snap, path);
           const buffer = Buffer.from(csv);
           archive.append(buffer, { name: `${pathWithUID}.firestore.csv` });
@@ -79,6 +89,15 @@ async function appendToArchive(
         const snap = await admin.firestore().doc(pathWithUID).get();
 
         if (snap.exists) {
+          if (eventChannel) {
+            await eventChannel.publish({
+              type: `firebase.extensions.export-user-data.firestore`,
+              data: JSON.stringify({
+                uid,
+                pathName: pathWithUID,
+              }),
+            });
+          }
           const csv = await constructFirestoreDocumentCSV(snap, pathWithUID);
           const buffer = Buffer.from(csv);
           archive.append(buffer, { name: `${pathWithUID}.firestore.csv` });
@@ -95,6 +114,15 @@ async function appendToArchive(
       const snap = await admin.database().ref(pathWithUID).get();
 
       if (snap.exists()) {
+        if (eventChannel) {
+          await eventChannel.publish({
+            type: `firebase.extensions.export-user-data.database`,
+            data: JSON.stringify({
+              uid,
+              pathName: pathWithUID,
+            }),
+          });
+        }
         const csv = await constructDatabaseCSV(snap, pathWithUID);
         const buffer = Buffer.from(csv);
         archive.append(buffer, { name: `${pathWithUID}.database.csv` });

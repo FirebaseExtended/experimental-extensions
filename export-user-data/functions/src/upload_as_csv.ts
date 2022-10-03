@@ -25,6 +25,7 @@ import {
 } from "./construct_exports";
 import { ExportPaths } from "./get_export_paths";
 import { getFilesFromStoragePath, replaceUID } from "./utils";
+import { eventChannel } from ".";
 
 export async function uploadAsCSVs(
   exportPaths: ExportPaths,
@@ -42,6 +43,16 @@ export async function uploadAsCSVs(
         if (!snap.empty) {
           log.firestorePathExporting(pathWithUID);
 
+          if (eventChannel) {
+            await eventChannel.publish({
+              type: `firebase.extensions.export-user-data.firestore`,
+              data: JSON.stringify({
+                uid,
+                collectionPath: pathWithUID,
+              }),
+            });
+          }
+
           const csv = await constructFirestoreCollectionCSV(snap, pathWithUID);
 
           promises.push(
@@ -57,6 +68,17 @@ export async function uploadAsCSVs(
         }
       } else {
         const doc = await admin.firestore().doc(pathWithUID).get();
+
+        if (eventChannel) {
+          await eventChannel.publish({
+            type: `firebase.extensions.export-user-data.firestore`,
+            data: JSON.stringify({
+              uid,
+              documentName: pathWithUID,
+            }),
+          });
+        }
+
         const csv = await constructFirestoreDocumentCSV(doc, pathWithUID);
         promises.push(
           uploadCSVToStorage(
@@ -76,7 +98,18 @@ export async function uploadAsCSVs(
     if (typeof path === "string") {
       const pathWithUID = replaceUID(path, uid);
       const snap = await admin.database().ref(pathWithUID).get();
+
       if (snap.exists()) {
+        if (eventChannel) {
+          await eventChannel.publish({
+            type: `firebase.extensions.export-user-data.database`,
+            data: JSON.stringify({
+              uid,
+              pathName: pathWithUID,
+            }),
+          });
+        }
+
         log.rtdbPathExporting(pathWithUID);
         const csv = await constructDatabaseCSV(snap, pathWithUID);
         promises.push(
@@ -97,6 +130,16 @@ export async function uploadAsCSVs(
     if (typeof path === "string") {
       const pathWithUID = replaceUID(path, uid);
       const files = await getFilesFromStoragePath(pathWithUID);
+
+      if (eventChannel && files[0].length > 0) {
+        await eventChannel.publish({
+          type: `firebase.extensions.export-user-data.storage`,
+          data: JSON.stringify({
+            uid,
+            pathName: pathWithUID,
+          }),
+        });
+      }
 
       for (let file of files[0]) {
         const csv = await constructStorageCSV(file, pathWithUID);

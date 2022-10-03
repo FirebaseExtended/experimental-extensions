@@ -17,6 +17,7 @@
 import * as admin from "firebase-admin";
 import { FieldValue } from "firebase-admin/firestore";
 import * as functions from "firebase-functions";
+import { getEventarc } from "firebase-admin/eventarc";
 import config from "./config";
 import * as log from "./logs";
 import { getExportPaths } from "./get_export_paths";
@@ -33,6 +34,12 @@ const databaseURL = getDatabaseUrl(
 admin.initializeApp({
   databaseURL,
 });
+
+export const eventChannel =
+  process.env.EVENTARC_CHANNEL &&
+  getEventarc().channel(process.env.EVENTARC_CHANNEL, {
+    allowedEventTypes: process.env.EXT_SELECTED_EVENTS,
+  });
 /**
  * Export user data from Cloud Firestore, Realtime Database, and Cloud Storage.
  */
@@ -56,6 +63,16 @@ export const exportUserData = functions.https.onCall(async (_data, context) => {
     }
   } else {
     await uploadAsCSVs(exportPaths, uid, exportId);
+  }
+  if (eventChannel) {
+    await eventChannel.publish({
+      type: `firebase.extensions.export-user-data.exported-data`,
+      data: JSON.stringify({
+        uid,
+        storagePrefix,
+        exportPaths,
+      }),
+    });
   }
 
   await finalizeExport(storagePrefix, uid, exportId);

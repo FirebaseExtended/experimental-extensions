@@ -211,5 +211,11 @@ params:
   
 
 events:
+  - type: firebase.extensions.export-user-data.firestore
+    description: Occurs when a collections/document export has been triggered.
+  - type: firebase.extensions.export-user-data.rtdb
+    description: Occurs when a real-time database export has been triggered.
+  - type: firebase.extensions.export-user-data.storage
+    description: Occurs when a real-time storage export has been triggered.
   - type: firebase.google.v1.exported-data
     description: Event indicating that user data has been exported to Cloud Storage.
