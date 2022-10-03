@@ -124,11 +124,11 @@ export default function NoticePage() {
           {acknowledgements.map((acknowledgement) => (
             <tr key={acknowledgement.id} className="border-t [&>td]:p-3 [&>.code]:font-mono">
               <td>{acknowledgement.id}</td>
-              <td>{acknowledgement.ack_event}</td>
+              <td>{acknowledgement.ackEvent}</td>
               <td>{acknowledgement.userId}</td>
               <td>{acknowledgement.createdAt._seconds}</td>
               <td>
-                {acknowledgement.ack_event === "acknowledged"
+                {acknowledgement.ackEvent === "acknowledged"
                   ? acknowledgement.type
                   : "N/A"}
               </td>

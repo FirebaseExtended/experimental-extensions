@@ -44,8 +44,8 @@ A user acknowledgment contains the following data:
 - `userId`: The authenticated users UID.
 - `noticeId` The notice ID of this acknowledgement.
 - `createdAt`: A Timestamp indicating the time of acknowledgement.
-- `ack_event`: Whether this document is `acknowledged` or `unacknowledged`.
-- `type`: If the `ack_event` is `acknowledged`, the customizable type of acknowledgement. Defaults to `seen`.
+- `ackEvent`: Whether this document is `acknowledged` or `unacknowledged`.
+- `type`: If the `ackEvent` is `acknowledged`, the customizable type of acknowledgement. Defaults to `seen`.
 - `metadata`: An optional object containing custom values relevant to the acknowledgement.
 
 ### Acknowledging a notice

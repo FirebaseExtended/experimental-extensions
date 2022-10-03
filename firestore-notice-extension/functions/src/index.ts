@@ -107,7 +107,7 @@ export const getNotice = functions.https.onCall(async (data, context) => {
   const unacknowledgedAt =
     acknowledgements.length === 0
       ? undefined
-      : acknowledgements[0].ack_event === "unacknowledged"
+      : acknowledgements[0].ackEvent === "unacknowledged"
       ? acknowledgements[0].createdAt
       : undefined;
 
@@ -161,7 +161,7 @@ export const acknowledgeNotice = functions.https.onCall(
     const snapshot = await handleAcknowledgement(data, context);
 
     const documentData = {
-      ack_event: "acknowledged",
+      ackEvent: "acknowledged",
       userId: context.auth!.uid,
       noticeId: snapshot.id,
       type: data.type || "seen",
@@ -177,7 +177,7 @@ export const acknowledgeNotice = functions.https.onCall(
       .add(documentData);
 
     await eventChannel?.publish({
-      type: `firebase.extensions.record-user-acknowledgements.v1.acknowledgement`,
+      type: `firebase.extensions.firestore-record-user-acknowledgements.v1.acknowledgement`,
       data: JSON.stringify({
         ...documentData,
         id: result.id,
@@ -193,7 +193,7 @@ export const unacknowledgeNotice = functions.https.onCall(
     const snapshot = await handleAcknowledgement(data, context);
 
     const documentData = {
-      ack_event: "unacknowledged",
+      ackEvent: "unacknowledged",
       userId: context.auth!.uid,
       noticeId: snapshot.id,
       metadata: data.metadata || {},
@@ -208,7 +208,7 @@ export const unacknowledgeNotice = functions.https.onCall(
       .add(documentData);
 
     await eventChannel?.publish({
-      type: `firebase.extensions.record-user-acknowledgements.v1.unacknowledgement`,
+      type: `firebase.extensions.firestore-record-user-acknowledgements.v1.unacknowledgement`,
       data: JSON.stringify({
         ...documentData,
         id: result.id,
@@ -236,7 +236,7 @@ export const getAcknowledgements = functions.https.onCall(
     // If `includeUnacknowledgements` is true, we want to include all acknowledgements.
     // By default, this will include on acknowledged.
     if (data.includeUnacknowledgements !== true) {
-      query = query.where("ack_event", "==", "acknowledged");
+      query = query.where("ackEvent", "==", "acknowledged");
     }
 
     // Get a list of all the acknowledgements for a single user.

@@ -1,4 +1,4 @@
-name: record-user-acknowledgements
+name: firestore-record-user-acknowledgements
 version: 0.0.1
 specVersion: v1beta
 
@@ -128,7 +128,7 @@ params:
     required: true
 
 events:
-  - type: firebase.extensions.record-user-acknowledgements.v1.acknowledgement
+  - type: firebase.extensions.firestore-record-user-acknowledgements.v1.acknowledgement
     description: Event indicating that the Notice has been acknowledged.
-  - type: firebase.extensions.record-user-acknowledgements.v1.unacknowledgement
+  - type: firebase.extensions.firestore-record-user-acknowledgements.v1.unacknowledgement
     description: Event indicating that the Notice has been unacknowledged.
