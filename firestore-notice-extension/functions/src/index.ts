@@ -8,14 +8,15 @@ import { getEventarc } from "firebase-admin/eventarc";
 import { Acknowledgement, Notice } from "./interface";
 import { firestore } from "firebase-admin";
 
+admin.initializeApp();
+const db = admin.firestore();
+
+/** Setup EventArc Channels */
 const eventChannel =
   process.env.EVENTARC_CHANNEL &&
   getEventarc().channel(process.env.EVENTARC_CHANNEL, {
     allowedEventTypes: process.env.EXT_SELECTED_EVENTS,
   });
-
-admin.initializeApp();
-const db = admin.firestore();
 
 logs.init();
 
@@ -96,7 +97,6 @@ export const getNotice = functions.https.onCall(async (data, context) => {
     .orderBy("createdAt", "desc")
     .withConverter(acknowledgementConverter)
     .get();
-  
 
   // Get an array of plain acknowledgement objects.
   const acknowledgements = acknowledgementsSnapshot.docs.map((doc) =>
