@@ -2,7 +2,7 @@ name: record-user-acknowledgements
 version: 0.0.1
 specVersion: v1beta
 
-displayName: Record User Acknowledgements Extension
+displayName: Record User Acknowledgements
 description: Provides an out of the box acknowledgement management extension for Firestore
 
 license: Apache-2.0
@@ -128,7 +128,7 @@ params:
     required: true
 
 events:
-  - type: firebase.google.v1.acknowledgement
+  - type: firebase.extensions.record-user-acknowledgements.v1.acknowledgement
     description: Event indicating that the Notice has been acknowledged.
-  - type: firebase.google.v1.unacknowledgement
+  - type: firebase.extensions.record-user-acknowledgements.v1.unacknowledgement
     description: Event indicating that the Notice has been unacknowledged.

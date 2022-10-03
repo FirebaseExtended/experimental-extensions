@@ -177,7 +177,7 @@ export const acknowledgeNotice = functions.https.onCall(
       .add(documentData);
 
     await eventChannel?.publish({
-      type: `firebase.google.v1.acknowledgement`,
+      type: `firebase.extensions.record-user-acknowledgements.v1.acknowledgement`,
       data: JSON.stringify({
         ...documentData,
         id: result.id,
@@ -208,7 +208,7 @@ export const unacknowledgeNotice = functions.https.onCall(
       .add(documentData);
 
     await eventChannel?.publish({
-      type: `firebase.google.v1.unacknowledgement`,
+      type: `firebase.extensions.record-user-acknowledgements.v1.unacknowledgement`,
       data: JSON.stringify({
         ...documentData,
         id: result.id,
