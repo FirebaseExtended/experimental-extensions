@@ -45,7 +45,7 @@ export async function uploadAsCSVs(
 
           if (eventChannel) {
             await eventChannel.publish({
-              type: `firebase.extensions.export-user-data.firestore`,
+              type: `firebase.extensions.export-user-data.v1.firestore`,
               data: JSON.stringify({
                 uid,
                 collectionPath: pathWithUID,
@@ -71,7 +71,7 @@ export async function uploadAsCSVs(
 
         if (eventChannel) {
           await eventChannel.publish({
-            type: `firebase.extensions.export-user-data.firestore`,
+            type: `firebase.extensions.export-user-data.v1.firestore`,
             data: JSON.stringify({
               uid,
               documentName: pathWithUID,
@@ -102,7 +102,7 @@ export async function uploadAsCSVs(
       if (snap.exists()) {
         if (eventChannel) {
           await eventChannel.publish({
-            type: `firebase.extensions.export-user-data.database`,
+            type: `firebase.extensions.export-user-data.v1.database`,
             data: JSON.stringify({
               uid,
               pathName: pathWithUID,
@@ -133,7 +133,7 @@ export async function uploadAsCSVs(
 
       if (eventChannel && files[0].length > 0) {
         await eventChannel.publish({
-          type: `firebase.extensions.export-user-data.storage`,
+          type: `firebase.extensions.export-user-data.v1.storage`,
           data: JSON.stringify({
             uid,
             pathName: pathWithUID,

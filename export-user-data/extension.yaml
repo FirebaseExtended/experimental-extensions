@@ -16,10 +16,10 @@ name: export-user-data
 version: 0.0.1
 specVersion: v1beta
 
-displayName: Firestore Export User Data
+displayName: Export User Data
 
 description: >-
-  Export user data from Firestore to a Google Cloud Storage bucket.
+  Export user data from Firestore, Reaktime Database, or Cloud Storage to a Google Cloud Storage bucket.
 
 license: Apache-2.0
 
@@ -44,12 +44,12 @@ roles:
   - role: storage.admin
     reason: Allows the extension to export (user) data from Cloud Storage.
   - role: pubsub.admin
-    reason: Allows the extensin to publish and subscribe to export events.
+    reason: Allows the extension to publish and subscribe to export events.
 
 resources:
   - name: exportUserData
     type: firebaseextensions.v1beta.function
-    description: Reads and stores user data from Cloud Firestore to a Google Cloud Storage bucket.
+    description: Triggers an export and returns a unique export ID.
     properties:
       location: ${LOCATION}
       runtime: nodejs14
@@ -219,11 +219,13 @@ params:
   
 
 events:
-  - type: firebase.extensions.export-user-data.firestore
+  - type: firebase.extensions.export-user-data.v1.firestore
     description: Occurs when a collections/document export has been triggered.
-  - type: firebase.extensions.export-user-data.rtdb
+  - type: firebase.extensions.export-user-data.v1.rtdb
     description: Occurs when a real-time database export has been triggered.
-  - type: firebase.extensions.export-user-data.storage
+  - type: firebase.extensions.export-user-data.v1.storage
     description: Occurs when a real-time storage export has been triggered.
-  - type: firebase.google.v1.exported-data
-    description: Event indicating that user data has been exported to Cloud Storage.
+  - type: firebase.google.v1.export-pending
+    description: Event indicating that an export of user data to Cloud Storage has begun.
+  - type: firebase.google.v1.export-complete
+    description: Event indicating that an export of user data to Cloud Storage has completed.

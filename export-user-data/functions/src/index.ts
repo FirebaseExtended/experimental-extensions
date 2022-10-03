@@ -20,7 +20,7 @@ import * as functions from "firebase-functions";
 import { getEventarc } from "firebase-admin/eventarc";
 import config from "./config";
 import * as log from "./logs";
-import { getExportPaths } from "./get_export_paths";
+import { ExportPaths, getExportPaths } from "./get_export_paths";
 import { uploadDataAsZip } from "./upload_as_zip";
 import { uploadAsCSVs } from "./upload_as_csv";
 import { getDatabaseUrl } from "./utils";
@@ -64,18 +64,8 @@ export const exportUserData = functions.https.onCall(async (_data, context) => {
   } else {
     await uploadAsCSVs(exportPaths, uid, exportId);
   }
-  if (eventChannel) {
-    await eventChannel.publish({
-      type: `firebase.extensions.export-user-data.exported-data`,
-      data: JSON.stringify({
-        uid,
-        storagePrefix,
-        exportPaths,
-      }),
-    });
-  }
 
-  await finalizeExport(storagePrefix, uid, exportId);
+  await finalizeExport(storagePrefix, uid, exportId, exportPaths);
 
   return { exportId };
 });
@@ -99,6 +89,16 @@ const initializeExport = async (uid: string) => {
       startedAt,
     });
 
+  if (eventChannel) {
+    await eventChannel.publish({
+      type: `firebase.google.v1.export-pending`,
+      data: JSON.stringify({
+        uid,
+        exportId: exportDoc.id,
+        startedAt,
+      }),
+    });
+  }
   return exportDoc.id;
 };
 
@@ -111,7 +111,8 @@ const initializeExport = async (uid: string) => {
 const finalizeExport = async (
   storagePrefix: string,
   uid: string,
-  exportId: string
+  exportId: string,
+  exportPaths: ExportPaths
 ) => {
   await admin
     .firestore()
@@ -122,4 +123,17 @@ const finalizeExport = async (
       zipPath: config.zip ? `${storagePrefix}/${exportId}_${uid}.zip` : null,
     });
   log.completeExport(uid);
+
+  if (eventChannel) {
+    await eventChannel.publish({
+      type: `firebase.google.v1.export-complete`,
+      data: JSON.stringify({
+        uid,
+        exportId,
+        storagePath: `${storagePrefix}`,
+        zipPath: config.zip ? `${storagePrefix}/${exportId}_${uid}.zip` : null,
+        exportPaths,
+      }),
+    });
+  }
 };
