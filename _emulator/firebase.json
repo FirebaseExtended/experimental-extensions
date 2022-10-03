@@ -1,6 +1,7 @@
 {
   "extensions": {
-    "firestore-notice-extension": "../firestore-notice-extension"
+    "firestore-record-user-acknowledgements": "../firestore-record-user-acknowledgements",
+    "firestore-bundle-server": "../firestore-bundle-server"
   },
   "storage": {
     "rules": "storage.rules"
@@ -9,11 +10,20 @@
     "hub": {
       "port": 4000
     },
+    "hosting": {
+      "port": 8081
+    },
     "storage": {
       "port": 9199
     },
     "auth": {
       "port": 9099
+    },
+    "pubsub": {
+      "port": 8085
+    },
+    "functions": {
+      "port": 5001
     },
     "ui": {
       "enabled": true
@@ -22,5 +32,19 @@
   "firestore": {
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
+  },
+  "hosting": {
+    "public": "dist",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "rewrites": [
+      {
+        "source": "/bundles/*",
+        "function": "ext-firestore-bundle-server-serve"
+      },
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
   }
 }
