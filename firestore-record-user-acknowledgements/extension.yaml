@@ -7,8 +7,8 @@ description: Provides an out of the box acknowledgement management extension for
 
 license: Apache-2.0
 
-sourceUrl: https://github.com/invertase/firebase-extensions/tree/main/extensions/storage-image-processing-api
-releaseNotesUrl: https://github.com/invertase/firebase-extensions/tree/main/extensions/storage-image-processing-api/CHANGELOG.md
+sourceUrl: https://github.com/invertase/firebase-extensions/tree/main/extensions/firestore-record-user-acknowledgements
+releaseNotesUrl: https://github.com/invertase/firebase-extensions/tree/main/extensions/firestore-record-user-acknowledgements/CHANGELOG.md
 
 author:
   authorName: Firebase

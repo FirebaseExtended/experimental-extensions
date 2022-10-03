@@ -1,5 +1,5 @@
 {
-  "name": "firestore-notice-extension",
+  "name": "firestore-record-user-acknowledgements",
   "version": "0.0.1",
   "scripts": {
     "prepare": "npm run build",
