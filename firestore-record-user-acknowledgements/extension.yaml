@@ -133,6 +133,15 @@ params:
     required: true
     immutable: false
 
+  - param: ACKNOWLEDGEMENTS_COLLECTION
+    label: Acknowledgements collection
+    description: >-
+      What is the collection name that you would like to use to store acknowledgements?
+    type: string
+    default: acknowledgements
+    required: true
+    immutable: false
+
 events:
   - type: firebase.extensions.firestore-record-user-acknowledgements.v1.acknowledgement
     description: Event indicating that the Notice has been acknowledged.

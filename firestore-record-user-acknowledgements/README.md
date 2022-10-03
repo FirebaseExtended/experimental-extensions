@@ -1,4 +1,4 @@
-# Record User Acknowledgements Extension
+# Record User Acknowledgements
 
 **Author**: Firebase (**[https://firebase.google.com](https://firebase.google.com)**)
 
@@ -48,7 +48,9 @@ To install an extension, your project must be on the [Blaze (pay as you go) plan
 
 * Cloud Functions location: Where do you want to deploy the functions created for this extension? You usually want a location close to your Storage bucket. For help selecting a location, refer to the [location selection guide](https://firebase.google.com/docs/functions/locations).
 
-* Notices collection path: What is the path of the collection that you would like to use to store notices?
+* Notices collection: What is the collection name that you would like to use to store notices?
+
+* Acknowledgements collection: What is the collection name that you would like to use to store acknowledgements?
 
 
 
@@ -61,6 +63,8 @@ To install an extension, your project must be on the [Blaze (pay as you go) plan
 * **unacknowledgeNotice:** Unacknowledges a notice by ID.
 
 * **getAcknowledgements:** Returns a list of all user acknowledgements in creation order, including the notice document.
+
+* **createIndex:** A function used to help with creating Firestore indices that are required for this extension.
 
 
 

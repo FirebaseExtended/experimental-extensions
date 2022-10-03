@@ -12,7 +12,7 @@ setupEnvironment();
 
 /**
  * Test functions will try to initialize app
- * This is becaseu aadmin.initializeApp() is called in the index file
+ * This is because admin.initializeApp() is called in the index file
  * Use this mock to stop the app from being initialized in the test fn
  */
 
@@ -29,7 +29,7 @@ const auth = admin.auth();
 
 /**prepare collections */
 const noticesCollection = firestore().collection(
-  config.default.noticesCollectionPath
+  config.default.noticesCollection
 );
 
 const createNotice = async ({
@@ -75,7 +75,7 @@ describe("functions testing", () => {
       /** Get notice */
       const AckCollection = noticesCollection
         .doc(noticeId)
-        .collection("acknowledgements");
+        .collection(config.default.acknowledgementsCollection);
 
       /** Set query */
       const query = AckCollection.where("userId", "==", user.uid);
@@ -83,14 +83,14 @@ describe("functions testing", () => {
       /** Wait for update */
       const snapshot = await query.limit(1).get();
 
-      /** Get the Acknolwedgement document */
-      const acknoweldgement = snapshot.docs[0].data();
+      /** Get the acknowledgement document */
+      const acknowledgement = snapshot.docs[0].data();
 
       /** Assert data */
-      expect(acknoweldgement.type).toBe("seen");
-      expect(acknoweldgement.noticeId).toBe(noticeId);
-      expect(acknoweldgement.userId).toBe(user.uid);
-      expect(acknoweldgement.metadata.test).toEqual("value");
+      expect(acknowledgement.type).toBe("seen");
+      expect(acknowledgement.noticeId).toBe(noticeId);
+      expect(acknowledgement.userId).toBe(user.uid);
+      expect(acknowledgement.metadata.test).toEqual("value");
     });
 
     test("will throw an error with no authentication provided", () => {

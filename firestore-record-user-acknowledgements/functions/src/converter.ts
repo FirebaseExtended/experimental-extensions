@@ -32,7 +32,7 @@ export const acknowledgementConverter: FirestoreDataConverter<Acknowledgement> =
     toFirestore(
       data: WithFieldValue<Acknowledgement>
     ): FirebaseFirestore.DocumentData {
-      const acknowledement = {
+      const acknowledgement = {
         createdAt: FieldValue.serverTimestamp(),
         ackEvent: data.ackEvent,
         userId: data.userId,
@@ -42,12 +42,12 @@ export const acknowledgementConverter: FirestoreDataConverter<Acknowledgement> =
 
       if (data.ackEvent === "acknowledged") {
         return {
-          ...acknowledement,
+          ...acknowledgement,
           type: data.type || "seen",
         };
       }
 
-      return acknowledement;
+      return acknowledgement;
     },
     fromFirestore(snapshot: FirebaseFirestore.DocumentSnapshot) {
       const data = snapshot.data();

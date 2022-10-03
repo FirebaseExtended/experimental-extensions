@@ -61,7 +61,7 @@ export const getNotice = functions.https.onCall(async (data, context) => {
   }
 
   let query = db
-    .collection(config.noticesCollectionPath)
+    .collection(config.noticesCollection)
     .where("type", "==", data.type);
 
   if (data.version) {
@@ -91,9 +91,9 @@ export const getNotice = functions.https.onCall(async (data, context) => {
   );
 
   const acknowledgementsSnapshot = await db
-    .collection(config.noticesCollectionPath)
+    .collection(config.noticesCollection)
     .doc(notice.id)
-    .collection("acknowledgements")
+    .collection(config.acknowledgementsCollection)
     .where("userId", "==", context.auth!.uid)
     .orderBy("createdAt", "desc")
     .withConverter(acknowledgementConverter)
@@ -136,7 +136,7 @@ async function handleAcknowledgement(
   }
 
   const noticeSnapshot = await db
-    .collection(config.noticesCollectionPath)
+    .collection(config.noticesCollection)
     .doc(data.noticeId)
     .withConverter(noticeConverter)
     .get();
@@ -170,11 +170,11 @@ export const acknowledgeNotice = functions.https.onCall(
     };
 
     const result = await db
-      .collection(config.noticesCollectionPath)
+      .collection(config.noticesCollection)
       .doc(data.noticeId)
-      .collection("acknowledgements")
+      .collection(config.acknowledgementsCollection)
       .withConverter(acknowledgementConverter)
-      // @ts-expect-error - cant paritally type set arguments in the converter
+      // @ts-expect-error - cant partially type set arguments in the converter
       .add(documentData);
 
     await eventChannel?.publish({
@@ -201,11 +201,11 @@ export const unacknowledgeNotice = functions.https.onCall(
     };
 
     const result = await db
-      .collection(config.noticesCollectionPath)
+      .collection(config.noticesCollection)
       .doc(data.noticeId)
-      .collection("acknowledgements")
+      .collection(config.acknowledgementsCollection)
       .withConverter(acknowledgementConverter)
-      // @ts-expect-error - cant paritally type set arguments in the converter
+      // @ts-expect-error - cant partially type set arguments in the converter
       .add(documentData);
 
     await eventChannel?.publish({
@@ -231,7 +231,7 @@ export const getAcknowledgements = functions.https.onCall(
     const uid = context.auth!.uid;
 
     let query = db
-      .collectionGroup("acknowledgements")
+      .collectionGroup(config.acknowledgementsCollection)
       .where("userId", "==", uid);
 
     // If `includeUnacknowledgements` is true, we want to include all acknowledgements.

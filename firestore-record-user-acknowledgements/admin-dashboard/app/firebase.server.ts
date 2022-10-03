@@ -4,7 +4,9 @@ import type { QuerySnapshot } from "firebase-admin/firestore";
 import type { Acknowledgement, Notice } from "./types";
 
 const projectId = process.env.PROJECT_ID;
-const noticesCollectionPath = process.env.NOTICES_COLLECTION || "notices";
+const noticesCollection = process.env.NOTICES_COLLECTION || "notices";
+const acknowledgementsCollection =
+  process.env.ACKNOWLEDGEMENTS_COLLECTION || "acknowledgements";
 
 if (getApps().length === 0) {
   if (!projectId) {
@@ -38,16 +40,13 @@ function snapshotToArray<T>(snapshot: QuerySnapshot): T[] {
 
 // Returns a list of notices.
 export async function getNotices(): Promise<Notice[]> {
-  const snapshot = await firestore.collection(noticesCollectionPath).get();
+  const snapshot = await firestore.collection(noticesCollection).get();
   return snapshotToArray(snapshot);
 }
 
 // Returns a notice, if it exists.
 export async function getNotice(id: string): Promise<Notice | null> {
-  const snapshot = await firestore
-    .collection(noticesCollectionPath)
-    .doc(id)
-    .get();
+  const snapshot = await firestore.collection(noticesCollection).doc(id).get();
 
   if (snapshot.exists) {
     return documentToObject<Notice>(snapshot);
@@ -61,9 +60,9 @@ export async function getAcknowledgements(
   noticeId: string
 ): Promise<Acknowledgement[]> {
   const snapshot = await firestore
-    .collection(noticesCollectionPath)
+    .collection(noticesCollection)
     .doc(noticeId)
-    .collection("acknowledgements")
+    .collection(acknowledgementsCollection)
     .orderBy("createdAt", "desc")
     .get();
 
@@ -72,7 +71,7 @@ export async function getAcknowledgements(
 
 // Creates a new notice, and returns the new ID.
 export async function createNotice(data: any): Promise<string> {
-  const ref = await firestore.collection(noticesCollectionPath).add({
+  const ref = await firestore.collection(noticesCollection).add({
     ...data,
     createdAt: FieldValue.serverTimestamp(),
   });
@@ -82,7 +81,7 @@ export async function createNotice(data: any): Promise<string> {
 // Updates a notice, by merging data.
 export async function updateNotice(id: string, data: any): Promise<void> {
   await firestore
-    .collection(noticesCollectionPath)
+    .collection(noticesCollection)
     .doc(id)
     .set(
       {

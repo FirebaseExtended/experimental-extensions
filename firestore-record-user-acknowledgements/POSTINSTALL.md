@@ -11,7 +11,15 @@ npm run dev
 
 Head over to the locally running application and create a new notice. View the dashboard [README](https://github.com/FirebaseExtended/experimental-extensions/blob/%40invertase/firestore-tos-extension/firestore-record-user-acknowledgements/admin-dashboard/README.md) for more information.
 
-This extension requires a number of [Firestore indexes](https://firebase.google.com/docs/firestore/query-data/indexing) - view the deployed function logs for more information on how to create them if an error occurs.
+This extension requires a number of [Firestore indexes](https://firebase.google.com/docs/firestore/query-data/indexing) - to create these click each of the links below for each index and then press create on the Firebase Console.
+
+| Index                                                                                                                     | Link                                                                                                                                                                                                                                     |
+|---------------------------------------------------------------------------------------------------------------------------|--:-:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Collection '${param:NOTICES_COLLECTION}': `type` Ascending, `version` Ascending, `createdAt` Descending                   | [Create](https://${param:LOCATION}-${param:PROJECT_ID}.cloudfunctions.net/${param:EXT_INSTANCE_ID}-createIndex?collection=${param:NOTICES_COLLECTION}&queryScope=collection&fields=type,asc,version,asc,createdAt,desc)                  |
+| Collection '${param:NOTICES_COLLECTION}': `type` Ascending, `createdAt` Descending                                        | [Create](https://${param:LOCATION}-${param:PROJECT_ID}.cloudfunctions.net/${param:EXT_INSTANCE_ID}-createIndex?collection=${param:NOTICES_COLLECTION}&queryScope=collection&fields=type,asc,createdAt,desc)                              |
+| Collection '${param:ACKNOWLEDGEMENTS_COLLECTION}': `userId` Ascending, `createdAt` Descending                             | [Create](https://${param:LOCATION}-${param:PROJECT_ID}.cloudfunctions.net/${param:EXT_INSTANCE_ID}-createIndex?collection=${param:ACKNOWLEDGEMENTS_COLLECTION}&queryScope=collection&fields=userId,asc,createdAt,desc)                   |
+| Collection group '${param:ACKNOWLEDGEMENTS_COLLECTION}': `userId` Ascending, `createdAt` Descending                       | [Create](https://${param:LOCATION}-${param:PROJECT_ID}.cloudfunctions.net/${param:EXT_INSTANCE_ID}-createIndex?collection=${param:ACKNOWLEDGEMENTS_COLLECTION}&queryScope=collectionGroup&fields=userId,asc,createdAt,desc)              |
+| Collection group '${param:ACKNOWLEDGEMENTS_COLLECTION}': `ackEvent` Ascending, `userId` Ascending, `createdAt` Descending | [Create](https://${param:LOCATION}-${param:PROJECT_ID}.cloudfunctions.net/${param:EXT_INSTANCE_ID}-createIndex?collection=${param:ACKNOWLEDGEMENTS_COLLECTION}&queryScope=collectionGroup&fields=ackEvent,asc,userId,asc,createdAt,desc) |
 
 ### Retrieving a notice
 
@@ -21,7 +29,7 @@ After the notice has been created, you’ll want to show this notice to your use
 import { getFunctions, httpsCallable } from "firebase/functions";
 
 const functions = getFunctions();
-const notice = await httpsCallable(functions, 'ext-firestore-record-user-acknowledgements-getNotice')({
+const notice = await httpsCallable(functions, '${param:EXT_INSTANCE_ID}-getNotice')({
   type: 'banner',
 });
 ```
@@ -34,7 +42,7 @@ To retrieve a notice by a specific version, provide the `version` parameter:
 import { getFunctions, httpsCallable } from "firebase/functions";
 
 const functions = getFunctions();
-const notice = await httpsCallable(functions, 'ext-firestore-record-user-acknowledgements-getNotice')({
+const notice = await httpsCallable(functions, '${param:EXT_INSTANCE_ID}-getNotice')({
   type: ‘banner’,
   version: 2,
 });
@@ -58,7 +66,7 @@ For example, to acknowledge a notice:
 import { getFunctions, httpsCallable } from "firebase/functions";
 
 const functions = getFunctions();
-await httpsCallable(functions, 'ext-firestore-record-user-acknowledgements-acknowledgeNotice)({
+await httpsCallable(functions, '${param:EXT_INSTANCE_ID}-acknowledgeNotice)({
   noticeId: 'EA9QhZKKta9KXcckiasc', // The notice ID from the `getNotice` call.
 });
 ```
@@ -66,7 +74,7 @@ await httpsCallable(functions, 'ext-firestore-record-user-acknowledgements-ackno
 In-case you need to capture custom preferences relating to a acknowledgement, you can provide custom metadata to the function, for example:
 
 ```js
-await httpsCallable(functions, 'ext-firestore-record-user-acknowledgements-acknowledgeNotice)({
+await httpsCallable(functions, '${param:EXT_INSTANCE_ID}-acknowledgeNotice)({
   noticeId: 'EA9QhZKKta9KXcckiasc',
   metadata: { readDuration: 30_000 },
 });
@@ -75,7 +83,7 @@ await httpsCallable(functions, 'ext-firestore-record-user-acknowledgements-ackno
 You can also provide a custom “type” of acknowledgement (the default type is “seen”), for example:
 
 ```js
-await httpsCallable(functions, 'ext-firestore-record-user-acknowledgements-acknowledgeNotice)({
+await httpsCallable(functions, '${param:EXT_INSTANCE_ID}-acknowledgeNotice)({
   noticeId: 'EA9QhZKKta9KXcckiasc',
   type: 'accepted',
 });
@@ -84,7 +92,7 @@ await httpsCallable(functions, 'ext-firestore-record-user-acknowledgements-ackno
 If you wish to unacknowledge a notice, call the `unacknowledgeNotice` function:
 
 ```js
-await httpsCallable(functions, 'ext-firestore-record-user-acknowledgements-unacknowledgeNotice)({
+await httpsCallable(functions, '${param:EXT_INSTANCE_ID}-unacknowledgeNotice)({
    noticeId: 'EA9QhZKKta9KXcckiasc',
   metadata: { reason: '...' },
 });
@@ -98,11 +106,11 @@ To retrieve all previous user notice acknowledgements, call the `getAcknowledgem
 import { getFunctions, httpsCallable } from "firebase/functions";
 
 const functions = getFunctions();
-const acknowledgements = await httpsCallable(functions, 'ext-firestore-record-user-acknowledgements-getAcknowledgements)();
+const acknowledgements = await httpsCallable(functions, '${param:EXT_INSTANCE_ID}-getAcknowledgements)();
 ```
 
 ```js
-const acknowledgements = await httpsCallable(functions, 'ext-firestore-record-user-acknowledgements-getAcknowledgements)({
+const acknowledgements = await httpsCallable(functions, '${param:EXT_INSTANCE_ID}-getAcknowledgements)({
   includeUnacknowledgements: true,
 });
 ```
