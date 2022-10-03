@@ -20,7 +20,9 @@ export default {
   firestorePaths: process.env.FIRESTORE_PATHS,
   databasePaths: process.env.RTDB_PATHS,
   storagePaths: process.env.STORAGE_PATHS,
-  selectedDatabaseInstance: process.env.SELECTED_DATABASE_INSTANCE,
+  selectedDatabaseLocation: process.env.SELECTED_DATABASE_LOCATION,
+  selectedDatabaseInstance:
+    process.env.SELECTED_DATABASE_INSTANCE || process.env.DATABASE_URL,
   customHookEndpoint: process.env.CUSTOM_HOOK_ENDPOINT,
   zip: process.env.ZIP === "true",
 };

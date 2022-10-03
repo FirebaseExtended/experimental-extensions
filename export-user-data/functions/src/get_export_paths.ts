@@ -55,10 +55,6 @@ export async function getExportPaths(uid: string): Promise<ExportPaths> {
     databasePaths = [...databasePaths, ...pathsFromConfig.databasePaths];
     storagePaths = [...storagePaths, ...pathsFromConfig.storagePaths];
   }
-  if (databasePaths.length && !config.selectedDatabaseInstance) {
-    log.rtdbLocationNotConfigured();
-    databasePaths = [];
-  }
   return {
     firestorePaths,
     databasePaths,

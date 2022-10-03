@@ -22,10 +22,16 @@ import * as log from "./logs";
 import { getExportPaths } from "./get_export_paths";
 import { uploadDataAsZip } from "./upload_as_zip";
 import { uploadAsCSVs } from "./upload_as_csv";
+import { getDatabaseUrl } from "./utils";
+
+const databaseURL = getDatabaseUrl(
+  config.selectedDatabaseInstance,
+  config.selectedDatabaseLocation
+);
 
 // Initialize the Firebase Admin SDK
 admin.initializeApp({
-  databaseURL: config.selectedDatabaseInstance,
+  databaseURL,
 });
 /**
  * Export user data from Cloud Firestore, Realtime Database, and Cloud Storage.

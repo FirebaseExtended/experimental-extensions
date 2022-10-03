@@ -38,13 +38,13 @@ billingRequired: true
 
 roles:
   - role: datastore.owner
-    reason: Allows the extension to delete (user) data from Cloud Firestore.
+    reason: Allows the extension to export (user) data from Cloud Firestore.
   - role: firebasedatabase.admin
-    reason: Allows the extension to delete (user) data from Realtime Database.
+    reason: Allows the extension to export (user) data from Realtime Database.
   - role: storage.admin
-    reason: Allows the extension to delete (user) data from Cloud Storage.
+    reason: Allows the extension to export (user) data from Cloud Storage.
   - role: pubsub.admin
-    reason: allows publish and subscribing of deletion events
+    reason: Allows the extensin to publish and subscribe to export events.
 
 resources:
   - name: exportUserData
@@ -111,9 +111,7 @@ params:
   - param: STORAGE_BUCKET
     label: Cloud Storage bucket for images
     description: >
-      To which Cloud Storage bucket will you upload images that you want to resize?
-      Resized images will be stored in this bucket. Depending on your extension configuration,
-      original images are either kept or deleted.
+      To which Cloud Storage bucket will you export your data?
       It is recommended to create a separate bucket for this extension. For more information,
       refer to the [pre-installation guide](https://firebase.google.com/products/extensions/storage-resize-images).
     type: string
@@ -149,6 +147,7 @@ params:
     label: Realtime Database instance
     description: >
       From which Realtime Database instance do you want to delete user data?
+      If this parameter is not specified, this extension will use your default database instance.
     type: string
     example: my-instance
     validationRegex: ^([0-9a-z_.-]*)$
@@ -189,7 +188,7 @@ params:
   - param: SEARCH_FUNCTION
     label: Search function URL
     description: >-
-      Specify a function URL to call that will return a list of queries that can used to delete user data.
+      Specify a function URL to call that will return an object listing paths in services to export data from.
       See the pre-install documentation for more details.
     example: https://us-west1-my-project-id.cloudfunctions.net/myTransformFunction
     type: string
