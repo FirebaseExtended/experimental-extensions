@@ -131,11 +131,13 @@ params:
   - param: FIRESTORE_EXPORTS_COLLECTION
     label: Firestore collection to record export metadata
     description: >
-      Where do you want to keep track of your exports?
+      What is the path to the collection that will contain the export tracking documents?
     type: string
     default: exports
     example: exports
     required: false
+    validationRegex: "^[^/]+(/[^/]+/[^/]+)*$"
+    validationErrorMessage: Must be a valid Cloud Firestore collection
 
   - param: FIRESTORE_PATHS
     label: Cloud Firestore paths
