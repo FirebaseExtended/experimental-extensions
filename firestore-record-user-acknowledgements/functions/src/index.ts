@@ -7,6 +7,7 @@ import { noticeConverter, acknowledgementConverter } from "./converter";
 import { getEventarc } from "firebase-admin/eventarc";
 import { Acknowledgement, Notice } from "./interface";
 import { firestore } from "firebase-admin";
+import { createIndexUrlOnRequestHandler } from "./indexer";
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -281,4 +282,8 @@ export const getAcknowledgements = functions.https.onCall(
 
     return response;
   }
+);
+
+export const createIndex = functions.https.onRequest(
+  createIndexUrlOnRequestHandler
 );

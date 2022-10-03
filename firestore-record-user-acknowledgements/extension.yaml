@@ -61,7 +61,15 @@ resources:
       location: ${LOCATION}
       runtime: nodejs14
       httpsTrigger: {}
-
+  
+  - name: createIndex
+    type: firebaseextensions.v1beta.function
+    description:
+      A function used to help with creating Firestore indices that are required for this extension.
+    properties:
+      location: ${LOCATION}
+      runtime: nodejs14
+      httpsTrigger: {}
 params:
   - param: LOCATION
     label: Cloud Functions location

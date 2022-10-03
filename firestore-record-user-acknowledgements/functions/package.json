@@ -18,6 +18,7 @@
   "main": "lib/index.js",
   "dependencies": {
     "firebase": "^9.9.0",
+    "protobufjs": "^7.1.2",
     "firebase-admin": "11.0.1",
     "firebase-functions": "^3.14.1",
     "typescript": "^4.7.4",
