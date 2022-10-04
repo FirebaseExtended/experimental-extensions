@@ -21,7 +21,6 @@ import {
   constructDatabaseCSV,
   constructFirestoreCollectionCSV,
   constructFirestoreDocumentCSV,
-  copyStorageFilesToExportDirectory,
 } from "./construct_exports";
 import { ExportPaths } from "./get_export_paths";
 import { getFilesFromStoragePath, replaceUID } from "./utils";

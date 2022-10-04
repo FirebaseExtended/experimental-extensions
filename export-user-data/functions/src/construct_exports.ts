@@ -20,6 +20,8 @@ import { v4 as uuidv4 } from "uuid";
 import config from "./config";
 const HEADERS = ["TYPE", "path", "data"];
 import { File } from "@google-cloud/storage";
+import { replaceUID } from "./utils";
+import * as log from "./logs";
 
 const dataSources = {
   firestore: "FIRESTORE",
@@ -72,6 +74,30 @@ export const constructDatabaseCSV = async (snap: any, databasePath: string) => {
 };
 
 export const copyStorageFilesToExportDirectory = async (
+  storagePaths: unknown[],
+  uid: string
+) => {
+  let filePromises: Promise<File>[] = [];
+
+  // if there are storage paths, we copy files across to the new bucket
+  if (storagePaths.length > 0) {
+    for (let path of storagePaths) {
+      if (typeof path === "string") {
+        const pathWithUID = replaceUID(path, uid);
+        filePromises = [
+          ...filePromises,
+          ...(await copyStorageFilesAtPathToExportDirectory(pathWithUID)),
+        ];
+      } else {
+        log.storagePathNotString();
+      }
+    }
+  }
+
+  return Promise.all(filePromises);
+};
+
+export const copyStorageFilesAtPathToExportDirectory = async (
   pathWithUID: string
 ): Promise<Promise<File>[]> => {
   const originalParts = pathWithUID.split("/");

@@ -19,12 +19,11 @@ import * as functions from "firebase-functions";
 import { getEventarc } from "firebase-admin/eventarc";
 import config from "./config";
 import * as log from "./logs";
-import { ExportPaths, getExportPaths } from "./get_export_paths";
+import { getExportPaths } from "./get_export_paths";
 import { uploadDataAsZip } from "./upload_as_zip";
 import { uploadAsCSVs } from "./upload_as_csv";
-import { getDatabaseUrl, replaceUID } from "./utils";
+import { finalizeExport, getDatabaseUrl, initializeExport } from "./utils";
 import { copyStorageFilesToExportDirectory } from "./construct_exports";
-import { File } from "@google-cloud/storage";
 
 const databaseURL = getDatabaseUrl(
   config.selectedDatabaseInstance,
@@ -49,34 +48,31 @@ export const eventChannel =
 export const exportUserData = functions.https.onCall(async (_data, context) => {
   // get the user id
   const uid = context.auth.uid;
+
   // create a record of the export in firestore and get its id
   const exportId = await initializeExport(uid);
+
   // this is the path to the exported data in Cloud Storage
   const storagePrefix = `${config.cloudStorageExportDirectory}/${uid}/${exportId}`;
+
   // get the paths specified by config and/or custom hook.
   const exportPaths = await getExportPaths(uid);
-  const storagePaths = exportPaths.storagePaths;
 
-  let filePromises: Promise<File>[] = [];
-
-  // if there are storage paths, we copy files across to the new bucket
-  if (storagePaths.length > 0) {
-    for (let path of storagePaths) {
-      if (typeof path === "string") {
-        const pathWithUID = replaceUID(path, uid);
-        const filesToZip = await copyStorageFilesToExportDirectory(pathWithUID);
-        filePromises = [...filePromises, ...filesToZip];
-      } else {
-        log.storagePathNotString();
-      }
-    }
-  }
-
-  const files = await Promise.all(filePromises);
+  // copy the files from Cloud Storage to the export directory and return their file refs
+  const filesToZip = await copyStorageFilesToExportDirectory(
+    exportPaths.storagePaths,
+    uid
+  );
 
   if (config.zip) {
     try {
-      await uploadDataAsZip(exportPaths, storagePrefix, uid, exportId, files);
+      await uploadDataAsZip(
+        exportPaths,
+        storagePrefix,
+        uid,
+        exportId,
+        filesToZip
+      );
     } catch (e) {
       log.exportError(e);
     }
@@ -89,71 +85,3 @@ export const exportUserData = functions.https.onCall(async (_data, context) => {
 
   return { exportId };
 });
-
-/**
- * Initialize the export by creating a record in the exports collection.
- * @param uid userId
- * @returns exportId, the id of the export document in the exports collection
- */
-const initializeExport = async (uid: string) => {
-  const startedAt = admin.firestore.FieldValue.serverTimestamp();
-
-  log.startExport(uid);
-
-  const exportDoc = await admin
-    .firestore()
-    .collection(config.firestoreExportsCollection || "exports")
-    .add({
-      uid,
-      status: "pending",
-      startedAt,
-    });
-
-  if (eventChannel) {
-    await eventChannel.publish({
-      type: `firebase.extensions.export-user-data.v1`,
-      data: JSON.stringify({
-        uid,
-        exportId: exportDoc.id,
-        startedAt,
-      }),
-    });
-  }
-  return exportDoc.id;
-};
-
-/**
- * On completion of the export, updates the export document in the exports collection.
- * @param storagePrefix the path to the exported data in Cloud Storage
- * @param uid userId
- * @param exportId the id of the record of the export in firestore
- */
-const finalizeExport = async (
-  storagePrefix: string,
-  uid: string,
-  exportId: string,
-  exportPaths: ExportPaths
-) => {
-  await admin
-    .firestore()
-    .doc(`exports/${exportId}`)
-    .update({
-      status: "complete",
-      storagePath: `${storagePrefix}`,
-      zipPath: config.zip ? `${storagePrefix}/${exportId}_${uid}.zip` : null,
-    });
-  log.completeExport(uid);
-
-  if (eventChannel) {
-    await eventChannel.publish({
-      type: `firebase.extensions.export-user-data.v1.export-complete`,
-      data: JSON.stringify({
-        uid,
-        exportId,
-        storagePath: `${storagePrefix}`,
-        zipPath: config.zip ? `${storagePrefix}/${exportId}_${uid}.zip` : null,
-        exportPaths,
-      }),
-    });
-  }
-};
