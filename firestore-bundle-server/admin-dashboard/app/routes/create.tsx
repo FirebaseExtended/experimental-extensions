@@ -376,10 +376,10 @@ function Condition(props: {
         <option value="!=">{"!="}</option>
         <option value=">=">{">="}</option>
         <option value=">">{">"}</option>
-        <option value="array-contains">{"array-contains"}</option>
+        {/* <option value="array-contains">{"array-contains"}</option>
         <option value="in">{"in"}</option>
         <option value="not-in">{"not-in"}</option>
-        <option value="array-contains-any">{"array-contains-any"}</option>
+        <option value="array-contains-any">{"array-contains-any"}</option> */}
       </select>
       <input
         type="string"
