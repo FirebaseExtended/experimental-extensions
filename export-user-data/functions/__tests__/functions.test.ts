@@ -49,10 +49,10 @@ describe("extension", () => {
     });
 
     afterEach(async () => {
-      await clearFirestore();
+      // await clearFirestore();
     });
 
-    test("can export a top level collection with an id of {userId}", async () => {
+    xtest("can export a top level collection with an id of {userId}", async () => {
       /** Create a top level collection with a single document */
       await generateUserCollection(user.uid, 1);
 
@@ -65,13 +65,25 @@ describe("extension", () => {
 
     test("can export a top level document with an id of {userId}", async () => {
       /** Create a top level document with a single document */
-      await generateFileInUserStorage(user.uid, "Hello World!");
 
+      //generate a file in default bucket, called uid.
+      const file = await generateFileInUserStorage(user.uid, "Hello World!");
+
+      // call extension function
       await exportUserDatafn.call(
         {},
         { uid: user.uid },
         { auth: { uid: user.uid } }
       );
+
+      // expect there to be a file in the export bucket with the same name as the uid
+      // const exportBucket = admin.storage().bucket();
+
+      // const [files] = await exportBucket.getFiles({ prefix: 'exports' });
+      // console.log(files.map(f => f.name))
+
+      // expect(files.length).toBe(1);
+      // expect(files[0].name).toBe(user.uid);
     });
   });
 });

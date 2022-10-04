@@ -16,10 +16,11 @@
 import { Archiver } from "archiver";
 import * as sync from "csv-stringify/sync";
 import admin from "firebase-admin";
+import { v4 as uuidv4 } from "uuid";
 import config from "./config";
 // import { File } from "firebase-admin/storage"
-type File = any;
 const HEADERS = ["TYPE", "path", "data"];
+import { File } from "@google-cloud/storage";
 
 const dataSources = {
   firestore: "FIRESTORE",
@@ -72,9 +73,15 @@ export const constructDatabaseCSV = async (snap: any, databasePath: string) => {
 };
 
 export const copyFilesToStorage = async (
-  pathWithUID: string
-): Promise<File> => {
+  pathWithUID: string,
+  storagePrefix: string
+): Promise<Promise<File>[]> => {
   const originalParts = pathWithUID.split("/");
+
+  const pathWithBucketName = pathWithUID.replace(
+    "{DEFAULT}",
+    config.storageBucketDefault
+  );
 
   const originalBucket =
     originalParts[0] === "{DEFAULT}"
@@ -82,35 +89,28 @@ export const copyFilesToStorage = async (
       : admin.storage().bucket(originalParts[0]);
 
   const originalPrefix = originalParts.slice(1).join("/");
-  const originalFiles = await originalBucket
-    .getFiles({ prefix: originalPrefix })
-    .then((res) => res[0]);
 
-  const outputBucket = admin.storage().bucket("output-bucket");
+  const outputBucket = admin.storage().bucket(config.storageBucketDefault);
 
-  const filePromises = originalFiles.map(async (file) => {
-    const newPath = "test";
+  const originalFiles = (
+    await originalBucket.getFiles({ prefix: originalPrefix })
+  )[0];
 
-    const copyResponse = await file.copy(outputBucket.file(newPath));
+  return originalFiles.map(async (file) => {
+    const originalExtension = file.name.split(".").pop();
+    const newPrefix = `${config.cloudStorageExportDirectory}/${uuidv4()}${
+      originalExtension ? "." + originalExtension : ""
+    }`;
 
-    return copyResponse[0];
+    return file
+      .copy(outputBucket.file(newPrefix), {
+        metadata: { customMetadata: { originalPath: pathWithBucketName } },
+      })
+      .then((response) => response[0]);
   });
-  return filePromises;
 };
 
-export async function pushFileToArchive(
-  file: File,
-  archive: Archiver,
-  fileName: string
-) {
-  try {
-    console.log(file);
-    const data = await file.download();
-    console.log(data);
-
-    const buffer = Buffer.from(data);
-    archive.append(buffer, { name: fileName });
-  } catch (e) {
-    console.log("error", file.name, fileName);
-  }
+export async function pushFileToArchive(file: File, archive: Archiver) {
+  const [data] = await file.download();
+  archive.append(data, { name: file.name });
 }

@@ -52,7 +52,6 @@ export async function uploadDataAsZip(
       .createWriteStream();
 
     archive.pipe(stream);
-
     await appendToArchive(archive, exportPaths, uid, files);
 
     await archive.finalize();
@@ -95,10 +94,8 @@ async function appendToArchive(
       log.rtdbPathNotString();
     }
   }
-
   for (let file of files) {
-    console.log("FILE", file);
-    promises.push(pushFileToArchive(file, archive, `${1}_${file.name}`));
+    promises.push(pushFileToArchive(file, archive));
   }
 
   return Promise.all(promises);

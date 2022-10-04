@@ -53,22 +53,21 @@ export const exportUserData = functions.https.onCall(async (_data, context) => {
   const exportId = await initializeExport(uid);
   // this is the path to the exported data in Cloud Storage
   const storagePrefix = `${
-    config.cloudStorageExportDirectory || ""
+    config.cloudStorageExportDirectory || "exports"
   }/${uid}/${exportId}`;
   // get the paths specified by config and/or custom hook.
   const exportPaths = await getExportPaths(uid);
   const storagePaths = exportPaths.storagePaths;
 
-  console.log("EXPORT PATHS", exportPaths);
+  let filePromises: Promise<File>[] = [];
 
-  const filePromises: Promise<File>[] = [];
-
+  // if there are storage paths, we copy files across to the new bucket
   if (storagePaths.length > 0) {
     for (let path of storagePaths) {
       if (typeof path === "string") {
         const pathWithUID = replaceUID(path, uid);
-        console.log("replaced UID", pathWithUID);
-        filePromises.push(copyFilesToStorage(pathWithUID));
+        const filesToZip = await copyFilesToStorage(pathWithUID, storagePrefix);
+        filePromises = [...filePromises, ...filesToZip];
       } else {
         log.storagePathNotString();
       }
@@ -76,8 +75,6 @@ export const exportUserData = functions.https.onCall(async (_data, context) => {
   }
 
   const files = await Promise.all(filePromises);
-
-  console.log(files);
 
   if (config.zip) {
     try {

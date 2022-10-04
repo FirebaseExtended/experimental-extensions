@@ -109,7 +109,7 @@ params:
     immutable: true
 
   - param: STORAGE_BUCKET
-    label: Cloud Storage bucket for images
+    label: Cloud Storage bucket for exports
     description: >
       To which Cloud Storage bucket will you export your data?
       It is recommended to create a separate bucket for this extension. For more information,

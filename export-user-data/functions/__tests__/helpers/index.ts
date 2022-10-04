@@ -5,7 +5,10 @@ import setupEnvironment from "./setupEnvironment";
 import fetch from "node-fetch";
 
 if (!admin.apps.length) {
-  admin.initializeApp({ projectId: "demo-experimental" });
+  admin.initializeApp({
+    projectId: "demo-experimental",
+    storageBucket: process.env.STORAGE_BUCKET,
+  });
 }
 
 setupEnvironment();
@@ -243,7 +246,9 @@ export const generateUserDocument = async (userId, value) => {
 };
 
 export const generateFileInUserStorage = async (userId, value) => {
-  await storage.bucket().file(`${userId}`).save(value);
+  const file = storage.bucket().file(`${userId}.txt`);
+  await file.save(value);
+  return file;
 };
 
 export const clearFirestore = async () => {
