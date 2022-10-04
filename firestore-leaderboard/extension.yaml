@@ -1,0 +1,152 @@
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: firestore-leaderboard
+version: 0.0.1
+specVersion: v1beta1
+
+displayName: Firestore Leaderboard
+description:
+  Use certain firestore attribute to create leaderboard for the game.
+
+license: Apache-2.0
+
+sourceUrl: https://github.com/firebase/experimental-extensions/tree/next/firestore-leaderboard
+releaseNotesUrl: https://github.com/firebase/experimental-extensions/blob/next/firestore-leaderboard/CHANGELOG.md
+
+author:
+  authorName: Firebase
+  url: https://firebase.google.com
+
+resources:
+  - name: onScoreUpdate
+    type: firebaseextensions.v1beta.function
+    description:
+      Update the leaderboard when new score entry is writen
+    properties:
+      location: ${param:LOCATION}
+      runtime: nodejs14
+      eventTrigger:
+        eventType: providers/cloud.firestore/eventTypes/document.write
+        resource: projects/${param:PROJECT_ID}/databases/(default)/documents/users/{userId}
+
+params:
+  - param: LOCATION
+    label: Cloud Functions location
+    description: >-
+      Where do you want to deploy the functions created for this extension?
+      You usually want a location close to your database. For help selecting a
+      location, refer to the [location selection
+      guide](https://firebase.google.com/docs/functions/locations).
+    type: select
+    options:
+      - label: Iowa (us-central1)
+        value: us-central1
+      - label: South Carolina (us-east1)
+        value: us-east1
+      - label: Northern Virginia (us-east4)
+        value: us-east4
+      - label: Los Angeles (us-west2)
+        value: us-west2
+      - label: Salt Lake City (us-west3)
+        value: us-west3
+      - label: Las Vegas (us-west4)
+        value: us-west4
+      - label: Warsaw (europe-central2)
+        value: europe-central2
+      - label: Belgium (europe-west1)
+        value: europe-west1
+      - label: London (europe-west2)
+        value: europe-west2
+      - label: Frankfurt (europe-west3)
+        value: europe-west3
+      - label: Zurich (europe-west6)
+        value: europe-west6
+      - label: Taiwan (asia-east1)
+        value: asia-east1
+      - label: Hong Kong (asia-east2)
+        value: asia-east2
+      - label: Tokyo (asia-northeast1)
+        value: asia-northeast1
+      - label: Osaka (asia-northeast2)
+        value: asia-northeast2
+      - label: Seoul (asia-northeast3)
+        value: asia-northeast3
+      - label: Mumbai (asia-south1)
+        value: asia-south1
+      - label: Singapore (asia-southeast1)
+        value: asia-southeast1
+      - label: Jakarta (asia-southeast2)
+        value: asia-southeast2
+      - label: Montreal (northamerica-northeast1)
+        value: northamerica-northeast1
+      - label: Sao Paulo (southamerica-east1)
+        value: southamerica-east1
+      - label: Sydney (australia-southeast1)
+        value: australia-southeast1
+    default: us-central1
+    required: true
+    immutable: true
+
+  - param: SCORE_FIELD_NAME
+    label: Score field name
+    description: >
+      What is the name of the field used as sorting score?
+    example: score
+    default: score
+    required: true
+
+  - param: SCORE_COLLECTION_PATH
+    label: Collection path for user score document
+    description: >
+      What is the path of the collections to monitor score change?
+    example: users
+    default: users
+    required: true
+
+  - param: USER_NAME_FIELD_NAME
+    label: User name field name
+    description: >
+      What is the name of the field for the user name to display in leaderboard?
+    example: user_name
+    default: user_name
+    required: true
+
+  - param: LEADERBOARD_COLLECTION_PATH
+    label: Collection to host all leaderboards document
+    description: >
+      What is the name of the collections to create leaderboard document?
+    example: leaderboards
+    default: leaderboards
+    required: true
+
+  - param: LEADER_BOARD_NAME
+    label: Leaderboard Name
+    description: >
+      The name of the leaderboard document.
+    example: globel_leaderboard
+    default: globel_leaderboard
+    required: true
+
+  - param: LEADER_BOARD_SIZE
+    label: Leaderboard Size
+    description: >
+      How many entries we would like to keep in the leaderboard.
+    example: 100
+    default: 100
+    required: true
+
+events:
+  - type: firebase.extensions.firestore-leaderboard.v1.updated
+    description: Occurs when leaderboard is updated.
