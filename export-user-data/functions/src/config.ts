@@ -14,30 +14,16 @@
  * limitations under the License.
  */
 
-// export default {
-//   storageBucketDefault: process.env.STORAGE_BUCKET,
-//   cloudStorageExportDirectory: process.env.CLOUD_STORAGE_EXPORT_DIRECTORY,
-//   firestoreExportsCollection: process.env.FIRESTORE_EXPORTS_COLLECTION,
-//   firestorePaths: process.env.FIRESTORE_PATHS,
-//   databasePaths: process.env.RTDB_PATHS,
-//   storagePaths: process.env.STORAGE_PATHS,
-//   selectedDatabaseLocation: process.env.SELECTED_DATABASE_LOCATION,
-//   selectedDatabaseInstance:
-//     process.env.SELECTED_DATABASE_INSTANCE || process.env.DATABASE_URL,
-//   customHookEndpoint: process.env.CUSTOM_HOOK_ENDPOINT,
-//   zip: process.env.ZIP === "true",
-// };
 export default {
-  storageBucketDefault:
-    process.env.STORAGE_BUCKET || "extensions-testing.appspot.com",
-  cloudStorageExportDirectory: "",
-  firestoreExportsCollection: "exports",
-  firestorePaths: "",
-  databasePaths: "",
-  storagePaths: "{DEFAULT}/{UID}",
+  storageBucketDefault: process.env.STORAGE_BUCKET,
+  cloudStorageExportDirectory: process.env.CLOUD_STORAGE_EXPORT_DIRECTORY,
+  firestoreExportsCollection: process.env.FIRESTORE_EXPORTS_COLLECTION,
+  firestorePaths: process.env.FIRESTORE_PATHS,
+  databasePaths: process.env.RTDB_PATHS,
+  storagePaths: process.env.STORAGE_PATHS,
   selectedDatabaseLocation: process.env.SELECTED_DATABASE_LOCATION,
   selectedDatabaseInstance:
     process.env.SELECTED_DATABASE_INSTANCE || process.env.DATABASE_URL,
   customHookEndpoint: process.env.CUSTOM_HOOK_ENDPOINT,
-  zip: true,
+  zip: process.env.ZIP === "true",
 };

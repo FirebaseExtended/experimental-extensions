@@ -23,7 +23,7 @@ import {
   constructDatabaseCSV,
   constructFirestoreCollectionCSV,
   constructFirestoreDocumentCSV,
-  copyFileToStorage,
+  copyFilesToStorage,
   pushFileToArchive,
 } from "./construct_exports";
 import { getFilesFromStoragePath, replaceUID } from "./utils";

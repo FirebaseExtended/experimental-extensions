@@ -15,7 +15,6 @@
  */
 
 import * as admin from "firebase-admin";
-import { FieldValue } from "firebase-admin/firestore";
 import * as functions from "firebase-functions";
 import { getEventarc } from "firebase-admin/eventarc";
 import config from "./config";
@@ -24,10 +23,8 @@ import { ExportPaths, getExportPaths } from "./get_export_paths";
 import { uploadDataAsZip } from "./upload_as_zip";
 import { uploadAsCSVs } from "./upload_as_csv";
 import { getDatabaseUrl, replaceUID } from "./utils";
-import { copyFileToStorage } from "./construct_exports";
-// import { File } from 'firebase-admin/storage';
-
-type File = any;
+import { copyFilesToStorage } from "./construct_exports";
+import { File } from "@google-cloud/storage";
 
 const databaseURL = getDatabaseUrl(
   config.selectedDatabaseInstance,
@@ -45,13 +42,13 @@ export const eventChannel =
   getEventarc().channel(process.env.EVENTARC_CHANNEL, {
     allowedEventTypes: process.env.EXT_SELECTED_EVENTS,
   });
+
 /**
  * Export user data from Cloud Firestore, Realtime Database, and Cloud Storage.
  */
 export const exportUserData = functions.https.onCall(async (_data, context) => {
   // get the user id
-  // const uid = context.auth.uid;
-  const uid = "123";
+  const uid = context.auth.uid;
   // create a record of the export in firestore and get its id
   const exportId = await initializeExport(uid);
   // this is the path to the exported data in Cloud Storage
@@ -62,27 +59,29 @@ export const exportUserData = functions.https.onCall(async (_data, context) => {
   const exportPaths = await getExportPaths(uid);
   const storagePaths = exportPaths.storagePaths;
 
+  console.log("EXPORT PATHS", exportPaths);
+
   const filePromises: Promise<File>[] = [];
 
   if (storagePaths.length > 0) {
     for (let path of storagePaths) {
       if (typeof path === "string") {
         const pathWithUID = replaceUID(path, uid);
-
-        filePromises.push(copyFileToStorage(pathWithUID));
+        console.log("replaced UID", pathWithUID);
+        filePromises.push(copyFilesToStorage(pathWithUID));
       } else {
         log.storagePathNotString();
       }
     }
   }
+
   const files = await Promise.all(filePromises);
 
-  const example = await files[0][0];
-  console.log(example);
+  console.log(files);
 
   // if (config.zip) {
   //   try {
-  //     await uploadDataAsZip(exportPaths, storagePrefix, uid, exportId, files[0]);
+  //     await uploadDataAsZip(exportPaths, storagePrefix, uid, exportId,files);
   //   } catch (e) {
   //     log.exportError(e);
   //   }
@@ -90,7 +89,7 @@ export const exportUserData = functions.https.onCall(async (_data, context) => {
   //   await uploadAsCSVs(exportPaths, uid, exportId);
   // }
 
-  // await finalizeExport(storagePrefix, uid, exportId, exportPaths);
+  await finalizeExport(storagePrefix, uid, exportId, exportPaths);
 
   return { exportId };
 });
@@ -101,7 +100,7 @@ export const exportUserData = functions.https.onCall(async (_data, context) => {
  * @returns exportId, the id of the export document in the exports collection
  */
 const initializeExport = async (uid: string) => {
-  const startedAt = FieldValue.serverTimestamp();
+  const startedAt = admin.firestore.FieldValue.serverTimestamp();
 
   log.startExport(uid);
 

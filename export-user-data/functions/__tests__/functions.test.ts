@@ -57,7 +57,7 @@ describe("extension", () => {
       );
     });
 
-    test("can export a top level document with an id of {userId}", async () => {
+    xtest("can export a top level document with an id of {userId}", async () => {
       /** Create a top level document with a single document */
       await generateUserDocument(user.uid, { "single document": "example" });
 

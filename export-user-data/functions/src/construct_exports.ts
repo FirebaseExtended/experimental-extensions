@@ -71,7 +71,9 @@ export const constructDatabaseCSV = async (snap: any, databasePath: string) => {
   return sync.stringify(csvData);
 };
 
-export const copyFileToStorage = async (pathWithUID: string): Promise<File> => {
+export const copyFilesToStorage = async (
+  pathWithUID: string
+): Promise<File> => {
   const originalParts = pathWithUID.split("/");
 
   const originalBucket =
