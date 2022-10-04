@@ -91,7 +91,7 @@ const initializeExport = async (uid: string) => {
 
   if (eventChannel) {
     await eventChannel.publish({
-      type: `firebase.google.v1.export-pending`,
+      type: `firebase.extensions.export-user-data.v1`,
       data: JSON.stringify({
         uid,
         exportId: exportDoc.id,
@@ -126,7 +126,7 @@ const finalizeExport = async (
 
   if (eventChannel) {
     await eventChannel.publish({
-      type: `firebase.google.v1.export-complete`,
+      type: `firebase.extensions.export-user-data.v1.export-complete`,
       data: JSON.stringify({
         uid,
         exportId,

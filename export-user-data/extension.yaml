@@ -227,7 +227,7 @@ events:
     description: Occurs when a real-time database export has been triggered.
   - type: firebase.extensions.export-user-data.v1.storage
     description: Occurs when a real-time storage export has been triggered.
-  - type: firebase.google.v1.export-pending
+  - type: firebase.extensions.export-user-data.v1.export-pending
     description: Event indicating that an export of user data to Cloud Storage has begun.
-  - type: firebase.google.v1.export-complete
+  - type: firebase.extensions.export-user-data.v1.export-complete
     description: Event indicating that an export of user data to Cloud Storage has completed.
