@@ -28,7 +28,7 @@ import {
 } from "./construct_exports";
 import { getFilesFromStoragePath, replaceUID } from "./utils";
 import { eventChannel } from ".";
-// import { File } from "firebase-admin/storage";
+import { File } from "@google-cloud/storage";
 
 export async function uploadDataAsZip(
   exportPaths: ExportPaths,

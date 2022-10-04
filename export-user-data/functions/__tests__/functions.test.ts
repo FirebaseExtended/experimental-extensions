@@ -17,7 +17,9 @@
 import * as admin from "firebase-admin";
 import { UserRecord } from "firebase-functions/v1/auth";
 import {
+  clearFirestore,
   createFirebaseUser,
+  generateFileInUserStorage,
   generateUserCollection,
   generateUserDocument,
 } from "./helpers";
@@ -46,6 +48,10 @@ describe("extension", () => {
       user = await createFirebaseUser();
     });
 
+    afterEach(async () => {
+      await clearFirestore();
+    });
+
     test("can export a top level collection with an id of {userId}", async () => {
       /** Create a top level collection with a single document */
       await generateUserCollection(user.uid, 1);
@@ -57,9 +63,9 @@ describe("extension", () => {
       );
     });
 
-    xtest("can export a top level document with an id of {userId}", async () => {
+    test("can export a top level document with an id of {userId}", async () => {
       /** Create a top level document with a single document */
-      await generateUserDocument(user.uid, { "single document": "example" });
+      await generateFileInUserStorage(user.uid, "Hello World!");
 
       await exportUserDatafn.call(
         {},

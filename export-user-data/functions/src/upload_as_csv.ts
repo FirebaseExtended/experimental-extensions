@@ -39,7 +39,7 @@ export async function uploadAsCSVs(
       const pathWithUID = replaceUID(path, uid);
       if (pathWithUID.split("/").length % 2 === 1) {
         const snap = await admin.firestore().collection(pathWithUID).get();
-
+        console.log(pathWithUID);
         if (!snap.empty) {
           log.firestorePathExporting(pathWithUID);
 

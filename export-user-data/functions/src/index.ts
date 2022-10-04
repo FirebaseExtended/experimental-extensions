@@ -79,15 +79,15 @@ export const exportUserData = functions.https.onCall(async (_data, context) => {
 
   console.log(files);
 
-  // if (config.zip) {
-  //   try {
-  //     await uploadDataAsZip(exportPaths, storagePrefix, uid, exportId,files);
-  //   } catch (e) {
-  //     log.exportError(e);
-  //   }
-  // } else {
-  //   await uploadAsCSVs(exportPaths, uid, exportId);
-  // }
+  if (config.zip) {
+    try {
+      await uploadDataAsZip(exportPaths, storagePrefix, uid, exportId, files);
+    } catch (e) {
+      log.exportError(e);
+    }
+  } else {
+    await uploadAsCSVs(exportPaths, storagePrefix, uid);
+  }
 
   await finalizeExport(storagePrefix, uid, exportId, exportPaths);
 

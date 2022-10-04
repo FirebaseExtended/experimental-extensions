@@ -2,6 +2,7 @@ import * as admin from "firebase-admin";
 import { Query, DocumentData } from "@google-cloud/firestore";
 import { UserRecord } from "firebase-functions/v1/auth";
 import setupEnvironment from "./setupEnvironment";
+import fetch from "node-fetch";
 
 if (!admin.apps.length) {
   admin.initializeApp({ projectId: "demo-experimental" });
@@ -9,6 +10,7 @@ if (!admin.apps.length) {
 
 setupEnvironment();
 const db = admin.firestore();
+const storage = admin.storage();
 
 export const generateRandomId = () => {
   return (
@@ -238,4 +240,15 @@ export const generateUserDocument = async (userId, value) => {
     .doc(`${userId}`)
     .set(value)
     .catch((err) => console.warn("Error appears here, ignoring for now"));
+};
+
+export const generateFileInUserStorage = async (userId, value) => {
+  await storage.bucket().file(`${userId}`).save(value);
+};
+
+export const clearFirestore = async () => {
+  await fetch(
+    "http://localhost:8080/emulator/v1/projects/demo-experimental/databases/(default)/documents",
+    { method: "DELETE" }
+  );
 };
