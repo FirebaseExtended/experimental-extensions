@@ -49,7 +49,7 @@ export async function getExportPaths(uid: string): Promise<ExportPaths> {
     log.customHookNotConfigured();
   }
 
-  if (config.firestorePaths || config.databasePaths) {
+  if (config.firestorePaths || config.databasePaths || config.storagePaths) {
     const pathsFromConfig = getPathsFromConfig(uid);
     firestorePaths = [...firestorePaths, ...pathsFromConfig.firestorePaths];
     databasePaths = [...databasePaths, ...pathsFromConfig.databasePaths];

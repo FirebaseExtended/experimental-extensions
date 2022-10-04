@@ -37,6 +37,7 @@ const databaseURL = getDatabaseUrl(
 // Initialize the Firebase Admin SDK
 admin.initializeApp({
   databaseURL,
+  storageBucket: config.storageBucketDefault,
 });
 
 export const eventChannel =
@@ -67,11 +68,8 @@ export const exportUserData = functions.https.onCall(async (_data, context) => {
     for (let path of storagePaths) {
       if (typeof path === "string") {
         const pathWithUID = replaceUID(path, uid);
-        const originalBucket = pathWithUID.split("/")[0];
-        const originalStoragePath = pathWithUID.split("/").slice(1).join("/");
-        filePromises.push(
-          copyFileToStorage(originalBucket, originalStoragePath)
-        );
+
+        filePromises.push(copyFileToStorage(pathWithUID));
       } else {
         log.storagePathNotString();
       }
@@ -79,17 +77,20 @@ export const exportUserData = functions.https.onCall(async (_data, context) => {
   }
   const files = await Promise.all(filePromises);
 
-  if (config.zip) {
-    try {
-      await uploadDataAsZip(exportPaths, storagePrefix, uid, exportId, files);
-    } catch (e) {
-      log.exportError(e);
-    }
-  } else {
-    await uploadAsCSVs(exportPaths, uid, exportId);
-  }
+  const example = await files[0][0];
+  console.log(example);
 
-  await finalizeExport(storagePrefix, uid, exportId, exportPaths);
+  // if (config.zip) {
+  //   try {
+  //     await uploadDataAsZip(exportPaths, storagePrefix, uid, exportId, files[0]);
+  //   } catch (e) {
+  //     log.exportError(e);
+  //   }
+  // } else {
+  //   await uploadAsCSVs(exportPaths, uid, exportId);
+  // }
+
+  // await finalizeExport(storagePrefix, uid, exportId, exportPaths);
 
   return { exportId };
 });

@@ -16,6 +16,7 @@
 import { Archiver } from "archiver";
 import * as sync from "csv-stringify/sync";
 import admin from "firebase-admin";
+import config from "./config";
 // import { File } from "firebase-admin/storage"
 type File = any;
 const HEADERS = ["TYPE", "path", "data"];
@@ -70,27 +71,29 @@ export const constructDatabaseCSV = async (snap: any, databasePath: string) => {
   return sync.stringify(csvData);
 };
 
-export const copyFileToStorage = async (
-  originalBucket,
-  originalStoragePath
-) => {
-  const originalExtension = originalStoragePath.split(".").pop();
+export const copyFileToStorage = async (pathWithUID: string): Promise<File> => {
+  const originalParts = pathWithUID.split("/");
 
-  const newPath = `exports/<uuidv5>.${originalExtension}`;
-  const fullPath = `gs://${originalBucket}/${originalStoragePath}`;
+  const originalBucket =
+    originalParts[0] === "{DEFAULT}"
+      ? admin.storage().bucket(config.storageBucketDefault)
+      : admin.storage().bucket(originalParts[0]);
 
-  return admin
-    .storage()
-    .bucket(originalBucket)
-    .file(originalStoragePath)
-    .copy(admin.storage().bucket().file(newPath), {
-      metadata: {
-        customMetadata: {
-          originalFileLocation: fullPath,
-        },
-      },
-    })
-    .then((copyResponse) => copyResponse[0]);
+  const originalPrefix = originalParts.slice(1).join("/");
+  const originalFiles = await originalBucket
+    .getFiles({ prefix: originalPrefix })
+    .then((res) => res[0]);
+
+  const outputBucket = admin.storage().bucket("output-bucket");
+
+  const filePromises = originalFiles.map(async (file) => {
+    const newPath = "test";
+
+    const copyResponse = await file.copy(outputBucket.file(newPath));
+
+    return copyResponse[0];
+  });
+  return filePromises;
 };
 
 export async function pushFileToArchive(
@@ -98,7 +101,14 @@ export async function pushFileToArchive(
   archive: Archiver,
   fileName: string
 ) {
-  const data = await file.read();
-  const buffer = Buffer.from(data);
-  archive.append(buffer, { name: fileName });
+  try {
+    console.log(file);
+    const data = await file.download();
+    console.log(data);
+
+    const buffer = Buffer.from(data);
+    archive.append(buffer, { name: fileName });
+  } catch (e) {
+    console.log("error", file.name, fileName);
+  }
 }

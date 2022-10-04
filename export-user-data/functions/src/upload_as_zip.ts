@@ -97,6 +97,7 @@ async function appendToArchive(
   }
 
   for (let file of files) {
+    console.log("FILE", file);
     promises.push(pushFileToArchive(file, archive, `${1}_${file.name}`));
   }
 
