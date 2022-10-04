@@ -13,8 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Archiver } from "archiver";
 import * as sync from "csv-stringify/sync";
-
+import admin from "firebase-admin";
+// import { File } from "firebase-admin/storage"
+type File = any;
 const HEADERS = ["TYPE", "path", "data"];
 
 const dataSources = {
@@ -23,7 +26,7 @@ const dataSources = {
   storage: "STORAGE",
 };
 
-export const constructFirestoreCollectionCSV = async (
+export const constructFirestoreCollectionCSV = (
   snap: FirebaseFirestore.QuerySnapshot,
   collectionPath: string
 ) => {
@@ -38,7 +41,7 @@ export const constructFirestoreCollectionCSV = async (
   return sync.stringify(csvData);
 };
 
-export const constructFirestoreDocumentCSV = async (
+export const constructFirestoreDocumentCSV = (
   snap: FirebaseFirestore.DocumentSnapshot,
   documentPath: string
 ) => {
@@ -67,13 +70,35 @@ export const constructDatabaseCSV = async (snap: any, databasePath: string) => {
   return sync.stringify(csvData);
 };
 
-export const constructStorageCSV = async (files, storagePath) => {
-  const csvData = [["TYPE", "path"]];
+export const copyFileToStorage = async (
+  originalBucket,
+  originalStoragePath
+) => {
+  const originalExtension = originalStoragePath.split(".").pop();
 
-  for (let file of files) {
-    const path = `${storagePath}/${file.name}`;
-    csvData.push([dataSources.storage, path]);
-  }
+  const newPath = `exports/<uuidv5>.${originalExtension}`;
+  const fullPath = `gs://${originalBucket}/${originalStoragePath}`;
 
-  return sync.stringify(csvData);
+  return admin
+    .storage()
+    .bucket(originalBucket)
+    .file(originalStoragePath)
+    .copy(admin.storage().bucket().file(newPath), {
+      metadata: {
+        customMetadata: {
+          originalFileLocation: fullPath,
+        },
+      },
+    })
+    .then((copyResponse) => copyResponse[0]);
 };
+
+export async function pushFileToArchive(
+  file: File,
+  archive: Archiver,
+  fileName: string
+) {
+  const data = await file.read();
+  const buffer = Buffer.from(data);
+  archive.append(buffer, { name: fileName });
+}

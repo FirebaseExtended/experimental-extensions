@@ -69,6 +69,12 @@ export const rtdbPathNotString = () => {
   );
 };
 
+export const storagePathNotString = () => {
+  logger.error(
+    "Storage paths must be strings, skipping. Check your custom hook response."
+  );
+};
+
 export const init = () => {
   logger.log("Initializing extension with configuration", config);
 };
@@ -105,6 +111,10 @@ export const storagePath404 = (path: string) => {
 
 export const storagePathError = (path: string, err: Error) => {
   logger.error(`Error Exporting: '${path}' from Cloud Storage`, err);
+};
+
+export const StoragePathExporting = (path: string) => {
+  logger.log(`Exporting: '${path}' from Cloud Storage`);
 };
 
 export const customHookBadResponse = (endpoint: string) => {

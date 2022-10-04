@@ -23,7 +23,11 @@ import * as log from "./logs";
 import { ExportPaths, getExportPaths } from "./get_export_paths";
 import { uploadDataAsZip } from "./upload_as_zip";
 import { uploadAsCSVs } from "./upload_as_csv";
-import { getDatabaseUrl } from "./utils";
+import { getDatabaseUrl, replaceUID } from "./utils";
+import { copyFileToStorage } from "./construct_exports";
+// import { File } from 'firebase-admin/storage';
+
+type File = any;
 
 const databaseURL = getDatabaseUrl(
   config.selectedDatabaseInstance,
@@ -45,7 +49,8 @@ export const eventChannel =
  */
 export const exportUserData = functions.https.onCall(async (_data, context) => {
   // get the user id
-  const uid = context.auth.uid;
+  // const uid = context.auth.uid;
+  const uid = "123";
   // create a record of the export in firestore and get its id
   const exportId = await initializeExport(uid);
   // this is the path to the exported data in Cloud Storage
@@ -54,10 +59,29 @@ export const exportUserData = functions.https.onCall(async (_data, context) => {
   }/${uid}/${exportId}`;
   // get the paths specified by config and/or custom hook.
   const exportPaths = await getExportPaths(uid);
+  const storagePaths = exportPaths.storagePaths;
+
+  const filePromises: Promise<File>[] = [];
+
+  if (storagePaths.length > 0) {
+    for (let path of storagePaths) {
+      if (typeof path === "string") {
+        const pathWithUID = replaceUID(path, uid);
+        const originalBucket = pathWithUID.split("/")[0];
+        const originalStoragePath = pathWithUID.split("/").slice(1).join("/");
+        filePromises.push(
+          copyFileToStorage(originalBucket, originalStoragePath)
+        );
+      } else {
+        log.storagePathNotString();
+      }
+    }
+  }
+  const files = await Promise.all(filePromises);
 
   if (config.zip) {
     try {
-      await uploadDataAsZip(exportPaths, storagePrefix, uid, exportId);
+      await uploadDataAsZip(exportPaths, storagePrefix, uid, exportId, files);
     } catch (e) {
       log.exportError(e);
     }
