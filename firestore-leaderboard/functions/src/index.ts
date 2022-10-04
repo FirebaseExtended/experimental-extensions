@@ -75,9 +75,7 @@ const createLeaderboardDocument = async (
   ):Promise<void> => {
    // Wrapping in transaction to allow for automatic retries (#48)
     await admin.firestore().runTransaction((transaction) => {
-    const docRef = admin.firestore().doc("leaderboard/onehundred")
-    transaction.create(docRef,{
-      uid: "12345", username: "test1", score: "100"});
+    
     return Promise.resolve();
   });
 };
