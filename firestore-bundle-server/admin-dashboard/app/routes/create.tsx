@@ -1,7 +1,6 @@
 import type { ActionFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { redirect } from "@remix-run/node";
-import { useEffect, useState } from "react";
 import { useActionData } from "@remix-run/react";
 import qs from "qs";
 import { Label } from "~/components/Label";
@@ -9,6 +8,7 @@ import { createBundle, getBundle, Timestamp } from "~/firebase.server";
 import type { Bundle } from "~/types";
 import { Button } from "~/components/Button";
 import { TrashIcon } from "~/components/icons";
+import { Input } from "~/components/form";
 
 export const action: ActionFunction = async ({ request }) => {
   const text = await request.text();
@@ -17,7 +17,12 @@ export const action: ActionFunction = async ({ request }) => {
   const id = form.id as string;
 
   if (await getBundle(id)) {
-    return json({ error: "Bundle with that ID already exists!" });
+    return json({
+      errors: {
+        id: "Bundle with that ID already exists!",
+      },
+      form,
+    });
   }
 
   const data: Omit<Bundle, "id"> = {
@@ -109,17 +114,17 @@ export const action: ActionFunction = async ({ request }) => {
 };
 
 const randomId = () => Math.random().toString(36).substring(2, 15);
+const randomArray = (len: number) => Array.from({ length: len }, randomId);
 
 export default function Create() {
-  const [queries, setQueries] = useState<string[]>([]);
-  const [params, setParams] = useState<string[]>([]);
   const action = useActionData();
-
-  useEffect(() => {
-    if (action?.error) {
-      alert(action.error);
-    }
-  }, [action?.error]);
+  console.log('action', action);
+  const [queries, setQueries] = useState<string[]>(
+    action?.form.query ? randomArray(action?.form.query.length) : []
+  );
+  const [params, setParams] = useState<string[]>(
+    action?.form.params ? randomArray(action?.form.params.length) : []
+  );
 
   return (
     <div className="max-w-5xl mx-auto">
@@ -135,40 +140,42 @@ export default function Create() {
           label="Bundle ID *"
           description="A required type for the bundle name. This is used to accept incoming HTTP requests from the callable function, e,g `/bundles/<bundleName>`."
         >
-          <input name="id" type="text" required placeholder="e.g. users" />
+          <Input name="id" type="text" required placeholder="e.g. users" defaultValue={action?.form.id} error={action?.errors.id} />
         </Label>
         <Label
           label="Client Cache"
           description="An optional value. Specifies how long to keep the bundle in the client's cache, in seconds. If not defined, client-side cache is disabled."
         >
-          <input name="clientCache" type="number" placeholder="e.g. 300" />
+          <Input name="clientCache" type="number" placeholder="e.g. 300" defaultValue={action?.form.clientCache} error={action?.errors.clientCache} />
         </Label>
         <Label
           label="Server Cache"
           description="An optional value. Only use in combination with Firebase Hosting. Specifies how long to keep the bundle in Firebase Hosting's CDN cache, in seconds."
         >
-          <input name="serverCache" type="number" placeholder="e.g. 300" />
+          <Input name="serverCache" type="number" placeholder="e.g. 300" defaultValue={action?.form.serverCache} error={action?.errors.serverCache} />
         </Label>
         <Label
           label="File Cache"
           description="An optional value. Specifies how long (in seconds) to keep the bundle in a Cloud Storage bucket, in seconds. If not defined, Cloud Storage bucket is not accessed."
         >
-          <input name="fileCache" type="number" placeholder="e.g. 300" />
+          <Input name="fileCache" type="number" placeholder="e.g. 300" defaultValue={action?.form.fileCache} error={action?.errors.fileCache} />
         </Label>
         <Label
           label="Not Before File Cache"
           description="An optional value. If a 'File Cache' is specified, ignore bundles created before this timestamp."
         >
-          <input name="notBefore" type="datetime-local" />
+          <Input name="notBefore" type="datetime-local" defaultValue={action?.form.notBefore} error={action?.errors.notBefore} />
         </Label>
         <Label
           label="Documents"
           description="A comma separated list of document paths. If specified, only these documents will be included in the bundle."
         >
-          <input
+          <Input
             name="docs"
             type="string"
             placeholder="e.g. products/coffee-club,products/french-press"
+            defaultValue={action?.form.docs}
+            error={action?.errors.docs}
           />
         </Label>
         <Label
@@ -188,6 +195,7 @@ export default function Create() {
               id={id}
               index={i}
               key={id}
+              defaults={action?.form.params?.[i]}
               onDelete={(id) => {
                 setParams(($) => $.filter((_) => _ !== id));
               }}
@@ -198,7 +206,6 @@ export default function Create() {
           label="Queries"
           description="A list of queries to include in the bundle. Each query has its own unique ID a client can use via the `namedQuery` API."
         />
-
         <div className="mb-2">
           <button
             type="button"
@@ -215,6 +222,7 @@ export default function Create() {
                 id={id}
                 index={i}
                 key={id}
+                defaults={action?.form.query?.[i]}
                 onDelete={(id) => {
                   setQueries(($) => $.filter((_) => _ !== id));
                 }}
@@ -234,20 +242,21 @@ function Param(props: {
   id: string;
   index: number;
   onDelete: (id: string) => void;
+  defaults?: any;
 }) {
   return (
     <div className="grid grid-cols-[1fr,1fr,1fr,auto] gap-3 items-center">
       <Label label="Name">
-        <input name={`params[${props.index}][name]`} type="string" required />
+        <input name={`params[${props.index}][name]`} type="string" required defaultValue={props.defaults?.name} />
       </Label>
       <Label label="Required">
-        <select name={`params[${props.index}][required]`}>
+        <select name={`params[${props.index}][required]`} defaultValue={props.defaults?.required}>
           <option value="true">Required</option>
           <option value="false">Not Required</option>
         </select>
       </Label>
       <Label label="Type">
-        <select name={`params[${props.index}][type]`}>
+        <select name={`params[${props.index}][type]`} defaultValue={props.defaults?.type}>
           <option value="string">string</option>
           <option value="integer">integer</option>
           <option value="float">float</option>
@@ -271,8 +280,12 @@ function Queries(props: {
   id: string;
   index: number;
   onDelete: (id: string) => void;
+  defaults?: any;
 }) {
-  const [conditions, setConditions] = useState<string[]>([]);
+  console.log('queries defaults', props.defaults);
+  const [conditions, setConditions] = useState<string[]>(
+    props.defaults?.condition ? randomArray(props.defaults.condition.length) : []
+  );
 
   return (
     <div className="border px-3 mb-3">
@@ -288,13 +301,14 @@ function Queries(props: {
           </button>
         }
       >
-        <input name={`query[${props.index}][id]`} type="string" required />
+        <Input name={`query[${props.index}][id]`} type="string" required defaultValue={props.defaults?.id} />
       </Label>
       <Label label="The collection path to perform the query on.">
-        <input
+        <Input
           name={`query[${props.index}][collection]`}
           type="string"
           required
+          defaultValue={props.defaults?.collection}
         />
       </Label>
       <div className="my-3">
@@ -312,6 +326,7 @@ function Queries(props: {
             id={id}
             index={i}
             queryIndex={props.index}
+            defaults={props.defaults?.condition?.[i]}
             key={id}
             onDelete={(id) => {
               setConditions(($) => $.filter((_) => _ !== id));
@@ -328,30 +343,35 @@ function Condition(props: {
   index: number;
   queryIndex: number;
   onDelete: (id: string) => void;
+  defaults?: any;
 }) {
-  const [type, setType] = useState("where");
-  const [op, setOp] = useState("<");
+  const [type, setType] = useState(props.defaults?.type ?? "where");
+  const [op, setOp] = useState(props.defaults?.op ?? "<");
 
   const stringInput = () => (
-    <input
+    <Input
       type="text"
       name={`query[${props.queryIndex}][condition][${props.index}][value]`}
+      defaultValue={props.defaults?.value}
     />
   );
   const numberInput = () => (
-    <input
+    <Input
       type="number"
       name={`query[${props.queryIndex}][condition][${props.index}][value]`}
+      defaultValue={props.defaults?.value}
     />
   );
   const orderInput = () => (
     <div className="grid grid-cols-2 gap-3">
-      <input
+      <Input
         type="string"
         name={`query[${props.queryIndex}][condition][${props.index}][value]`}
+        defaultValue={props.defaults?.value}
       />
       <select
         name={`query[${props.queryIndex}][condition][${props.index}][direction]`}
+        defaultValue={props.defaults?.direction}
       >
         <option value="asc">Ascending</option>
         <option value="desc">Descending</option>
@@ -360,12 +380,14 @@ function Condition(props: {
   );
   const whereInput = () => (
     <div className="grid grid-cols-3 gap-3">
-      <input
+      <Input
         type="string"
         name={`query[${props.queryIndex}][condition][${props.index}][field]`}
+        defaultValue={props.defaults?.field}
       />
       <select
         name={`query[${props.queryIndex}][condition][${props.index}][op]`}
+        defaultValue={props.defaults?.op}
         onChange={(e) => {
           setOp(e.target.value);
         }}
@@ -381,9 +403,10 @@ function Condition(props: {
         <option value="not-in">{"not-in"}</option>
         <option value="array-contains-any">{"array-contains-any"}</option> */}
       </select>
-      <input
+      <Input
         type="string"
         name={`query[${props.queryIndex}][condition][${props.index}][value]`}
+        defaultValue={props.defaults?.value}
       />
     </div>
   );
@@ -429,6 +452,7 @@ function Condition(props: {
       >
         <select
           name={`query[${props.queryIndex}][condition][${props.index}][type]`}
+          defaultValue={props.defaults?.type}
           onChange={(e) => {
             setType(e.target.value);
           }}
