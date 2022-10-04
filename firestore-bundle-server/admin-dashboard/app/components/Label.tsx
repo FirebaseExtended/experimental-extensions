@@ -1,11 +1,15 @@
 export function Label(props: {
   label: string;
   description?: string;
+  action?: React.ReactNode;
   children?: React.ReactNode;
 }) {
   return (
     <label className="block mt-6">
-      <div className="font-bold mb-2">{props.label}</div>
+      <div className="flex items-center">
+        <div className="font-bold mb-2 flex-grow">{props.label}</div>
+        <div>{props.action}</div>
+      </div>
       {!!props.description && (
         <p className="text-gray-600 mb-2">
           <small>{props.description}</small>
