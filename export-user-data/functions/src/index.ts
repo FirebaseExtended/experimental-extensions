@@ -23,7 +23,7 @@ import { ExportPaths, getExportPaths } from "./get_export_paths";
 import { uploadDataAsZip } from "./upload_as_zip";
 import { uploadAsCSVs } from "./upload_as_csv";
 import { getDatabaseUrl, replaceUID } from "./utils";
-import { copyFilesToStorage } from "./construct_exports";
+import { copyStorageFilesToExportDirectory } from "./construct_exports";
 import { File } from "@google-cloud/storage";
 
 const databaseURL = getDatabaseUrl(
@@ -52,9 +52,7 @@ export const exportUserData = functions.https.onCall(async (_data, context) => {
   // create a record of the export in firestore and get its id
   const exportId = await initializeExport(uid);
   // this is the path to the exported data in Cloud Storage
-  const storagePrefix = `${
-    config.cloudStorageExportDirectory || "exports"
-  }/${uid}/${exportId}`;
+  const storagePrefix = `${config.cloudStorageExportDirectory}/${uid}/${exportId}`;
   // get the paths specified by config and/or custom hook.
   const exportPaths = await getExportPaths(uid);
   const storagePaths = exportPaths.storagePaths;
@@ -66,7 +64,7 @@ export const exportUserData = functions.https.onCall(async (_data, context) => {
     for (let path of storagePaths) {
       if (typeof path === "string") {
         const pathWithUID = replaceUID(path, uid);
-        const filesToZip = await copyFilesToStorage(pathWithUID, storagePrefix);
+        const filesToZip = await copyStorageFilesToExportDirectory(pathWithUID);
         filePromises = [...filePromises, ...filesToZip];
       } else {
         log.storagePathNotString();
@@ -83,6 +81,7 @@ export const exportUserData = functions.https.onCall(async (_data, context) => {
       log.exportError(e);
     }
   } else {
+    // uploads firestore and database data as csvs
     await uploadAsCSVs(exportPaths, storagePrefix, uid);
   }
 

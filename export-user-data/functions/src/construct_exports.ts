@@ -18,7 +18,6 @@ import * as sync from "csv-stringify/sync";
 import admin from "firebase-admin";
 import { v4 as uuidv4 } from "uuid";
 import config from "./config";
-// import { File } from "firebase-admin/storage"
 const HEADERS = ["TYPE", "path", "data"];
 import { File } from "@google-cloud/storage";
 
@@ -72,9 +71,8 @@ export const constructDatabaseCSV = async (snap: any, databasePath: string) => {
   return sync.stringify(csvData);
 };
 
-export const copyFilesToStorage = async (
-  pathWithUID: string,
-  storagePrefix: string
+export const copyStorageFilesToExportDirectory = async (
+  pathWithUID: string
 ): Promise<Promise<File>[]> => {
   const originalParts = pathWithUID.split("/");
 

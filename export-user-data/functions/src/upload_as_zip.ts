@@ -23,10 +23,9 @@ import {
   constructDatabaseCSV,
   constructFirestoreCollectionCSV,
   constructFirestoreDocumentCSV,
-  copyFilesToStorage,
   pushFileToArchive,
 } from "./construct_exports";
-import { getFilesFromStoragePath, replaceUID } from "./utils";
+import { replaceUID } from "./utils";
 import { eventChannel } from ".";
 import { File } from "@google-cloud/storage";
 
