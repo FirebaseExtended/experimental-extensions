@@ -66,13 +66,13 @@ export const exportUserData = functions.https.onCall(async (_data, context) => {
 
   if (config.zip) {
     try {
-      await uploadDataAsZip(
+      await uploadDataAsZip({
         exportPaths,
         storagePrefix,
         uid,
         exportId,
-        filesToZip
-      );
+        filesToZip,
+      });
     } catch (e) {
       log.exportError(e);
     }

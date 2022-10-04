@@ -29,13 +29,21 @@ import { replaceUID } from "./utils";
 import { eventChannel } from ".";
 import { File } from "@google-cloud/storage";
 
-export async function uploadDataAsZip(
-  exportPaths: ExportPaths,
-  storagePrefix: string,
-  uid: string,
-  exportId: string,
-  files: File[]
-) {
+interface UploadAsZipParams {
+  exportPaths: ExportPaths;
+  storagePrefix: string;
+  uid: string;
+  exportId: string;
+  filesToZip: File[];
+}
+
+export async function uploadDataAsZip({
+  exportPaths,
+  storagePrefix,
+  uid,
+  exportId,
+  filesToZip,
+}: UploadAsZipParams) {
   return new Promise<void>(async (resolve, reject) => {
     const archive = archiver("zip", {
       zlib: { level: 9 }, // Sets the compression level.
@@ -51,19 +59,26 @@ export async function uploadDataAsZip(
       .createWriteStream();
 
     archive.pipe(stream);
-    await appendToArchive(archive, exportPaths, uid, files);
+    await appendToArchive({ archive, exportPaths, uid, filesToZip });
 
     await archive.finalize();
     resolve();
   });
 }
 
-async function appendToArchive(
-  archive: Archiver,
-  exportPaths: ExportPaths,
-  uid: string,
-  files: File[]
-) {
+interface AppendToArchiveParams {
+  archive: Archiver;
+  exportPaths: ExportPaths;
+  uid: string;
+  filesToZip: File[];
+}
+
+async function appendToArchive({
+  archive,
+  exportPaths,
+  uid,
+  filesToZip,
+}: AppendToArchiveParams) {
   const promises = [];
 
   for (let path of exportPaths.firestorePaths) {
@@ -93,7 +108,7 @@ async function appendToArchive(
       log.rtdbPathNotString();
     }
   }
-  for (let file of files) {
+  for (let file of filesToZip) {
     promises.push(pushFileToArchive(file, archive));
   }
 
