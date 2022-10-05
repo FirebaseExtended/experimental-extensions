@@ -36,7 +36,7 @@ export default function Create() {
       <form method="post" action="/create">
         <Label
           label="Notice Type *"
-          description="A required type for the notice. This is used to identify the notice and is used to determine which users have acknowledged the notice. Use an existing type to create a new instance of a notice (e.g. updated terms and conditions which require new acknowlegement)."
+          description="A required type for the notice. This is used to identify the notice and is used to determine which users have acknowledged the notice. Use an existing type to create a new instance of a notice."
         >
           <Input
             name="type"
