@@ -50,7 +50,7 @@ export async function uploadDataAsZip({
     });
     archive.on("error", reject);
 
-    const storagePath = `${storagePrefix}/${exportId}_${uid}.zip`;
+    const storagePath = `${storagePrefix}/export.zip`;
 
     const stream = admin
       .storage()

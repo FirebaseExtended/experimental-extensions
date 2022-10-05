@@ -15,8 +15,8 @@
  */
 
 import * as admin from "firebase-admin";
-import * as functions from "firebase-functions";
 import { getEventarc } from "firebase-admin/eventarc";
+import * as functions from "firebase-functions";
 import config from "./config";
 import * as log from "./logs";
 import { getExportPaths } from "./get_export_paths";

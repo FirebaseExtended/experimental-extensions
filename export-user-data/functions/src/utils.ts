@@ -99,7 +99,7 @@ export const finalizeExport = async (
     .update({
       status: "complete",
       storagePath: `${storagePrefix}`,
-      zipPath: config.zip ? `${storagePrefix}/${exportId}_${uid}.zip` : null,
+      zipPath: config.zip ? `${storagePrefix}/export.zip` : null,
     });
   log.completeExport(uid);
 

@@ -230,18 +230,20 @@ export const generateTopLevelUserCollection = async (db, userId) => {
   return collection;
 };
 
-export const generateUserCollection = async (userId, tier = 1) => {
-  await db
-    .collection(`${userId}`)
-    .add({ "single collection": "single collection" })
-    .catch((err) => console.warn("Error appears here, ignoring for now"));
+export const generateUserCollection = async (userId, data) => {
+  const doc = await db.collection(`${userId}`).add(data);
+  return doc.id;
 };
 
-export const generateUserDocument = async (userId, value) => {
+export const generateUserDocument = async (
+  collectionId: string,
+  userId: string,
+  data
+) => {
   await db
-    .collection(`${generateRandomId()}`)
+    .collection(collectionId)
     .doc(`${userId}`)
-    .set(value)
+    .set(data)
     .catch((err) => console.warn("Error appears here, ignoring for now"));
 };
 
@@ -256,4 +258,11 @@ export const clearFirestore = async () => {
     "http://localhost:8080/emulator/v1/projects/demo-experimental/databases/(default)/documents",
     { method: "DELETE" }
   );
+};
+
+export const clearStorage = async () => {
+  const files = await storage.bucket().getFiles();
+  for await (const file of files[0]) {
+    await file.delete();
+  }
 };
