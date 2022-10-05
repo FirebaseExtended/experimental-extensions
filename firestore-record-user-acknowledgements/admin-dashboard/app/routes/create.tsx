@@ -41,7 +41,7 @@ export default function Create() {
           <Input
             name="type"
             type="text"
-            placeholder="terms-and-conditions"
+            placeholder="announcement"
             required
           />
         </Label>
