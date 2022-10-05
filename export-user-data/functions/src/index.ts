@@ -49,6 +49,13 @@ export const exportUserData = functions.https.onCall(async (_data, context) => {
   // get the user id
   const uid = context.auth.uid;
 
+  const exportCounts = {
+    firestore: 0,
+    database: 0,
+    storageCopied: 0,
+    storageZipped: 0,
+  };
+
   // create a record of the export in firestore and get its id
   const exportId = await initializeExport(uid);
 
@@ -64,24 +71,34 @@ export const exportUserData = functions.https.onCall(async (_data, context) => {
     uid
   );
 
+  exportCounts.storageCopied = filesToZip.length;
+
   if (config.zip) {
     try {
-      await uploadDataAsZip({
-        exportPaths,
-        storagePrefix,
-        uid,
-        exportId,
-        filesToZip,
-      });
+      const { firestoreCount, databaseCount, storageCount } =
+        await uploadDataAsZip({
+          exportPaths,
+          storagePrefix,
+          uid,
+          exportId,
+          filesToZip,
+        });
+      exportCounts.firestore = firestoreCount;
+      exportCounts.database = databaseCount;
     } catch (e) {
       log.exportError(e);
     }
   } else {
     // uploads firestore and database data as csvs
-    await uploadAsCSVs(exportPaths, storagePrefix, uid);
+    const { firestoreCount, databaseCount } = await uploadAsCSVs(
+      exportPaths,
+      storagePrefix,
+      uid
+    );
+    exportCounts.firestore = firestoreCount;
+    exportCounts.database = databaseCount;
   }
 
-  await finalizeExport(storagePrefix, uid, exportId, exportPaths);
-
+  await finalizeExport(storagePrefix, uid, exportId, exportPaths, exportCounts);
   return { exportId };
 });

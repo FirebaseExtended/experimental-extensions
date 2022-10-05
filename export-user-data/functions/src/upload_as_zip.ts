@@ -23,7 +23,6 @@ import {
   constructDatabaseCSV,
   constructFirestoreCollectionCSV,
   constructFirestoreDocumentCSV,
-  pushFileToArchive,
 } from "./construct_exports";
 import { replaceUID } from "./utils";
 import { eventChannel } from ".";
@@ -37,14 +36,19 @@ interface UploadAsZipParams {
   filesToZip: File[];
 }
 
+interface ZipUploadCount {
+  firestoreCount: number;
+  databaseCount: number;
+  storageCount: number;
+}
+
 export async function uploadDataAsZip({
   exportPaths,
   storagePrefix,
   uid,
-  exportId,
   filesToZip,
 }: UploadAsZipParams) {
-  return new Promise<void>(async (resolve, reject) => {
+  return new Promise<ZipUploadCount>(async (resolve, reject) => {
     const archive = archiver("zip", {
       zlib: { level: 9 }, // Sets the compression level.
     });
@@ -59,10 +63,18 @@ export async function uploadDataAsZip({
       .createWriteStream();
 
     archive.pipe(stream);
-    await appendToArchive({ archive, exportPaths, uid, filesToZip });
+    // TODO: log that we're done zipping
+    stream.on("finish", async () => {});
+
+    const count: ZipUploadCount = await appendToArchive({
+      archive,
+      exportPaths,
+      uid,
+      filesToZip,
+    });
 
     await archive.finalize();
-    resolve();
+    resolve(count);
   });
 }
 
@@ -78,8 +90,14 @@ async function appendToArchive({
   exportPaths,
   uid,
   filesToZip,
-}: AppendToArchiveParams) {
+}: AppendToArchiveParams): Promise<ZipUploadCount> {
   const promises = [];
+
+  const count: ZipUploadCount = {
+    firestoreCount: 0,
+    databaseCount: 0,
+    storageCount: 0,
+  };
 
   for (let path of exportPaths.firestorePaths) {
     if (typeof path === "string") {
@@ -87,12 +105,24 @@ async function appendToArchive({
       // If it's a path to a collection
       if (pathWithUID.split("/").length % 2 === 1) {
         promises.push(
-          appendFirestoreCollectionToArchive(archive, pathWithUID, uid)
+          appendFirestoreCollectionToArchive(archive, pathWithUID, uid).then(
+            (didAppend) => {
+              if (didAppend) {
+                count.firestoreCount++;
+              }
+            }
+          )
         );
         // else it is a path to a document
       } else {
         promises.push(
-          appendFirestoreDocumentToArchive(archive, pathWithUID, uid)
+          appendFirestoreDocumentToArchive(archive, pathWithUID, uid).then(
+            (didAppend) => {
+              if (didAppend) {
+                count.firestoreCount++;
+              }
+            }
+          )
         );
       }
     } else {
@@ -103,23 +133,39 @@ async function appendToArchive({
   for (let path of exportPaths.databasePaths) {
     if (typeof path === "string") {
       const pathWithUID = replaceUID(path, uid);
-      promises.push(appendDatabaseNodeToArchive(archive, pathWithUID, uid));
+      promises.push(
+        appendDatabaseNodeToArchive(archive, pathWithUID, uid).then(
+          (didAppend) => {
+            if (didAppend) {
+              count.firestoreCount++;
+            }
+          }
+        )
+      );
     } else {
       log.rtdbPathNotString();
     }
   }
   for (let file of filesToZip) {
-    promises.push(pushFileToArchive(file, archive));
+    promises.push(
+      pushFileToArchive(file, archive).then((didAppend) => {
+        if (didAppend) {
+          count.storageCount++;
+        }
+      })
+    );
   }
 
-  return Promise.all(promises);
+  await Promise.all(promises);
+
+  return count;
 }
 
 async function appendFirestoreCollectionToArchive(
   archive: Archiver,
   path: string,
   uid: string
-) {
+): Promise<boolean> {
   log.firestorePathExporting(path);
 
   const snap = await admin.firestore().collection(path).get();
@@ -137,7 +183,9 @@ async function appendFirestoreCollectionToArchive(
     const csv = constructFirestoreCollectionCSV(snap, path);
     const buffer = Buffer.from(csv);
     archive.append(buffer, { name: `${path}.firestore.csv` });
+    return true;
   }
+  return false;
 }
 
 async function appendFirestoreDocumentToArchive(
@@ -162,7 +210,9 @@ async function appendFirestoreDocumentToArchive(
     const csv = constructFirestoreDocumentCSV(snap, path);
     const buffer = Buffer.from(csv);
     archive.append(buffer, { name: `${path}.firestore.csv` });
+    return true;
   }
+  return false;
 }
 
 async function appendDatabaseNodeToArchive(
@@ -187,5 +237,17 @@ async function appendDatabaseNodeToArchive(
     const csv = await constructDatabaseCSV(snap, path);
     const buffer = Buffer.from(csv);
     archive.append(buffer, { name: `${path}.database.csv` });
+    return true;
+  }
+  return false;
+}
+
+async function pushFileToArchive(file: File, archive: Archiver) {
+  try {
+    const [data] = await file.download();
+    archive.append(data, { name: file.name });
+    return true;
+  } catch {
+    return false;
   }
 }

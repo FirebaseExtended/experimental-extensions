@@ -56,6 +56,7 @@ jest.mock("../../src/config", () => ({
 describe("extension", () => {
   describe("top level collection", () => {
     let user: UserRecord;
+    let unsubscribe;
 
     beforeEach(async () => {
       user = await createFirebaseUser();
@@ -66,6 +67,7 @@ describe("extension", () => {
       await clearFirestore();
       await clearStorage();
       await admin.auth().revokeRefreshTokens(user.uid);
+      unsubscribe();
     });
 
     test("can export a top level collection with an id of {userId}", async () => {
@@ -76,7 +78,7 @@ describe("extension", () => {
 
       // watch the exports collection for changes
       const observer = jest.fn();
-      admin
+      unsubscribe = admin
         .firestore()
         .collection(config.firestoreExportsCollection)
         .onSnapshot(observer);
@@ -116,6 +118,9 @@ describe("extension", () => {
 
       // should have a null zipPath
       expect(completeRecordData.zipPath).toBeNull();
+
+      // should have the right number of files exported
+      expect(completeRecordData.exportedFileCount).toBe(1);
 
       // should have a string storage path
       expect(completeRecordData.storagePath).toBeDefined();

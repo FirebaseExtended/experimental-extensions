@@ -91,7 +91,13 @@ export const finalizeExport = async (
   storagePrefix: string,
   uid: string,
   exportId: string,
-  exportPaths: ExportPaths
+  exportPaths: ExportPaths,
+  exportCounts: {
+    firestore: number;
+    database: number;
+    storageCopied: number;
+    storageZipped: number;
+  }
 ) => {
   await admin
     .firestore()
@@ -100,7 +106,9 @@ export const finalizeExport = async (
       status: "complete",
       storagePath: `${storagePrefix}`,
       zipPath: config.zip ? `${storagePrefix}/export.zip` : null,
+      exportedFileCount: Object.values(exportCounts).reduce((a, b) => a + b, 0),
     });
+
   log.completeExport(uid);
 
   if (eventChannel) {
@@ -112,6 +120,7 @@ export const finalizeExport = async (
         storagePath: `${storagePrefix}`,
         zipPath: config.zip ? `${storagePrefix}/${exportId}_${uid}.zip` : null,
         exportPaths,
+        exportedFileCount: 0,
       }),
     });
   }

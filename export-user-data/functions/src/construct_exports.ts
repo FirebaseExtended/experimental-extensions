@@ -130,11 +130,10 @@ export const copyStorageFilesAtPathToExportDirectory = async (
       .copy(outputBucket.file(newPrefix), {
         metadata: { customMetadata: { originalPath: pathWithBucketName } },
       })
-      .then((response) => response[0]);
+      .then((response) => {
+        if (!config.zip) {
+        }
+        return response[0];
+      });
   });
 };
-
-export async function pushFileToArchive(file: File, archive: Archiver) {
-  const [data] = await file.download();
-  archive.append(data, { name: file.name });
-}

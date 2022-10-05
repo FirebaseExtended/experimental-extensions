@@ -15,13 +15,14 @@
  */
 
 import * as admin from "firebase-admin";
+import unzip from "unzipper";
+
 import waitForExpect from "wait-for-expect";
 import { UserRecord } from "firebase-functions/v1/auth";
 import {
   clearFirestore,
   clearStorage,
   createFirebaseUser,
-  generateFileInUserStorage,
   generateUserCollection,
   generateUserDocument,
 } from "../helpers";
@@ -50,13 +51,12 @@ jest.mock("../../src/config", () => ({
   cloudStorageExportDirectory: "exports",
   firestoreExportsCollection: "exports",
   firestorePaths: "users/{UID}",
-  zip: false,
+  zip: true,
 }));
 
 describe("firestore", () => {
   describe("top level collection", () => {
     let user: UserRecord;
-    let unsubscribe: () => void;
 
     beforeEach(async () => {
       user = await createFirebaseUser();
@@ -66,20 +66,20 @@ describe("firestore", () => {
       jest.clearAllMocks();
       await clearFirestore();
       await clearStorage();
+      // sign out user
       await admin.auth().revokeRefreshTokens(user.uid);
-      unsubscribe();
     });
 
-    test("can export a top level collection with an id of {userId}", async () => {
+    test("can export zip of a top level collection with an id of {userId}", async () => {
       /** Create a top level collection with a single document */
 
       await generateUserDocument("users", user.uid, { foo: "bar" });
+
       const exportUserDatafn = fft.wrap(funcs.exportUserData);
 
       // watch the exports collection for changes
       const observer = jest.fn();
-
-      unsubscribe = admin
+      admin
         .firestore()
         .collection(config.firestoreExportsCollection)
         .onSnapshot(observer);
@@ -109,18 +109,31 @@ describe("firestore", () => {
       });
 
       const completeRecordData = observer.mock.calls[1][0].docs[0].data();
-      // should be complete
+
+      // should be success
       expect(completeRecordData.status).toBe("complete");
-      expect(completeRecordData.uid).toBe(user.uid);
-      // should have correct number of files counted
+
+      // should have counted the files correctly
       expect(completeRecordData.exportedFileCount).toBe(1);
 
+      expect(completeRecordData.uid).toBe(user.uid);
       // should be a server timestamp
       expect(completeRecordData.startedAt).toHaveProperty("_nanoseconds");
       expect(completeRecordData.startedAt).toHaveProperty("_seconds");
 
-      // should have a null zipPath
-      expect(completeRecordData.zipPath).toBeNull();
+      // should have a string zipPath
+      expect(completeRecordData.zipPath).toBeDefined();
+      expect(typeof completeRecordData.zipPath).toBe("string");
+
+      const zipPath = completeRecordData.zipPath;
+
+      const zipPathParts = zipPath.split("/");
+
+      // should have a record of the correct path to the zip in storage
+      expect(zipPathParts[0]).toBe(config.cloudStorageExportDirectory);
+      expect(zipPathParts[1]).toBe(user.uid);
+      expect(zipPathParts[2]).toBe(exportId);
+      expect(zipPathParts[3]).toBe("export.zip");
 
       // should have a string storage path
       expect(completeRecordData.storagePath).toBeDefined();
@@ -131,7 +144,7 @@ describe("firestore", () => {
 
       // should have a record of the correct path to the export in storage
       expect(recordedStoragePathParts[0]).toBe(
-        config.firestoreExportsCollection
+        config.cloudStorageExportDirectory
       );
       expect(recordedStoragePathParts[1]).toBe(user.uid);
       expect(recordedStoragePathParts[2]).toBe(exportId);
@@ -154,12 +167,23 @@ describe("firestore", () => {
       // should be in the export directory
       expect(parts[2]).toBe(exportId);
       // should have the user id as the name and have the .firestore.csv extension
-      expect(parts[3]).toBe(`users_${user.uid}.firestore.csv`);
+      expect(parts[3]).toBe(`export.zip`);
       // should have the correct content
       const downloadResponse = await file.download();
 
-      const content = downloadResponse[0].toString();
+      const zip = downloadResponse[0];
 
+      // unzip the content
+      const unzipped = await unzip.Open.buffer(zip);
+      const unzippedFiles = unzipped.files;
+      // // should have 1 file
+      expect(unzippedFiles.length).toBe(1);
+
+      // // should have a file with the correct name
+      expect(unzippedFiles[0].path).toBe(`users/${user.uid}.firestore.csv`);
+
+      // should have the correct content
+      const content = (await unzippedFiles[0].buffer()).toString();
       // parse the csv string into arrays
       const lines = content.split("\n");
 
@@ -176,7 +200,7 @@ describe("firestore", () => {
       expect(data[0]).toBe("FIRESTORE");
       expect(data[1]).toBe(`users/${user.uid}/foo`);
       // TODO: why the extra quotes?
-      // expect(data[2]).toBe("bar");
+      // expect(data[2]).toEqual(`"{ ""foo"": ""bar"" }"`);
     });
   });
 });

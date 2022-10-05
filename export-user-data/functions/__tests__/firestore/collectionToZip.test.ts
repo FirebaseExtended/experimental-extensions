@@ -56,6 +56,7 @@ jest.mock("../../src/config", () => ({
 describe("firestore", () => {
   describe("top level collection", () => {
     let user: UserRecord;
+    let unsubscribe;
 
     beforeEach(async () => {
       user = await createFirebaseUser();
@@ -67,6 +68,7 @@ describe("firestore", () => {
       await clearStorage();
       // sign out user
       await admin.auth().revokeRefreshTokens(user.uid);
+      unsubscribe();
     });
 
     test("can export zip of a top level collection with an id of {userId}", async () => {
@@ -77,7 +79,7 @@ describe("firestore", () => {
 
       // watch the exports collection for changes
       const observer = jest.fn();
-      admin
+      unsubscribe = admin
         .firestore()
         .collection(config.firestoreExportsCollection)
         .onSnapshot(observer);
@@ -110,6 +112,10 @@ describe("firestore", () => {
 
       // should be success
       expect(completeRecordData.status).toBe("complete");
+
+      // should have counted the files correctly
+      expect(completeRecordData.exportedFileCount).toBe(1);
+
       expect(completeRecordData.uid).toBe(user.uid);
       // should be a server timestamp
       expect(completeRecordData.startedAt).toHaveProperty("_nanoseconds");
