@@ -1,5 +1,7 @@
 import type { ActionFunction } from "@remix-run/node";
 import { redirect } from "@remix-run/node";
+import { Button } from "~/components/Button";
+import { Input } from "~/components/form";
 import { Label } from "~/components/Label";
 
 import { createNotice } from "~/firebase.server";
@@ -28,13 +30,15 @@ export const action: ActionFunction = async ({ request }) => {
 export default function Create() {
   return (
     <div className="max-w-5xl mx-auto">
-      <h2>Create a new notice</h2>
+      <h2 className="text-2xl font-bold leading-tight tracking-tight">
+        Create a new notice
+      </h2>
       <form method="post" action="/create">
         <Label
           label="Notice Type *"
           description="A required type for the notice. This is used to identify the notice and is used to determine which users have acknowledged the notice. Use an existing type to create a new instance of a notice (e.g. updated terms and conditions which require new acknowlegement)."
         >
-          <input
+          <Input
             name="type"
             type="text"
             placeholder="terms-and-conditions"
@@ -45,13 +49,13 @@ export default function Create() {
           label="Notice Version"
           description="An optional notice version. This can be used to filter a specific notice versions via the `getNotice` callable function."
         >
-          <input name="version" type="number" />
+          <Input name="version" type="number" />
         </Label>
         <Label
           label="Notice Title"
           description="An optional title to provide to the notice. Applications may use this to outline the notice intent."
         >
-          <input name="title" type="text" />
+          <Input name="title" type="text" />
         </Label>
         <Label
           label="Notice Description"
@@ -63,16 +67,16 @@ export default function Create() {
           label="Notice Link"
           description="An optional URL to provide to the notice. Applications may use this to redirect users to another page / external resource for further information."
         >
-          <input name="link" type="text" />
+          <Input name="link" type="text" />
         </Label>
         <Label
           label="Allow List"
           description="An optional command separated list of user IDs. If provided, only users with IDs in the list will be able to acknowledge the notice."
         >
-          <input name="allowList" type="text" />
+          <Input name="allowList" type="text" />
         </Label>
         <div className="mt-6 flex justify-end">
-          <button type="submit">Create Notice &rarr;</button>
+          <Button type="submit">Create Notice &rarr;</Button>
         </div>
       </form>
     </div>

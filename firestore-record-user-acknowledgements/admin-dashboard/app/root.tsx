@@ -28,12 +28,36 @@ export default function App() {
         <Links />
       </head>
       <body>
-        <header className="max-w-5xl mx-auto py-6">
-          <h1 className="text-2xl text-center font-bold">
-            Record User Acknowledgements - Admin Dashboard
-          </h1>
+      <header className="bg-slate-800">
+          <div className="max-w-5xl mx-auto py-6 text-white flex items-center">
+            <h1 className="flex-grow text-2xl font-bold leading-tight tracking-tight">
+              <a href="/">Record User Acknowledgements</a>
+            </h1>
+            <ul className="flex items-center gap-4">
+              <li>
+                <a
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:underline"
+                  href="https://firebase.google.com/products/extensions/record-user-acknowledgements"
+                >
+                  View Extension
+                </a>
+              </li>
+              <li>
+                <a
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:underline"
+                  href="https://firebase.google.com/docs/extensions"
+                >
+                  Firebase Docs
+                </a>
+              </li>
+            </ul>
+          </div>
         </header>
-        <main>
+        <main className="my-6">
           <Outlet />
         </main>
         <ScrollRestoration />

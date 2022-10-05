@@ -1,6 +1,7 @@
 import type { LoaderFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
+import { AnchorButton } from "~/components/Button";
 
 import { getNotices } from "~/firebase.server";
 import type { Notice } from "~/types";
@@ -21,7 +22,7 @@ export default function Index() {
   return (
     <div className="max-w-5xl mx-auto">
       <div className="flex justify-end p-3 mb-2">
-        <a href="/create">Create Notice &rarr;</a>
+        <AnchorButton href="/create">Create Notice &rarr;</AnchorButton>
       </div>
       <table className="w-full table-auto border border-spacing-0.5">
         <thead>
