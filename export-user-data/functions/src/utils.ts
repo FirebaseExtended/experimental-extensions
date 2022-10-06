@@ -71,11 +71,11 @@ export const initializeExport = async (uid: string) => {
   if (eventChannel) {
     await eventChannel.publish({
       type: `firebase.extensions.export-user-data.v1`,
-      data: JSON.stringify({
+      data: {
         uid,
         exportId: exportDoc.id,
         startedAt,
-      }),
+      },
     });
   }
   return exportDoc.id;
@@ -114,14 +114,14 @@ export const finalizeExport = async (
   if (eventChannel) {
     await eventChannel.publish({
       type: `firebase.extensions.export-user-data.v1.export-complete`,
-      data: JSON.stringify({
+      data: {
         uid,
         exportId,
         storagePath: `${storagePrefix}`,
         zipPath: config.zip ? `${storagePrefix}/${exportId}_${uid}.zip` : null,
         exportPaths,
         exportedFileCount: 0,
-      }),
+      },
     });
   }
 };

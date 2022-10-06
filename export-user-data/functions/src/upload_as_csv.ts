@@ -52,10 +52,10 @@ export async function uploadAsCSVs(
           if (eventChannel) {
             await eventChannel.publish({
               type: `firebase.extensions.export-user-data.v1.firestore`,
-              data: JSON.stringify({
+              data: {
                 uid,
                 collectionPath: pathWithUID,
-              }),
+              },
             });
           }
 
@@ -79,10 +79,10 @@ export async function uploadAsCSVs(
         if (eventChannel) {
           await eventChannel.publish({
             type: `firebase.extensions.export-user-data.v1.firestore`,
-            data: JSON.stringify({
+            data: {
               uid,
               documentName: pathWithUID,
-            }),
+            },
           });
         }
 
@@ -111,10 +111,10 @@ export async function uploadAsCSVs(
         if (eventChannel) {
           await eventChannel.publish({
             type: `firebase.extensions.export-user-data.v1.database`,
-            data: JSON.stringify({
+            data: {
               uid,
               pathName: pathWithUID,
-            }),
+            },
           });
         }
 

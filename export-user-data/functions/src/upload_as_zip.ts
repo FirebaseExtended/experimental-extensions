@@ -174,10 +174,10 @@ async function appendFirestoreCollectionToArchive(
     if (eventChannel) {
       await eventChannel.publish({
         type: `firebase.extensions.export-user-data.firestore`,
-        data: JSON.stringify({
+        data: {
           uid,
           pathName: path,
-        }),
+        },
       });
     }
     const csv = constructFirestoreCollectionCSV(snap, path);
@@ -201,10 +201,10 @@ async function appendFirestoreDocumentToArchive(
     if (eventChannel) {
       await eventChannel.publish({
         type: `firebase.extensions.export-user-data.firestore`,
-        data: JSON.stringify({
+        data: {
           uid,
           pathName: path,
-        }),
+        },
       });
     }
     const csv = constructFirestoreDocumentCSV(snap, path);
@@ -228,10 +228,10 @@ async function appendDatabaseNodeToArchive(
     if (eventChannel) {
       await eventChannel.publish({
         type: `firebase.extensions.export-user-data.database`,
-        data: JSON.stringify({
+        data: {
           uid,
           pathName: path,
-        }),
+        },
       });
     }
     const csv = await constructDatabaseCSV(snap, path);
