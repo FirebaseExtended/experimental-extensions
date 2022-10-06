@@ -30,6 +30,9 @@ const databaseURL = getDatabaseUrl(
   config.selectedDatabaseLocation
 );
 
+log.genericLog(`databaseURL is ${databaseURL}`);
+log.genericLog(`config ${config}`);
+
 // Initialize the Firebase Admin SDK
 admin.initializeApp({
   databaseURL,

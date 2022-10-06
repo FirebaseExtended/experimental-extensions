@@ -138,3 +138,7 @@ export const rtdbLocationNotConfigured = () => {
 export const storageConfigPathsNotConfigured = () => {
   logger.log("Cloud Storage paths are not configured, skipping");
 };
+
+export const genericLog = (message: string) => {
+  logger.log(message);
+};
