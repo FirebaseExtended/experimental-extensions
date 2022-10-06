@@ -54,6 +54,8 @@ resources:
       location: ${LOCATION}
       runtime: nodejs14
       httpsTrigger: {}
+      availableMemoryMb: 8192
+      timeoutSeconds: 540
 
 params:
   - param: LOCATION
@@ -217,6 +219,19 @@ params:
       See the pre-install documentation for more details.
     example: https://us-west1-my-project-id.cloudfunctions.net/myTransformFunction
     type: string
+    required: false
+
+  - param: ENABLE_ZIP
+    label: Enable Zipping of Exports
+    description: >-
+      If enabled, will compress all exports into one zip file in storage.
+    type: select
+    options:
+      - label: Yes
+        value: yes
+      - label: No
+        value: no
+    default: no
     required: false
   
 

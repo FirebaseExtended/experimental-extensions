@@ -23,17 +23,17 @@ import * as log from "./logs";
 export const replaceUID = (path: string, uid: string) =>
   path.replace(/{UID}/g, uid);
 
-export const getDatabaseUrl = (
-  selectedDatabaseInstance: string | undefined,
-  selectedDatabaseLocation: string | undefined
-) => {
-  if (!selectedDatabaseLocation || !selectedDatabaseInstance) return null;
+export function getDatabaseUrl(
+  selectedDatabaseInstance?: string,
+  selectedDatabaseLocation?: string
+): string | undefined {
+  if (!selectedDatabaseLocation || !selectedDatabaseInstance) return undefined;
 
   if (selectedDatabaseLocation === "us-central1")
     return `https://${selectedDatabaseInstance}.firebaseio.com`;
 
   return `https://${selectedDatabaseInstance}.${selectedDatabaseLocation}.firebasedatabase.app`;
-};
+}
 
 export const getFilesFromStoragePath = async (path: string) => {
   const parts = path.split("/");

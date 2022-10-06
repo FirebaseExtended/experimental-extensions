@@ -25,5 +25,5 @@ export default {
   selectedDatabaseInstance:
     process.env.SELECTED_DATABASE_INSTANCE || process.env.DATABASE_URL,
   customHookEndpoint: process.env.CUSTOM_HOOK_ENDPOINT,
-  zip: process.env.ZIP === "true",
+  zip: process.env.ENABLE_ZIP === "yes",
 };
