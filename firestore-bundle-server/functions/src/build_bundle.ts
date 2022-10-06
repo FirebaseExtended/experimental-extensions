@@ -245,9 +245,9 @@ function handleCondition(
         // Since array values cannot be an array, we need to detect whether the user has specifically chosen
         // an array of values which are strings or ints.
         value = (value as string).split(",").map((value) => {
-          const maybeInt = parseInt(value, 10);
-          if (!isNaN(maybeInt)) {
-            return maybeInt;
+          const maybeNumber = parseFloat(value);
+          if (!isNaN(maybeNumber)) {
+            return maybeNumber;
           }
 
           if (
