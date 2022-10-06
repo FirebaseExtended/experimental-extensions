@@ -86,7 +86,7 @@ export async function uploadAsCSVs(
           });
         }
 
-        const csv = await constructFirestoreDocumentCSV(doc, pathWithUID);
+        const csv = constructFirestoreDocumentCSV(doc, pathWithUID);
         promises.push(
           uploadCSVToStorage(
             csv,

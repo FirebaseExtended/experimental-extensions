@@ -26,8 +26,9 @@ export const replaceUID = (path: string, uid: string) =>
 export function getDatabaseUrl(
   selectedDatabaseInstance?: string,
   selectedDatabaseLocation?: string
-): string | undefined {
-  if (!selectedDatabaseLocation || !selectedDatabaseInstance) return undefined;
+): string {
+  if (!selectedDatabaseLocation || !selectedDatabaseInstance)
+    return process.env.DATABASE_URL;
 
   if (selectedDatabaseLocation === "us-central1")
     return `https://${selectedDatabaseInstance}.firebaseio.com`;

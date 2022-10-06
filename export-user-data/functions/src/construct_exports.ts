@@ -102,18 +102,12 @@ export const copyStorageFilesAtPathToExportDirectory = async (
 ): Promise<Promise<File>[]> => {
   const originalParts = pathWithUID.split("/");
 
-  const pathWithBucketName = pathWithUID.replace(
-    "{DEFAULT}",
-    config.storageBucketDefault
-  );
-
   const originalBucket =
     originalParts[0] === "{DEFAULT}"
       ? admin.storage().bucket(config.storageBucketDefault)
       : admin.storage().bucket(originalParts[0]);
 
   const originalPrefix = originalParts.slice(1).join("/");
-
   const outputBucket = admin.storage().bucket(config.storageBucketDefault);
 
   const originalFiles = (
@@ -128,12 +122,14 @@ export const copyStorageFilesAtPathToExportDirectory = async (
 
     return file
       .copy(outputBucket.file(newPrefix), {
-        metadata: { customMetadata: { originalPath: pathWithBucketName } },
+        metadata: {
+          customMetadata: {
+            originalPath: `${originalBucket.name}/${file.name}`,
+          },
+        },
       })
-      .then((response) => {
-        if (!config.zip) {
-        }
-        return response[0];
+      .then(([file, _]) => {
+        return file;
       });
   });
 };

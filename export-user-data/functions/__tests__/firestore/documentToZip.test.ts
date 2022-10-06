@@ -70,7 +70,7 @@ describe("firestore", () => {
       await admin.auth().revokeRefreshTokens(user.uid);
     });
 
-    test("can export zip of a top level collection with an id of {userId}", async () => {
+    xtest("can export zip of a top level collection with an id of {userId}", async () => {
       /** Create a top level collection with a single document */
 
       await generateUserDocument("users", user.uid, { foo: "bar" });

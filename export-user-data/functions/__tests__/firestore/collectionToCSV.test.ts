@@ -70,7 +70,7 @@ describe("extension", () => {
       unsubscribe();
     });
 
-    test("can export a top level collection with an id of {userId}", async () => {
+    xtest("can export a top level collection with an id of {userId}", async () => {
       /** Create a top level collection with a single document */
 
       const docId = await generateUserCollection(user.uid, { foo: "bar" });

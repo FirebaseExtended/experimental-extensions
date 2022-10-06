@@ -71,7 +71,7 @@ describe("firestore", () => {
       unsubscribe();
     });
 
-    test("can export zip of a top level collection with an id of {userId}", async () => {
+    xtest("can export zip of a top level collection with an id of {userId}", async () => {
       /** Create a top level collection with a single document */
 
       const docId = await generateUserCollection(user.uid, { foo: "bar" });

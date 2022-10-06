@@ -248,7 +248,7 @@ export const generateUserDocument = async (
 };
 
 export const generateFileInUserStorage = async (userId, value) => {
-  const file = storage.bucket().file(`${userId}.txt`);
+  const file = storage.bucket().file(`test/${userId}.txt`);
   await file.save(value);
   return file;
 };

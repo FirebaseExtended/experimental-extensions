@@ -31,9 +31,7 @@ const databaseURL = getDatabaseUrl(
 );
 
 log.genericLog(`databaseURL is ${databaseURL}`);
-log.genericLog(`config ${config}`);
 
-// Initialize the Firebase Admin SDK
 admin.initializeApp({
   databaseURL,
   storageBucket: config.storageBucketDefault,

@@ -22,8 +22,7 @@ export default {
   databasePaths: process.env.RTDB_PATHS,
   storagePaths: process.env.STORAGE_PATHS,
   selectedDatabaseLocation: process.env.SELECTED_DATABASE_LOCATION,
-  selectedDatabaseInstance:
-    process.env.SELECTED_DATABASE_INSTANCE || process.env.DATABASE_URL,
+  selectedDatabaseInstance: process.env.SELECTED_DATABASE_INSTANCE,
   customHookEndpoint: process.env.CUSTOM_HOOK_ENDPOINT,
   zip: process.env.ENABLE_ZIP === "yes",
 };
