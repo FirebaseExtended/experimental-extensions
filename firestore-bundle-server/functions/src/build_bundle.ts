@@ -11,11 +11,7 @@ import {
  * Specification of a condition associated to a Firestore query.
  */
 export interface QueryConditionSpec {
-  where?: [
-    string,
-    WhereFilterOp,
-    any
-  ];
+  where?: [string, WhereFilterOp, any];
   orderBy?: [string, ("asc" | "desc")?];
   limit?: unknown;
   limitToLast?: unknown;
@@ -243,32 +239,35 @@ function handleCondition(
     );
     let value = parameterize(c.where[2], params, paramValues);
     switch (c.where[1]) {
-      case 'array-contains-any':
-      case 'in':
-      case 'not-in': {
+      case "array-contains-any":
+      case "in":
+      case "not-in": {
         // Since array values cannot be an array, we need to detect whether the user has specifically chosen
-        // an array of values which are strings or ints. 
-        value = (value as string).split(',').map((value) => {
+        // an array of values which are strings or ints.
+        value = (value as string).split(",").map((value) => {
           const maybeInt = parseInt(value, 10);
           if (!isNaN(maybeInt)) {
             return maybeInt;
           }
 
-          if ((value.startsWith(`"`) && value.endsWith(`"`)) || (value.startsWith(`'`) && value.endsWith(`'`))) {
+          if (
+            (value.startsWith(`"`) && value.endsWith(`"`)) ||
+            (value.startsWith(`'`) && value.endsWith(`'`))
+          ) {
             // Remove first and last character
             return value.substring(1, value.length - 1);
           }
 
           return value;
         });
-        break;        
+        break;
       }
     }
 
     return ref.where(
       parameterize(c.where[0], params, paramValues),
       c.where[1],
-      value,
+      value
     );
   } else if (c.orderBy) {
     return ref.orderBy(
