@@ -154,7 +154,7 @@ const uploadCSVToStorage = async (
 
   const file = admin
     .storage()
-    .bucket(config.cloudStorageBucketDefault)
+    .bucket(config.cloudStorageExportBucket)
     .file(storagePath);
 
   try {
