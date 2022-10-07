@@ -132,9 +132,7 @@ export const copyStorageFilesAtPathToExportDirectory = async (
     return file
       .copy(outputBucket.file(newPrefix), {
         metadata: {
-          customMetadata: {
-            originalPath: `${originalBucket.name}/${file.name}`,
-          },
+          originalPath: `${originalBucket.name}/${file.name}`,
         },
       })
       .then(([file, _]) => {
