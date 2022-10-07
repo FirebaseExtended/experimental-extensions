@@ -1,11 +1,11 @@
 # Learn detailed information about the fields of an extension.yaml file in the docs
 
-name: firestore-bundle-server
+name: firestore-bundle-builder
 specVersion: v1beta
 version: 0.1.2
 license: Apache-2.0
 
-displayName: Firestore Bundle Server
+displayName: Firestore Bundle Builder
 
 description: >-
   Provides cached serving of Firestore bundles.

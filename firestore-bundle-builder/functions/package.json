@@ -1,11 +1,11 @@
 {
-  "name": "firestore-bundle-server",
+  "name": "firestore-bundle-builder",
   "scripts": {
     "prepare": "tsc",
     "lint": "tslint --project tsconfig.json",
     "build": "tsc",
     "test": "jest",
-    "generate-readme": "node ../../generate-experimental-readme.js firestore-bundle-server > ../README.md"
+    "generate-readme": "node ../../generate-experimental-readme.js firestore-bundle-builder > ../README.md"
   },
   "main": "lib/index.js",
   "dependencies": {
