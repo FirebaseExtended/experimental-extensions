@@ -170,6 +170,7 @@ export const serve = functions.handler.https.onRequest(
     // Check if we can reuse what is in GCS.
     if (bundleSpec.fileCache) {
       functions.logger.debug("handling fileCache", bundleSpec.fileCache);
+
       const outStream = await fileCacheStream(bundleId, paramValues, {
         ttlSec: bundleSpec.fileCache,
         notBefore: bundleSpec.notBefore,
