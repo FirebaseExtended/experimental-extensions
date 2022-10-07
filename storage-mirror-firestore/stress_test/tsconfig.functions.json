@@ -1,8 +1,0 @@
-{
-  "extends": "../../tsconfig.json",
-  "compilerOptions": {
-    "outDir": "functions/lib",
-    "strict": true
-  },
-  "include": ["functions/src"]
-}
