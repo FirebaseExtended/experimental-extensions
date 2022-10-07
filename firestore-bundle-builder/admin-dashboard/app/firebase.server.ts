@@ -1,16 +1,18 @@
-import { initializeApp, getApps, applicationDefault } from 'firebase-admin/app';
-import { getFirestore } from 'firebase-admin/firestore';
-import type { QuerySnapshot } from 'firebase-admin/firestore';
-import type { Bundle } from './types';
+import { initializeApp, getApps, applicationDefault } from "firebase-admin/app";
+import { getFirestore } from "firebase-admin/firestore";
+import type { QuerySnapshot } from "firebase-admin/firestore";
+import type { Bundle } from "./types";
 
-export { Timestamp } from 'firebase-admin/firestore';
+export { Timestamp } from "firebase-admin/firestore";
 
 const projectId = process.env.PROJECT_ID;
-const bundlesCollectionPath = process.env.BUNDLESPEC_COLLECTION || 'bundles';
+const bundlesCollectionPath = process.env.BUNDLESPEC_COLLECTION || "bundles";
 
 if (getApps().length === 0) {
   if (!projectId) {
-    throw new Error('Missing PROJECT_ID environment variable. Please provide a .env file with the PROJECT_ID variable.');
+    throw new Error(
+      "Missing PROJECT_ID environment variable. Please provide a .env file with the PROJECT_ID variable."
+    );
   }
 
   initializeApp({
@@ -22,7 +24,9 @@ if (getApps().length === 0) {
 const firestore = getFirestore();
 
 // Converts a Firestore document to a plain object.
-function documentToObject<T>(document: FirebaseFirestore.DocumentSnapshot<FirebaseFirestore.DocumentData>): T {
+function documentToObject<T>(
+  document: FirebaseFirestore.DocumentSnapshot<FirebaseFirestore.DocumentData>
+): T {
   return {
     ...document.data(),
     id: document.id,
@@ -31,7 +35,7 @@ function documentToObject<T>(document: FirebaseFirestore.DocumentSnapshot<Fireba
 
 // Converts a Firestore document to an array.
 function snapshotToArray<T>(snapshot: QuerySnapshot): T[] {
-  return snapshot.docs.map(doc => documentToObject<T>(doc));
+  return snapshot.docs.map((doc) => documentToObject<T>(doc));
 }
 
 export async function getBundles(): Promise<Bundle[]> {
@@ -40,8 +44,11 @@ export async function getBundles(): Promise<Bundle[]> {
 }
 
 export async function getBundle(id: string): Promise<Bundle | null> {
-  const snapshot = await firestore.collection(bundlesCollectionPath).doc(id).get();
-  
+  const snapshot = await firestore
+    .collection(bundlesCollectionPath)
+    .doc(id)
+    .get();
+
   if (!snapshot.exists) {
     return null;
   }
@@ -52,4 +59,3 @@ export async function getBundle(id: string): Promise<Bundle | null> {
 export async function createBundle(id: string, data: any): Promise<void> {
   await firestore.collection(bundlesCollectionPath).doc(id).set(data);
 }
-

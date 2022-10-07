@@ -18,16 +18,16 @@ export type Bundle = {
         endAt?: string;
         endBefore?: string;
       }[];
-    }
+    };
   };
   params?: {
     [key: string]: {
       required?: boolean;
       type: string;
-    }
+    };
   };
   clientCache?: string | null;
   serverCache?: string | null;
   fileCache?: string | null;
   notBefore?: firestore.Timestamp | null;
-}
+};
