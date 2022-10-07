@@ -22,12 +22,11 @@ function App() {
   const [files, setFiles] = useState<string[]>();
 
   // Kicks off a new export task.
-  async function onExport() {
+  async function onExport({ zip }: { zip: boolean }) {
     setExporting(true);
 
     // Trigger the export.
-    const result = await httpsCallable<void, { exportId: string }>(functions, 'ext-export-user-data-exportUserData')();
-
+    const result = await httpsCallable<void, { exportId: string }>(functions, `ext-export-user-data-${zip ? '' : 'rapy-'}exportUserData`)();
     // Get the returned export id.
     const exportId = result.data.exportId;
 
@@ -78,7 +77,10 @@ function App() {
   if (!exporting && !files) {
     return (
       <Container>
-        <button onClick={onExport}>Start Export</button>
+        <div className={styles.buttonContainer}>
+          <button type={'button'} className={styles.btn} onClick={() => onExport({ zip: true })}>Start Export (zip enabled)</button>
+          <button type={'button'} className={styles.btn} onClick={() => onExport({ zip: false })}>Start Export (zip disabled)</button>
+        </div>
       </Container>
     );
   }

@@ -3,3 +3,32 @@
   max-width: 32rem;
   margin: 20px auto 0 auto;
 }
+
+.buttonContainer {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+  flex-direction: column;
+  height: 50%;
+  padding: 0 20px;
+}
+
+.btn {
+  position: relative;
+  padding: 20px 40px;
+  display: block;
+  margin: 30px auto;
+  /* padding: 0; */
+  cursor: pointer;
+  overflow: hidden;
+
+  border-width: 0;
+  outline: none;
+  border-radius: 2px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .6);
+
+  background-color: #2ecc71;
+  color: #ecf0f1;
+
+  transition: background-color .3s;
+}
