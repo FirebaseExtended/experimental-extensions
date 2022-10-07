@@ -1,4 +1,4 @@
-# Firestore Bundle Server
+# Firestore Bundle Builder
 
 **Author**: Firebase (**[https://firebase.google.com](https://firebase.google.com)**)
 
@@ -12,12 +12,12 @@
 
 ### Console
 
-[![Install this extension in your Firebase project](../install-extension.png?raw=true "Install this extension in your Firebase project")](https://console.firebase.google.com/project/_/extensions/install?ref=firebase/firestore-bundle-server)
+[![Install this extension in your Firebase project](../install-extension.png?raw=true "Install this extension in your Firebase project")](https://console.firebase.google.com/project/_/extensions/install?ref=firebase/firestore-bundle-builder)
 
 ### Firebase CLI
 
 ```bash
-firebase ext:install firebase/firestore-bundle-server --project=<your-project-id>
+firebase ext:install firebase/firestore-bundle-builder --project=<your-project-id>
 ```
 
 > Learn more about installing extensions in the Firebase Extensions documentation: [console](https://firebase.google.com/docs/extensions/install-extensions?platform=console), [CLI](https://firebase.google.com/docs/extensions/install-extensions?platform=cli)

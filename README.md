@@ -30,7 +30,7 @@ Determines the sentiment magnitude and score for given text values in Firestore.
 
 Shortens URLs written to a specified Cloud Firestore collection using Firebase Dynamic Links.
 
-### [Serve Firestore Data Bundles](/firestore-bundle-server#firestore-bundle-server)
+### [Serve Firestore Data Bundles](/firestore-bundle-builder#firestore-bundle-builder)
 
 Serves Firestore Data Bundles based on specs defined as Firestore Documents, with the ability to use Hosting and Storage as cache.
 

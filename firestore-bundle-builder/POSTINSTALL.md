@@ -19,7 +19,7 @@ The default collection name is `bundles`.  Each document in the collection is th
 
 You trigger building of a data bundle by calling the extension’s HTTP function and appending the document ID of the specification
 to the URL path. For example, if you store a bundle specification in document `bundles/sportsScoresBundle`, sending `GET` to
-`https://<region>-<project-name>.cloudfunctions.net/ext-firestore-bundle-server-serve/sportsScoresBundle` triggers assembly of
+`https://<region>-<project-name>.cloudfunctions.net/ext-firestore-bundle-builder-serve/sportsScoresBundle` triggers assembly of
 the bundle.
 
 A data bundle specification document may contain these fields:
@@ -90,7 +90,7 @@ Example `firebase.json`:
       "rewrites": [
         {
           "source": "/bundles/*",
-          "function": "ext-firestore-bundle-server-serve"
+          "function": "ext-firestore-bundle-builder-serve"
         }
       ]
     }

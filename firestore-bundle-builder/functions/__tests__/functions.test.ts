@@ -19,7 +19,7 @@ const extractObjectfromBuffer = ($) => {
   return JSON.parse(`[${formatted.toString()}]`);
 };
 
-const extName = "ext-firestore-bundle-server-serve";
+const extName = "ext-firestore-bundle-builder-serve";
 const domain = `http://localhost:5001/demo-experimental/us-central1/${extName}/`;
 const hostedDomain = `http://localhost:8081/`;
 

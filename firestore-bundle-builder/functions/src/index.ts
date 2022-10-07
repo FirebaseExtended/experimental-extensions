@@ -16,7 +16,7 @@ const { Readable } = require("stream");
 
 const BUNDLESPEC_COLLECTION = process.env.BUNDLESPEC_COLLECTION || "bundles";
 const BUNDLE_STORAGE_BUCKET =
-  process.env.BUNDLE_STORAGE_BUCKET || "bundle-server-files";
+  process.env.BUNDLE_STORAGE_BUCKET || "bundle-builder-files";
 const STORAGE_PREFIX = process.env.STORAGE_PREFIX || "bundles";
 
 // Initialize the Firebase Admin SDK
