@@ -21,28 +21,45 @@ import {
   constructDatabaseCSV,
   constructFirestoreCollectionCSV,
   constructFirestoreDocumentCSV,
-  constructStorageCSV,
 } from "./construct_exports";
 import { ExportPaths } from "./get_export_paths";
 import { replaceUID } from "./utils";
+import { eventChannel } from ".";
+
+interface CSVUploadCount {
+  firestoreCount: number;
+  databaseCount: number;
+}
 
 export async function uploadAsCSVs(
   exportPaths: ExportPaths,
   storagePrefix: string,
   uid: string
-) {
+): Promise<CSVUploadCount> {
   const promises = [];
+  let firestoreCollectionsUploaded = 0;
+  let firestoreDocumentsUploaded = 0;
+  let databaseNodesUploaded = 0;
 
   for (let path of exportPaths.firestorePaths) {
     if (typeof path === "string") {
       const pathWithUID = replaceUID(path, uid);
       if (pathWithUID.split("/").length % 2 === 1) {
         const snap = await admin.firestore().collection(pathWithUID).get();
-
         if (!snap.empty) {
           log.firestorePathExporting(pathWithUID);
 
-          const csv = await constructFirestoreCollectionCSV(snap, pathWithUID);
+          if (eventChannel) {
+            await eventChannel.publish({
+              type: `firebase.extensions.export-user-data.v1.firestore`,
+              data: {
+                uid,
+                collectionPath: pathWithUID,
+              },
+            });
+          }
+
+          const csv = constructFirestoreCollectionCSV(snap, pathWithUID);
 
           promises.push(
             uploadCSVToStorage(
@@ -52,12 +69,24 @@ export async function uploadAsCSVs(
               ".firestore.csv"
             ).then(() => {
               log.firestorePathExported(pathWithUID);
+              firestoreCollectionsUploaded++;
             })
           );
         }
       } else {
         const doc = await admin.firestore().doc(pathWithUID).get();
-        const csv = await constructFirestoreDocumentCSV(doc, pathWithUID);
+
+        if (eventChannel) {
+          await eventChannel.publish({
+            type: `firebase.extensions.export-user-data.v1.firestore`,
+            data: {
+              uid,
+              pathName: pathWithUID,
+            },
+          });
+        }
+
+        const csv = constructFirestoreDocumentCSV(doc, pathWithUID);
         promises.push(
           uploadCSVToStorage(
             csv,
@@ -66,6 +95,7 @@ export async function uploadAsCSVs(
             ".firestore.csv"
           ).then(() => {
             log.firestorePathExported(pathWithUID);
+            firestoreDocumentsUploaded++;
           })
         );
       }
@@ -76,7 +106,18 @@ export async function uploadAsCSVs(
     if (typeof path === "string") {
       const pathWithUID = replaceUID(path, uid);
       const snap = await admin.database().ref(pathWithUID).get();
+
       if (snap.exists()) {
+        if (eventChannel) {
+          await eventChannel.publish({
+            type: `firebase.extensions.export-user-data.v1.database`,
+            data: {
+              uid,
+              pathName: pathWithUID,
+            },
+          });
+        }
+
         log.rtdbPathExporting(pathWithUID);
         const csv = await constructDatabaseCSV(snap, pathWithUID);
         promises.push(
@@ -87,37 +128,19 @@ export async function uploadAsCSVs(
             ".database.csv"
           ).then(() => {
             log.rtdbPathExported(pathWithUID);
+            databaseNodesUploaded++;
           })
         );
       }
     }
   }
 
-  for (let path of exportPaths.storagePaths) {
-    if (typeof path === "string") {
-      const pathWithUID = replaceUID(path, uid);
-      const files = await admin
-        .storage()
-        .bucket(config.storageBucket)
-        .getFiles({ prefix: pathWithUID });
+  await Promise.all(promises);
 
-      for (let file of files[0]) {
-        const csv = await constructStorageCSV(file, pathWithUID);
-        promises.push(
-          uploadCSVToStorage(
-            csv,
-            storagePrefix,
-            pathWithUID,
-            ".storage.csv"
-          ).then(() => {
-            log.storagePathExported(pathWithUID);
-          })
-        );
-      }
-    }
-  }
-
-  return Promise.all(promises);
+  return {
+    firestoreCount: firestoreCollectionsUploaded + firestoreDocumentsUploaded,
+    databaseCount: databaseNodesUploaded,
+  };
 }
 
 const uploadCSVToStorage = async (
@@ -129,7 +152,10 @@ const uploadCSVToStorage = async (
   const formattedPath = path.replace(/\//g, "_");
   const storagePath = `${storagePrefix}/${formattedPath}${extension}`;
 
-  const file = admin.storage().bucket(config.storageBucket).file(storagePath);
+  const file = admin
+    .storage()
+    .bucket(config.cloudStorageExportBucket)
+    .file(storagePath);
 
   try {
     await file.save(csv);

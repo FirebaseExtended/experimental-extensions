@@ -2,13 +2,18 @@ import * as admin from "firebase-admin";
 import { Query, DocumentData } from "@google-cloud/firestore";
 import { UserRecord } from "firebase-functions/v1/auth";
 import setupEnvironment from "./setupEnvironment";
+import fetch from "node-fetch";
 
 if (!admin.apps.length) {
-  admin.initializeApp({ projectId: "demo-experimental" });
+  admin.initializeApp({
+    projectId: "demo-experimental",
+    storageBucket: process.env.STORAGE_BUCKET,
+  });
 }
 
 setupEnvironment();
 const db = admin.firestore();
+const storage = admin.storage();
 
 export const generateRandomId = () => {
   return (
@@ -225,17 +230,39 @@ export const generateTopLevelUserCollection = async (db, userId) => {
   return collection;
 };
 
-export const generateUserCollection = async (userId, tier = 1) => {
+export const generateUserCollection = async (userId, data) => {
+  const doc = await db.collection(`${userId}`).add(data);
+  return doc.id;
+};
+
+export const generateUserDocument = async (
+  collectionId: string,
+  userId: string,
+  data
+) => {
   await db
-    .collection(`${userId}`)
-    .add({ "single collection": "single collection" })
+    .collection(collectionId)
+    .doc(`${userId}`)
+    .set(data)
     .catch((err) => console.warn("Error appears here, ignoring for now"));
 };
 
-export const generateUserDocument = async (userId, value) => {
-  await db
-    .collection(`${generateRandomId()}`)
-    .doc(`${userId}`)
-    .set(value)
-    .catch((err) => console.warn("Error appears here, ignoring for now"));
+export const generateFileInUserStorage = async (userId, value) => {
+  const file = storage.bucket().file(`test/${userId}.txt`);
+  await file.save(value);
+  return file;
+};
+
+export const clearFirestore = async () => {
+  await fetch(
+    "http://localhost:8080/emulator/v1/projects/demo-experimental/databases/(default)/documents",
+    { method: "DELETE" }
+  );
+};
+
+export const clearStorage = async () => {
+  const files = await storage.bucket().getFiles();
+  for await (const file of files[0]) {
+    await file.delete();
+  }
 };

@@ -14,6 +14,115 @@
  * limitations under the License.
  */
 
-export function replaceUID(path: string, uid: string) {
-  return path.replace(/{UID}/g, uid);
+import admin from "firebase-admin";
+import { eventChannel } from ".";
+import config from "./config";
+import { ExportPaths } from "./get_export_paths";
+import * as log from "./logs";
+
+export const replaceUID = (path: string, uid: string) =>
+  path.replace(/{UID}/g, uid);
+
+export function getDatabaseUrl(
+  selectedDatabaseInstance?: string,
+  selectedDatabaseLocation?: string
+): string {
+  if (!selectedDatabaseLocation || !selectedDatabaseInstance)
+    return process.env.DATABASE_URL;
+
+  if (selectedDatabaseLocation === "us-central1")
+    return `https://${selectedDatabaseInstance}.firebaseio.com`;
+
+  return `https://${selectedDatabaseInstance}.${selectedDatabaseLocation}.firebasedatabase.app`;
 }
+
+export const getFilesFromStoragePath = async (path: string) => {
+  const parts = path.split("/");
+  const bucketName = parts[0];
+  const bucket =
+    bucketName === "{DEFAULT}"
+      ? admin.storage().bucket(config.cloudStorageBucketDefault)
+      : admin.storage().bucket(bucketName);
+
+  const prefix = parts.slice(1).join("/");
+  const files = await bucket.getFiles({ prefix });
+
+  return files;
+};
+
+/**
+ * Initialize the export by creating a record in the exports collection.
+ * @param uid userId
+ * @returns exportId, the id of the export document in the exports collection
+ */
+export const initializeExport = async (uid: string) => {
+  const startedAt = admin.firestore.FieldValue.serverTimestamp();
+
+  log.startExport(uid);
+
+  const exportDoc = await admin
+    .firestore()
+    .collection(config.firestoreExportsCollection || "exports")
+    .add({
+      uid,
+      status: "pending",
+      startedAt,
+    });
+
+  if (eventChannel) {
+    await eventChannel.publish({
+      type: `firebase.extensions.export-user-data.v1`,
+      data: {
+        uid,
+        exportId: exportDoc.id,
+        startedAt,
+      },
+    });
+  }
+  return exportDoc.id;
+};
+
+/**
+ * On completion of the export, updates the export document in the exports collection.
+ * @param storagePrefix the path to the exported data in Cloud Storage
+ * @param uid userId
+ * @param exportId the id of the record of the export in firestore
+ */
+export const finalizeExport = async (
+  storagePrefix: string,
+  uid: string,
+  exportId: string,
+  exportPaths: ExportPaths,
+  exportCounts: {
+    firestore: number;
+    database: number;
+    storageCopied: number;
+    storageZipped: number;
+  }
+) => {
+  await admin
+    .firestore()
+    .doc(`exports/${exportId}`)
+    .update({
+      status: "complete",
+      storagePath: `${storagePrefix}`,
+      zipPath: config.zip ? `${storagePrefix}/export.zip` : null,
+      exportedFileCount: Object.values(exportCounts).reduce((a, b) => a + b, 0),
+    });
+
+  log.completeExport(uid);
+
+  if (eventChannel) {
+    await eventChannel.publish({
+      type: `firebase.extensions.export-user-data.v1.export-complete`,
+      data: {
+        uid,
+        exportId,
+        storagePath: `${storagePrefix}`,
+        zipPath: config.zip ? `${storagePrefix}/export.zip` : null,
+        exportPaths,
+        exportedFileCount: 0,
+      },
+    });
+  }
+};

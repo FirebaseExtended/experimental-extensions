@@ -49,15 +49,11 @@ export async function getExportPaths(uid: string): Promise<ExportPaths> {
     log.customHookNotConfigured();
   }
 
-  if (config.firestorePaths || config.databasePaths) {
+  if (config.firestorePaths || config.databasePaths || config.storagePaths) {
     const pathsFromConfig = getPathsFromConfig(uid);
     firestorePaths = [...firestorePaths, ...pathsFromConfig.firestorePaths];
     databasePaths = [...databasePaths, ...pathsFromConfig.databasePaths];
     storagePaths = [...storagePaths, ...pathsFromConfig.storagePaths];
-  }
-  if (databasePaths.length && !config.selectedDatabaseInstance) {
-    log.rtdbLocationNotConfigured();
-    databasePaths = [];
   }
   return {
     firestorePaths,
@@ -65,6 +61,42 @@ export async function getExportPaths(uid: string): Promise<ExportPaths> {
     storagePaths,
   };
 }
+
+/**
+ * gets paths from config when specified.
+ * @param uid userId
+ * @returns ExportPaths
+ */
+function getPathsFromConfig(uid: string): ExportPaths {
+  let firestorePathsList: string[] = [];
+  let databasePathsList: string[] = [];
+  let storagePathsList: string[] = [];
+
+  if (config.firestorePaths) {
+    firestorePathsList = config.firestorePaths.split(",");
+  } else {
+    log.firestoreConfigPathsNotConfigured();
+  }
+
+  if (config.databasePaths) {
+    databasePathsList = config.databasePaths.split(",");
+  } else {
+    log.rtdbConfigPathsNotConfigured();
+  }
+
+  if (config.storagePaths) {
+    storagePathsList = config.storagePaths.split(",");
+  } else {
+    log.storageConfigPathsNotConfigured();
+  }
+
+  return {
+    firestorePaths: firestorePathsList,
+    databasePaths: databasePathsList,
+    storagePaths: storagePathsList,
+  };
+}
+
 /**
  * gets paths from custom hook when specified.
  * @param uid userId
@@ -100,40 +132,6 @@ async function getPathsFromCustomHook(uid: string): Promise<ExportPaths> {
     firestorePaths,
     databasePaths,
     storagePaths,
-  };
-}
-/**
- * gets paths from config when specified.
- * @param uid userId
- * @returns ExportPaths
- */
-function getPathsFromConfig(uid: string): ExportPaths {
-  let firestorePathsList: string[] = [];
-  let databasePathsList: string[] = [];
-  let storagePathsList: string[] = [];
-
-  if (config.firestorePaths) {
-    firestorePathsList = config.firestorePaths.split(",");
-  } else {
-    log.firestoreConfigPathsNotConfigured();
-  }
-
-  if (config.databasePaths) {
-    databasePathsList = config.databasePaths.split(",");
-  } else {
-    log.rtdbConfigPathsNotConfigured();
-  }
-
-  if (config.storagePaths) {
-    storagePathsList = config.storagePaths.split(",");
-  } else {
-    log.storageConfigPathsNotConfigured();
-  }
-
-  return {
-    firestorePaths: firestorePathsList,
-    databasePaths: databasePathsList,
-    storagePaths: storagePathsList,
   };
 }
 

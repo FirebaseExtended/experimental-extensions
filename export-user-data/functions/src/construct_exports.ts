@@ -13,9 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Archiver } from "archiver";
 import * as sync from "csv-stringify/sync";
-
+import admin from "firebase-admin";
+import { v4 as uuidv4 } from "uuid";
+import config from "./config";
 const HEADERS = ["TYPE", "path", "data"];
+import { File } from "@google-cloud/storage";
+import { replaceUID } from "./utils";
+import * as log from "./logs";
+import { eventChannel } from ".";
 
 const dataSources = {
   firestore: "FIRESTORE",
@@ -23,7 +30,7 @@ const dataSources = {
   storage: "STORAGE",
 };
 
-export const constructFirestoreCollectionCSV = async (
+export const constructFirestoreCollectionCSV = (
   snap: FirebaseFirestore.QuerySnapshot,
   collectionPath: string
 ) => {
@@ -38,7 +45,7 @@ export const constructFirestoreCollectionCSV = async (
   return sync.stringify(csvData);
 };
 
-export const constructFirestoreDocumentCSV = async (
+export const constructFirestoreDocumentCSV = (
   snap: FirebaseFirestore.DocumentSnapshot,
   documentPath: string
 ) => {
@@ -67,13 +74,82 @@ export const constructDatabaseCSV = async (snap: any, databasePath: string) => {
   return sync.stringify(csvData);
 };
 
-export const constructStorageCSV = async (files, storagePath) => {
-  const csvData = [["TYPE", "path"]];
+export const copyStorageFilesToExportDirectory = async (
+  storagePaths: unknown[],
+  uid: string,
+  storagePrefix: string
+) => {
+  let filePromises: Promise<File>[] = [];
 
-  for (let file of files) {
-    const path = `${storagePath}/${file.name}`;
-    csvData.push([dataSources.storage, path]);
+  // if there are storage paths, we copy files across to the new bucket
+  if (storagePaths.length > 0) {
+    for (let path of storagePaths) {
+      if (typeof path === "string") {
+        const pathWithUID = replaceUID(path, uid);
+        if (eventChannel) {
+          eventChannel.publish({
+            type: `firebase.extensions.export-user-data.v1.storage`,
+            data: {
+              uid,
+              pathName: pathWithUID,
+            },
+          });
+        }
+        filePromises = [
+          ...filePromises,
+          ...(await copyStorageFilesAtPathToExportDirectory(
+            pathWithUID,
+            storagePrefix
+          )),
+        ];
+      } else {
+        log.storagePathNotString();
+      }
+    }
   }
 
-  return sync.stringify(csvData);
+  return Promise.all(filePromises);
+};
+
+export const copyStorageFilesAtPathToExportDirectory = async (
+  pathWithUID: string,
+  storagePrefix: string
+): Promise<Promise<File>[]> => {
+  const originalParts = pathWithUID.split("/");
+
+  const originalBucket =
+    originalParts[0] === "{DEFAULT}"
+      ? admin.storage().bucket(config.cloudStorageBucketDefault)
+      : admin.storage().bucket(originalParts[0]);
+
+  const originalPrefix = originalParts.slice(1).join("/");
+  const outputBucket = admin.storage().bucket(config.cloudStorageExportBucket);
+
+  const originalFiles = (
+    await originalBucket.getFiles({
+      prefix: originalPrefix,
+    })
+  )[0].filter((file) => !file.name.endsWith("/"));
+
+  return originalFiles.map(async (file) => {
+    const originalExtension = file.name.split(".").pop();
+    const newPrefix = `${storagePrefix}/${uuidv4()}${
+      originalExtension ? "." + originalExtension : ""
+    }`;
+
+    const originalPath = `${originalBucket.name}/${file.name}`;
+
+    log.StoragePathExporting(originalPath);
+
+    return file
+      .copy(outputBucket.file(newPrefix), {
+        metadata: {
+          originalPath,
+        },
+      })
+      .then(([file, _]) => {
+        log.StoragePathExported(originalPath);
+        return file;
+      });
+  });
 };
