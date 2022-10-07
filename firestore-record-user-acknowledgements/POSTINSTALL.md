@@ -9,7 +9,7 @@ npm install
 npm run dev
 ```
 
-Head over to the locally running application and create a new notice. View the dashboard [README](https://github.com/FirebaseExtended/experimental-extensions/blob/%40invertase/firestore-tos-extension/firestore-record-user-acknowledgements/admin-dashboard/README.md) for more information.
+Head over to the locally running application and create a new notice. View the dashboard [README](https://github.com/FirebaseExtended/experimental-extensions/blob/next/firestore-record-user-acknowledgements/admin-dashboard/README.md) for more information.
 
 This extension requires a number of [Firestore indexes](https://firebase.google.com/docs/firestore/query-data/indexing) - to create these click each of the links and then press create on the opened Firebase Console window.
 
