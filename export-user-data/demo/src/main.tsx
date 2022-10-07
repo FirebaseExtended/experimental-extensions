@@ -4,7 +4,9 @@ import { auth, firestore, functions, storage } from './firebase'
 import { signInAnonymously } from 'firebase/auth'
 import { httpsCallable } from 'firebase/functions'
 import { doc, onSnapshot } from 'firebase/firestore'
-import { listAll, ref, getDownloadURL } from 'firebase/storage'
+import { listAll, ref, getDownloadURL, getBlob } from 'firebase/storage'
+
+import styles from './styles.module.css'
 
 // Ensure the user is signed in before showing the app.
 signInAnonymously(auth).then(() => {
@@ -24,7 +26,7 @@ function App() {
     setExporting(true);
 
     // Trigger the export.
-    const result = await httpsCallable<void, { exportId: string }>(functions, 'todo-export-function-name')();
+    const result = await httpsCallable<void, { exportId: string }>(functions, 'ext-export-user-data-exportUserData')();
 
     // Get the returned export id.
     const exportId = result.data.exportId;
@@ -33,8 +35,11 @@ function App() {
     const documentRef = doc(firestore, 'exports', exportId);
 
     // Listen for changes to the export - when complete returned the storage path of the export items.
-    const storagePath = await new Promise<string>((resolve, reject) => {
-      const unsubscribe = onSnapshot(documentRef, snapshot => {
+    const { storagePath, zipPath } = await new Promise<{
+      storagePath: string;
+      zipPath?: string;
+    }>((resolve, reject) => {
+      const unsubscribe = onSnapshot(documentRef, (snapshot) => {
         if (!snapshot.exists) {
           unsubscribe();
           return reject(new Error("Export document not found"));
@@ -42,9 +47,12 @@ function App() {
 
         const data = snapshot.data()!;
 
-        if (data.status === 'complete') {
+        if (data.status === "complete") {
           unsubscribe();
-          return resolve(data.storagePath);
+          return resolve({
+            storagePath: data.storagePath,
+            zipPath: data.zipPath,
+          });
         }
       });
     });
@@ -67,23 +75,46 @@ function App() {
     window.open(url);
   }
 
-  if (!exporting) {
-    return <button onClick={onExport}>Start Export</button>;
+  if (!exporting && !files) {
+    return (
+      <Container>
+        <button onClick={onExport}>Start Export</button>
+      </Container>
+    );
   }
 
   if (exporting && !files) {
-    return <p>Exporting...</p>;
+    return (
+      <Container>
+        <p>Exporting...</p>
+      </Container>
+    );
   }
 
   return (
-    <div>
-      {files!.map((file) => (
-        <div>
-          <span>{file}</span>
-          <span> - </span>
-          <button onClick={() => onDownload(file)}>Download File</button>
-        </div>
-      ))}
+    <Container>
+      <ol>
+        {files!.map((file) => (
+          <li key={file}>
+            <span>{file}</span>
+            <span>&nbsp; &nbsp;</span>
+            <button onClick={() => onDownload(file)}>Download File</button>
+          </li>
+        ))}
+      </ol>
+    </Container>
+  );
+}
+
+function Container(props: { children: React.ReactNode }) {
+  return (
+    <div className={styles.container}>
+      <h1>Export User Data Demo</h1>
+      <p>
+        Click the export button below to trigger an export of some none user
+        specific data. Once complete, you can download the exported items.
+      </p>
+      <div>{props.children}</div>
     </div>
   );
 }
