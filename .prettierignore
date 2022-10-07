@@ -9,7 +9,6 @@ README.md
 **/functions/lib/**
 **/lib/**
 **/dist/**
-**/public/build/**
 coverage
 
 # extension install md files

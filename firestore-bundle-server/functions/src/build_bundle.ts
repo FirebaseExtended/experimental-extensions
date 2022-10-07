@@ -4,14 +4,28 @@ import {
   Firestore,
   Query,
   Timestamp,
-  WhereFilterOp,
 } from "@google-cloud/firestore";
 
 /**
  * Specification of a condition associated to a Firestore query.
  */
 export interface QueryConditionSpec {
-  where?: [string, WhereFilterOp, any];
+  where?: [
+    string,
+    (
+      | "<"
+      | "<="
+      | "=="
+      | ">="
+      | ">"
+      | "!="
+      | "array-contains"
+      | "in"
+      | "not-in"
+      | "array-contains-any"
+    ),
+    any
+  ];
   orderBy?: [string, ("asc" | "desc")?];
   limit?: unknown;
   limitToLast?: unknown;
@@ -236,37 +250,10 @@ function handleCondition(
         c.where[1]
       }','${parameterize(c.where[2], params, paramValues)}')`
     );
-    let value = parameterize(c.where[2], params, paramValues);
-    switch (c.where[1]) {
-      case "array-contains-any":
-      case "in":
-      case "not-in": {
-        // Since array values cannot be an array, we need to detect whether the user has specifically chosen
-        // an array of values which are strings or ints.
-        value = (value as string).split(",").map((value) => {
-          const maybeNumber = parseFloat(value);
-          if (!isNaN(maybeNumber)) {
-            return maybeNumber;
-          }
-
-          if (
-            (value.startsWith(`"`) && value.endsWith(`"`)) ||
-            (value.startsWith(`'`) && value.endsWith(`'`))
-          ) {
-            // Remove first and last character
-            return value.substring(1, value.length - 1);
-          }
-
-          return value;
-        });
-        break;
-      }
-    }
-
     return ref.where(
       parameterize(c.where[0], params, paramValues),
       c.where[1],
-      value
+      parameterize(c.where[2], params, paramValues)
     );
   } else if (c.orderBy) {
     return ref.orderBy(
