@@ -81,7 +81,7 @@ export async function uploadAsCSVs(
             type: `firebase.extensions.export-user-data.v1.firestore`,
             data: {
               uid,
-              documentName: pathWithUID,
+              pathName: pathWithUID,
             },
           });
         }

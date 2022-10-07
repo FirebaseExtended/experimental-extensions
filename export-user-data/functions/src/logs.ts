@@ -117,6 +117,10 @@ export const StoragePathExporting = (path: string) => {
   logger.log(`Exporting: '${path}' from Cloud Storage`);
 };
 
+export const StoragePathExported = (path: string) => {
+  logger.log(`Exported: '${path}' from Cloud Storage`);
+};
+
 export const customHookBadResponse = (endpoint: string) => {
   logger.error(
     `Custom hook endpoint ${endpoint} did not return a 200 response`

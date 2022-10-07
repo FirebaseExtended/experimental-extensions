@@ -22,6 +22,7 @@ const HEADERS = ["TYPE", "path", "data"];
 import { File } from "@google-cloud/storage";
 import { replaceUID } from "./utils";
 import * as log from "./logs";
+import { eventChannel } from ".";
 
 const dataSources = {
   firestore: "FIRESTORE",
@@ -84,6 +85,15 @@ export const copyStorageFilesToExportDirectory = async (
     for (let path of storagePaths) {
       if (typeof path === "string") {
         const pathWithUID = replaceUID(path, uid);
+        if (eventChannel) {
+          eventChannel.publish({
+            type: `firebase.extensions.export-user-data.v1.storage`,
+            data: {
+              uid,
+              pathName: pathWithUID,
+            },
+          });
+        }
         filePromises = [
           ...filePromises,
           ...(await copyStorageFilesAtPathToExportDirectory(pathWithUID)),
@@ -107,15 +117,13 @@ export const copyStorageFilesAtPathToExportDirectory = async (
       ? admin.storage().bucket(config.cloudStorageBucketDefault)
       : admin.storage().bucket(originalParts[0]);
 
-  log.genericLog(
-    `copying from bucket ${originalBucket.name}, default bucket is ${config.cloudStorageBucketDefault}`
-  );
-
   const originalPrefix = originalParts.slice(1).join("/");
   const outputBucket = admin.storage().bucket(config.cloudStorageExportBucket);
 
   const originalFiles = (
-    await originalBucket.getFiles({ prefix: originalPrefix })
+    await originalBucket.getFiles({
+      prefix: originalPrefix,
+    })
   )[0].filter((file) => !file.name.endsWith("/"));
 
   return originalFiles.map(async (file) => {
@@ -123,19 +131,19 @@ export const copyStorageFilesAtPathToExportDirectory = async (
     const newPrefix = `${config.cloudStorageExportDirectory}/${uuidv4()}${
       originalExtension ? "." + originalExtension : ""
     }`;
-    const metadata = {
-      originalPath: `${originalBucket.name}/${file.name}`,
-    };
 
-    log.genericLog(`adding metadata: ${metadata}`);
+    const originalPath = `${originalBucket.name}/${file.name}`;
+
+    log.StoragePathExporting(originalPath);
 
     return file
       .copy(outputBucket.file(newPrefix), {
         metadata: {
-          originalPath: `${originalBucket.name}/${file.name}`,
+          originalPath,
         },
       })
       .then(([file, _]) => {
+        log.StoragePathExported(originalPath);
         return file;
       });
   });
