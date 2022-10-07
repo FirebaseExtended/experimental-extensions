@@ -119,7 +119,7 @@ export const finalizeExport = async (
         uid,
         exportId,
         storagePath: `${storagePrefix}`,
-        zipPath: config.zip ? `${storagePrefix}/${exportId}_${uid}.zip` : null,
+        zipPath: config.zip ? `${storagePrefix}/export.zip` : null,
         exportPaths,
         exportedFileCount: 0,
       },

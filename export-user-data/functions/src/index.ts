@@ -61,7 +61,7 @@ export const exportUserData = functions.https.onCall(async (_data, context) => {
   const exportId = await initializeExport(uid);
 
   // this is the path to the exported data in Cloud Storage
-  const storagePrefix = `${config.cloudStorageExportDirectory}/${uid}/${exportId}`;
+  const storagePrefix = `${config.cloudStorageExportDirectory}/${exportId}`;
 
   // get the paths specified by config and/or custom hook.
   const exportPaths = await getExportPaths(uid);

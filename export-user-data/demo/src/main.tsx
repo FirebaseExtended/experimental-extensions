@@ -24,7 +24,7 @@ function App() {
     setExporting(true);
 
     // Trigger the export.
-    const result = await httpsCallable<void, { exportId: string }>(functions, 'todo-export-function-name')();
+    const result = await httpsCallable<void, { exportId: string }>(functions, 'ext-export-user-data-exportUserData')();
 
     // Get the returned export id.
     const exportId = result.data.exportId;
