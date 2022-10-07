@@ -34,7 +34,7 @@ log.genericLog(`databaseURL is ${databaseURL}`);
 
 admin.initializeApp({
   databaseURL,
-  storageBucket: config.storageBucketDefault,
+  storageBucket: config.cloudStorageBucketDefault,
 });
 
 export const eventChannel =

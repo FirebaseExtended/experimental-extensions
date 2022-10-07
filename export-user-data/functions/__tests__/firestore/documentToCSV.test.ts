@@ -138,7 +138,7 @@ describe("firestore", () => {
 
       /** Check that the document was exported correctly */
 
-      const bucket = admin.storage().bucket(config.storageBucketDefault);
+      const bucket = admin.storage().bucket(config.cloudStorageBucketDefault);
       const [files] = await bucket.getFiles();
 
       // expect 1 file to be exported

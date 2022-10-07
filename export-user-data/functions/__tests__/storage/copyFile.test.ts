@@ -49,7 +49,7 @@ jest.mock("../../src/config", () => ({
   storageBucketDefault: process.env.STORAGE_BUCKET,
   cloudStorageExportDirectory: "exports",
   firestoreExportsCollection: "exports",
-  storagePaths: "{DEFAULT}/test/",
+  storagePaths: "{DEFAULT}",
   zip: false,
 }));
 

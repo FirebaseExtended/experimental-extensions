@@ -41,7 +41,7 @@ export const getFilesFromStoragePath = async (path: string) => {
   const bucketName = parts[0];
   const bucket =
     bucketName === "{DEFAULT}"
-      ? admin.storage().bucket(config.storageBucketDefault)
+      ? admin.storage().bucket(config.cloudStorageBucketDefault)
       : admin.storage().bucket(bucketName);
 
   const prefix = parts.slice(1).join("/");

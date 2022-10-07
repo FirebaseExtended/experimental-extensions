@@ -58,7 +58,7 @@ export async function uploadDataAsZip({
 
     const stream = admin
       .storage()
-      .bucket(config.storageBucketDefault)
+      .bucket(config.cloudStorageBucketDefault)
       .file(storagePath)
       .createWriteStream();
 

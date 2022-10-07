@@ -104,21 +104,30 @@ export const copyStorageFilesAtPathToExportDirectory = async (
 
   const originalBucket =
     originalParts[0] === "{DEFAULT}"
-      ? admin.storage().bucket(config.storageBucketDefault)
+      ? admin.storage().bucket(config.cloudStorageBucketDefault)
       : admin.storage().bucket(originalParts[0]);
 
+  log.genericLog(
+    `copying from bucket ${originalBucket.name}, default bucket is ${config.cloudStorageBucketDefault}`
+  );
+
   const originalPrefix = originalParts.slice(1).join("/");
-  const outputBucket = admin.storage().bucket(config.storageBucketDefault);
+  const outputBucket = admin.storage().bucket(config.cloudStorageExportBucket);
 
   const originalFiles = (
     await originalBucket.getFiles({ prefix: originalPrefix })
-  )[0];
+  )[0].filter((file) => !file.name.endsWith("/"));
 
   return originalFiles.map(async (file) => {
     const originalExtension = file.name.split(".").pop();
     const newPrefix = `${config.cloudStorageExportDirectory}/${uuidv4()}${
       originalExtension ? "." + originalExtension : ""
     }`;
+    const metadata = {
+      originalPath: `${originalBucket.name}/${file.name}`,
+    };
+
+    log.genericLog(`adding metadata: ${metadata}`);
 
     return file
       .copy(outputBucket.file(newPrefix), {
