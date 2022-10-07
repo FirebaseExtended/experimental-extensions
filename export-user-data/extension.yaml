@@ -43,8 +43,6 @@ roles:
     reason: Allows the extension to export (user) data from Realtime Database.
   - role: storage.admin
     reason: Allows the extension to export (user) data from Cloud Storage.
-  - role: pubsub.admin
-    reason: Allows the extension to publish and subscribe to export events.
 
 resources:
   - name: exportUserData
@@ -55,7 +53,7 @@ resources:
       runtime: nodejs14
       httpsTrigger: {}
       availableMemoryMb: 8192
-      timeoutSeconds: 540
+      timeout: 540s
 
 params:
   - param: LOCATION
@@ -110,7 +108,7 @@ params:
     required: true
     immutable: true
 
-  - param: STORAGE_BUCKET
+  - param: CLOUD_STORAGE_EXPORT_BUCKET
     label: Cloud Storage bucket for exports
     description: >
       To which Cloud Storage bucket will you export your data?

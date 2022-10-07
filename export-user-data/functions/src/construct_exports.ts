@@ -76,7 +76,8 @@ export const constructDatabaseCSV = async (snap: any, databasePath: string) => {
 
 export const copyStorageFilesToExportDirectory = async (
   storagePaths: unknown[],
-  uid: string
+  uid: string,
+  storagePrefix: string
 ) => {
   let filePromises: Promise<File>[] = [];
 
@@ -96,7 +97,10 @@ export const copyStorageFilesToExportDirectory = async (
         }
         filePromises = [
           ...filePromises,
-          ...(await copyStorageFilesAtPathToExportDirectory(pathWithUID)),
+          ...(await copyStorageFilesAtPathToExportDirectory(
+            pathWithUID,
+            storagePrefix
+          )),
         ];
       } else {
         log.storagePathNotString();
@@ -108,7 +112,8 @@ export const copyStorageFilesToExportDirectory = async (
 };
 
 export const copyStorageFilesAtPathToExportDirectory = async (
-  pathWithUID: string
+  pathWithUID: string,
+  storagePrefix: string
 ): Promise<Promise<File>[]> => {
   const originalParts = pathWithUID.split("/");
 
@@ -128,7 +133,7 @@ export const copyStorageFilesAtPathToExportDirectory = async (
 
   return originalFiles.map(async (file) => {
     const originalExtension = file.name.split(".").pop();
-    const newPrefix = `${config.cloudStorageExportDirectory}/${uuidv4()}${
+    const newPrefix = `${storagePrefix}/${uuidv4()}${
       originalExtension ? "." + originalExtension : ""
     }`;
 

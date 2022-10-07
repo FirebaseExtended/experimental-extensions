@@ -69,7 +69,8 @@ export const exportUserData = functions.https.onCall(async (_data, context) => {
   // copy the files from Cloud Storage to the export directory and return their file refs
   const filesToZip = await copyStorageFilesToExportDirectory(
     exportPaths.storagePaths,
-    uid
+    uid,
+    storagePrefix
   );
 
   exportCounts.storageCopied = filesToZip.length;
