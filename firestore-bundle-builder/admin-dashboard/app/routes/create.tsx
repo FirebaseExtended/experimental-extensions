@@ -73,7 +73,6 @@ export const action: ActionFunction = async ({ request }) => {
       if (Array.isArray(query.condition)) {
         query.condition.forEach((condition: any) => {
           const type = condition.type;
-          console.log(condition);
           switch (type) {
             case "startAt":
             case "startAfter":
@@ -119,7 +118,7 @@ const randomArray = (len: number) => Array.from({ length: len }, randomId);
 
 export default function Create() {
   const action = useActionData();
-  console.log('action', action);
+  
   const [queries, setQueries] = useState<string[]>(
     action?.form.query ? randomArray(action?.form.query.length) : []
   );
@@ -283,7 +282,6 @@ function Queries(props: {
   onDelete: (id: string) => void;
   defaults?: any;
 }) {
-  console.log('queries defaults', props.defaults);
   const [conditions, setConditions] = useState<string[]>(
     props.defaults?.condition ? randomArray(props.defaults.condition.length) : []
   );
