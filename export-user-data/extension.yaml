@@ -23,7 +23,7 @@ description: >-
 
 license: Apache-2.0
 
-sourceUrl: https://github.com/FirebaseExtended/firestore-nlp-extension
+sourceUrl: https://github.com/FirebaseExtended/experimental-extensions/tree/next/export-user-data
 
 author:
   authorName: Firebase
