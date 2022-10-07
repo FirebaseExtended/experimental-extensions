@@ -18,7 +18,6 @@ the `${param:ITEMS_SUBCOLLECTION_NAME}` in the Prefix Document representing the 
 For these Cloud Storage paths, Documents will be generated in the following paths in Firestore.
 
 Configuration Parameters:
-
 - Firestore Root: `${param:FIRESTORE_ROOT}`
 - Items Subcollection Name: `${param:ITEMS_SUBCOLLECTION_NAME}`
 - Prefixes Subcollection Name: `/${param:PREFIXES_SUBCOLLECTION_NAME}/`

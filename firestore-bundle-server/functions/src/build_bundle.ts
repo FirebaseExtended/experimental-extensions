@@ -205,7 +205,6 @@ export async function build(
   }
 
   await Promise.all(promises);
-
   return bundle;
 }
 

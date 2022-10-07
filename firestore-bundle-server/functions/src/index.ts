@@ -150,12 +150,10 @@ export const serve = functions.handler.https.onRequest(
     const bundleSpec = await spec(bundleId);
 
     functions.logger.debug("spec:", bundleSpec);
-
     if (!bundleSpec) {
       res.status(404).send("Could not find bundle with ID " + bundleId);
       return;
     }
-
     const paramValues = filterQuery(req.query, bundleSpec.params || {});
 
     // Set proper cache-control.
@@ -190,7 +188,6 @@ export const serve = functions.handler.https.onRequest(
       let stream = Readable.from(
         (await build(db, bundleId, bundleSpec, paramValues)).build()
       );
-
       if (canGzip) {
         stream = stream.pipe(gzip);
       }
