@@ -14,8 +14,11 @@ After creating a notice, you can use the following snippet in your web/mobile ap
 import { getFunctions, httpsCallable } from "firebase/functions";
 
 const functions = getFunctions();
-const notice = await httpsCallable(functions, 'ext-firestore-record-user-acknowledgements-getNotice')({
-  type: 'banner',
+const notice = await httpsCallable(
+  functions,
+  "ext-firestore-record-user-acknowledgements-getNotice"
+)({
+  type: "banner",
 });
 ```
 
@@ -29,8 +32,11 @@ To retrieve a notice by a specific version, provide the `version` parameter:
 import { getFunctions, httpsCallable } from "firebase/functions";
 
 const functions = getFunctions();
-const notice = await httpsCallable(functions, 'ext-firestore-record-user-acknowledgements-getNotice')({
-  type: 'banner',
+const notice = await httpsCallable(
+  functions,
+  "ext-firestore-record-user-acknowledgements-getNotice"
+)({
+  type: "banner",
   version: 2,
 });
 ```
@@ -110,5 +116,3 @@ You may need to create custom notices that are shown to and can only be acknowle
 When it’s time to update a notice, for example when additional user preferences are required, create a new notice document with the same `type` as the existing notice you wish to update.
 
 When the notice is retrieved, a new notice document will be returned with no user acknowledgement, allowing users to acknowledge the newer notice.
-
-
