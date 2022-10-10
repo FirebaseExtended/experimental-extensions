@@ -88,26 +88,15 @@ async function fileCacheStream(
   query: { [k: string]: any },
   options: {
     ttlSec: number;
-    notBefore?: Timestamp;
     gzip?: boolean;
   }
 ): Promise<NodeJS.ReadableStream | null> {
   const file = bucket.file(storagePath(bundleId, query));
   try {
-    const [metadata] = await file.getMetadata();
-    const createTime = new Date(metadata.timeCreated).getTime();
-    if (
-      (options.notBefore && createTime < options.notBefore.toMillis()) ||
-      Date.now() > createTime + options.ttlSec * 1000
-    ) {
-      // tslint:disable-next-line:no-floating-promises
-      file.delete(); // fire and forget
-      return null;
-    }
     // keep gzip compression for over the wire
     return file.createReadStream({ decompress: !options.gzip });
   } catch (e) {
-    functions.logger.error("getMetadata error:", e.message, e.code);
+    functions.logger.error("createReadStream error:", e.message, e.code);
     return null;
   }
 }
@@ -175,7 +164,6 @@ export const serve = functions.handler.https.onRequest(
 
       const outStream = await fileCacheStream(bundleId, paramValues, {
         ttlSec: bundleSpec.fileCache,
-        notBefore: bundleSpec.notBefore,
         gzip: canGzip,
       });
 

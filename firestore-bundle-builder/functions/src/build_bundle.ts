@@ -140,10 +140,6 @@ export interface BundleSpec {
    * the specified number of seconds.
    */
   fileCache?: number;
-  /**
-   * When `fileCache` is specified, ignore bundles created before this timestamp.
-   */
-  notBefore?: Timestamp;
 }
 
 /**
