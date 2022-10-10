@@ -5,7 +5,7 @@ import { redirect } from "@remix-run/node";
 import { useActionData } from "@remix-run/react";
 import qs from "qs";
 import { Label } from "~/components/Label";
-import { createBundle, getBundle, Timestamp } from "~/firebase.server";
+import { createBundle, getBundle } from "~/firebase.server";
 import type { Bundle } from "~/types";
 import { Button } from "~/components/Button";
 import { TrashIcon } from "~/components/icons";
@@ -30,9 +30,6 @@ export const action: ActionFunction = async ({ request }) => {
     clientCache: (form.clientCache as string) || null,
     serverCache: (form.serverCache as string) || null,
     fileCache: (form.fileCache as string) || null,
-    notBefore: (form.notBefore as string)
-      ? Timestamp.fromDate(new Date(form.notBefore as string))
-      : null,
     docs: form.docs ? (form.docs as string).split(",") : null,
     params: {},
     queries: {},
@@ -159,12 +156,6 @@ export default function Create() {
           description="An optional value. Specifies how long (in seconds) to keep the bundle in a Cloud Storage bucket, in seconds. If not defined, Cloud Storage bucket is not accessed."
         >
           <Input name="fileCache" type="number" placeholder="e.g. 300" defaultValue={action?.form.fileCache} error={action?.errors.fileCache} />
-        </Label>
-        <Label
-          label="Not Before File Cache"
-          description="An optional value. If a 'File Cache' is specified, ignore bundles created before this timestamp."
-        >
-          <Input name="notBefore" type="datetime-local" defaultValue={action?.form.notBefore} error={action?.errors.notBefore} />
         </Label>
         <Label
           label="Documents"

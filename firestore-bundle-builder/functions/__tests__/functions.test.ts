@@ -227,19 +227,6 @@ describe("functions", () => {
     expect(metadata.metadata.totalDocuments).toEqual(0);
   });
 
-  xit("successfully returns a bundle using notBefore", async () => {
-    const bundleName = "with-notBefore";
-    const url = extUrl(bundleName);
-    const { data: bundle } = await axios(url);
-
-    const [metadata, documentMetadata, document] =
-      extractObjectfromBuffer(bundle);
-
-    /*** check metadata */
-    expect(metadata.metadata.id).toEqual(bundleName);
-    expect(metadata.metadata.totalDocuments).toEqual(0);
-  });
-
   it("successfully returns a request through a webiste hosted by Firebase", async () => {
     const bundleName = "documents-queries-params";
     const url = extHostedUrl(bundleName);
