@@ -39,7 +39,7 @@ export const getCustomExportPaths = functions.https.onRequest(
 
 ## Archiving exported data
 
-By default the extension will generate a list of CSV files. If you wish to additionally export a single zip archive containing all files, set the `Enable Zip` configuration option to "Yes".
+By default the extension will generate a list of CSV files. If you wish to instead export a single zip archive containing all files, set the `Enable Zip` configuration option to "Yes".
 
 **Note: Archiving is resource intensive and you may run into resource limitations with large volumes of exported data.**
 
