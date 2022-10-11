@@ -15,6 +15,7 @@
  */
 
 import * as admin from "firebase-admin";
+import unzip from "unzipper";
 import waitForExpect from "wait-for-expect";
 import { UserRecord } from "firebase-functions/v1/auth";
 import {
@@ -51,7 +52,7 @@ jest.mock("../../src/config", () => ({
   cloudStorageExportDirectory: "exports",
   firestoreExportsCollection: "exports",
   storagePaths: "{DEFAULT}",
-  zip: false,
+  zip: true,
 }));
 
 describe("extension", () => {
@@ -71,7 +72,7 @@ describe("extension", () => {
       await admin.auth().revokeRefreshTokens(user.uid);
     });
 
-    test("Can copy a top level file to storage export directory from storage", async () => {
+    test("Can zip a top level file to storage export directory from storage", async () => {
       /** Create a top level collection with a single document */
 
       await generateFileInUserStorage(user.uid, "Hello World!");
@@ -119,7 +120,7 @@ describe("extension", () => {
       expect(completeRecordData.startedAt).toHaveProperty("_seconds");
 
       // // should have a null zipPath
-      expect(completeRecordData.zipPath).toBeNull();
+      expect(completeRecordData.zipPath).toBe(`exports/${exportId}/export.zip`);
 
       // // should have the right number of files exported
       expect(completeRecordData.exportedFileCount).toBe(1);
@@ -146,20 +147,19 @@ describe("extension", () => {
       });
 
       // // expect 1 file to be exported
-      expect(files.length).toBe(1);
+      expect(files.length).toBe(2);
 
-      const file = files[0];
-      const fileName = file.name;
-      const parts = fileName.split("/");
-      // // should be in the exports directory
-      expect(parts[0]).toBe(config.cloudStorageExportDirectory);
-      // // should be in the export directory
-      expect(parts[1]).toBe(exportId);
+      const zipFile = files.find((file) => file.name.includes("export.zip"));
+      // expect(zipFile).toBeDefined();
       // // should have the user id as the name and have the .firestore.csv extension
       // // should have the correct content
-      const downloadResponse = await file.download();
-
-      const content = downloadResponse[0].toString();
+      const downloadResponse = await zipFile.download();
+      const unzipped = await unzip.Open.buffer(downloadResponse[0]);
+      const unzippedFiles = unzipped.files;
+      // // should have 1 file
+      expect(unzippedFiles.length).toBe(1);
+      // // should have 1 file
+      const content = (await unzippedFiles[0].buffer()).toString();
 
       expect(content).toBe("Hello World!");
       unsubscribe();
