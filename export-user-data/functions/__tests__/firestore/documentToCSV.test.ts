@@ -60,6 +60,8 @@ describe("firestore", () => {
 
     beforeEach(async () => {
       user = await createFirebaseUser();
+      await clearFirestore();
+      await clearStorage();
     });
 
     afterEach(async () => {
@@ -70,7 +72,7 @@ describe("firestore", () => {
       unsubscribe();
     });
 
-    xtest("can export a top level collection with an id of {userId}", async () => {
+    test("can export a top level collection with an id of {userId}", async () => {
       /** Create a top level collection with a single document */
 
       await generateUserDocument("users", user.uid, { foo: "bar" });
@@ -133,8 +135,7 @@ describe("firestore", () => {
       expect(recordedStoragePathParts[0]).toBe(
         config.firestoreExportsCollection
       );
-      expect(recordedStoragePathParts[1]).toBe(user.uid);
-      expect(recordedStoragePathParts[2]).toBe(exportId);
+      expect(recordedStoragePathParts[1]).toBe(exportId);
 
       /** Check that the document was exported correctly */
 
@@ -149,12 +150,10 @@ describe("firestore", () => {
       const parts = fileName.split("/");
       // should be in the exports directory
       expect(parts[0]).toBe(config.cloudStorageExportDirectory);
-      // should be in the user's directory
-      expect(parts[1]).toBe(user.uid);
       // should be in the export directory
-      expect(parts[2]).toBe(exportId);
+      expect(parts[1]).toBe(exportId);
       // should have the user id as the name and have the .firestore.csv extension
-      expect(parts[3]).toBe(`users_${user.uid}.firestore.csv`);
+      expect(parts[2]).toBe(`users_${user.uid}.firestore.csv`);
       // should have the correct content
       const downloadResponse = await file.download();
 

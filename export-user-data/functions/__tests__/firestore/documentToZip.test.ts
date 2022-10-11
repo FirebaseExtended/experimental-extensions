@@ -60,6 +60,8 @@ describe("firestore", () => {
 
     beforeEach(async () => {
       user = await createFirebaseUser();
+      await clearFirestore();
+      await clearStorage();
     });
 
     afterEach(async () => {
@@ -70,7 +72,7 @@ describe("firestore", () => {
       await admin.auth().revokeRefreshTokens(user.uid);
     });
 
-    xtest("can export zip of a top level collection with an id of {userId}", async () => {
+    test("can export zip of a top level collection with an id of {userId}", async () => {
       /** Create a top level collection with a single document */
 
       await generateUserDocument("users", user.uid, { foo: "bar" });
@@ -89,6 +91,11 @@ describe("firestore", () => {
         { uid: user.uid },
         { auth: { uid: user.uid } }
       );
+
+      // wait for the record to have been updated
+      await waitForExpect(() => {
+        expect(observer).toHaveBeenCalledTimes(2);
+      });
 
       // expect firestore to have a record of the export
       const pendingRecordData = observer.mock.calls[0][0].docs[0].data();
@@ -131,9 +138,8 @@ describe("firestore", () => {
 
       // should have a record of the correct path to the zip in storage
       expect(zipPathParts[0]).toBe(config.cloudStorageExportDirectory);
-      expect(zipPathParts[1]).toBe(user.uid);
-      expect(zipPathParts[2]).toBe(exportId);
-      expect(zipPathParts[3]).toBe("export.zip");
+      expect(zipPathParts[1]).toBe(exportId);
+      expect(zipPathParts[2]).toBe("export.zip");
 
       // should have a string storage path
       expect(completeRecordData.storagePath).toBeDefined();
@@ -146,8 +152,7 @@ describe("firestore", () => {
       expect(recordedStoragePathParts[0]).toBe(
         config.cloudStorageExportDirectory
       );
-      expect(recordedStoragePathParts[1]).toBe(user.uid);
-      expect(recordedStoragePathParts[2]).toBe(exportId);
+      expect(recordedStoragePathParts[1]).toBe(exportId);
 
       /** Check that the document was exported correctly */
 
@@ -162,12 +167,10 @@ describe("firestore", () => {
       const parts = fileName.split("/");
       // should be in the exports directory
       expect(parts[0]).toBe(config.cloudStorageExportDirectory);
-      // should be in the user's directory
-      expect(parts[1]).toBe(user.uid);
       // should be in the export directory
-      expect(parts[2]).toBe(exportId);
+      expect(parts[1]).toBe(exportId);
       // should have the user id as the name and have the .firestore.csv extension
-      expect(parts[3]).toBe(`export.zip`);
+      expect(parts[2]).toBe(`export.zip`);
       // should have the correct content
       const downloadResponse = await file.download();
 

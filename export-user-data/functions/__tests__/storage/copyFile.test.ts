@@ -24,6 +24,7 @@ import {
   generateFileInUserStorage,
   generateUserCollection,
   generateUserDocument,
+  waitForDocumentUpdate,
 } from "../helpers";
 import setupEnvironment from "../helpers/setupEnvironment";
 
@@ -59,6 +60,8 @@ describe("extension", () => {
 
     beforeEach(async () => {
       user = await createFirebaseUser();
+      await clearFirestore();
+      await clearStorage();
     });
 
     afterEach(async () => {
@@ -71,101 +74,94 @@ describe("extension", () => {
     test("Can copy a top level file to storage export directory from storage", async () => {
       /** Create a top level collection with a single document */
 
-      const file = await generateFileInUserStorage(user.uid, "Hello World!");
+      await generateFileInUserStorage(user.uid, "Hello World!");
       const exportUserDatafn = fft.wrap(funcs.exportUserData);
 
       // // watch the exports collection for changes
-      // const observer = jest.fn();
+      const observer = jest.fn();
 
-      // const unsubscribe = admin
-      //     .firestore()
-      //     .collection(config.firestoreExportsCollection)
-      //     .onSnapshot(observer);
+      const unsubscribe = admin
+        .firestore()
+        .collection(config.firestoreExportsCollection)
+        .onSnapshot(observer);
 
       const { exportId } = await exportUserDatafn.call(
         {},
         { uid: user.uid },
         { auth: { uid: user.uid } }
       );
+      // const data = await waitForDocumentUpdate(admin.firestore().collection(config.firestoreExportsCollection).doc(exportId));
 
+      // console.log(data.data());
+      // // expect exportId to be defined and to be a string
+      expect(exportId).toBeDefined();
+      expect(typeof exportId).toBe("string");
+
+      await waitForExpect(() => {
+        expect(observer).toHaveBeenCalledTimes(3);
+      });
       // // expect firestore to have a record of the export
-      // const pendingRecordData = observer.mock.calls[0][0].docs[0].data();
-
-      // console.log("pendingRecordData", pendingRecordData);
-
-      // TODO: for some reason onSnapshot is not firing event through..
-      // await waitForExpect(() => {
-      //     expect(observer).toHaveBeenCalledTimes(2);
-      // });
+      const pendingRecordData = observer.mock.calls[1][0].docs[0].data();
+      const completeRecordData = observer.mock.calls[2][0].docs[0].data();
 
       // // should be pending
-      // expect(pendingRecordData.status).toBe("pending");
-      // expect(pendingRecordData.uid).toBe(user.uid);
+      expect(pendingRecordData.status).toBe("pending");
+      expect(pendingRecordData.uid).toBe(user.uid);
       // // should be a server timestamp
-      // expect(pendingRecordData.startedAt).toHaveProperty("_nanoseconds");
-      // expect(pendingRecordData.startedAt).toHaveProperty("_seconds");
-
-      // // expect exportId to be defined and to be a string
-      // expect(exportId).toBeDefined();
-      // expect(typeof exportId).toBe("string");
-
-      // // wait for the record to have been updated
-      // await waitForExpect(() => {
-      //     expect(observer).toHaveBeenCalledTimes(2);
-      // });
-
-      // const completeRecordData = observer.mock.calls[1][0].docs[0].data();
+      expect(pendingRecordData.startedAt).toHaveProperty("_nanoseconds");
+      expect(pendingRecordData.startedAt).toHaveProperty("_seconds");
 
       // // should be success
-      // expect(completeRecordData.status).toBe("complete");
-      // expect(completeRecordData.uid).toBe(user.uid);
+      expect(completeRecordData.status).toBe("complete");
+      expect(completeRecordData.uid).toBe(user.uid);
       // // should be a server timestamp
-      // expect(completeRecordData.startedAt).toHaveProperty("_nanoseconds");
-      // expect(completeRecordData.startedAt).toHaveProperty("_seconds");
+      expect(completeRecordData.startedAt).toHaveProperty("_nanoseconds");
+      expect(completeRecordData.startedAt).toHaveProperty("_seconds");
 
       // // should have a null zipPath
-      // expect(completeRecordData.zipPath).toBeNull();
+      expect(completeRecordData.zipPath).toBeNull();
 
       // // should have the right number of files exported
-      // expect(completeRecordData.exportedFileCount).toBe(1);
+      expect(completeRecordData.exportedFileCount).toBe(1);
 
       // // should have a string storage path
-      // expect(completeRecordData.storagePath).toBeDefined();
-      // expect(typeof completeRecordData.storagePath).toBe("string");
+      expect(completeRecordData.storagePath).toBeDefined();
+      expect(typeof completeRecordData.storagePath).toBe("string");
 
-      // const recordedStoragePath = completeRecordData.storagePath;
-      // const recordedStoragePathParts = recordedStoragePath.split("/");
+      const recordedStoragePath = completeRecordData.storagePath;
+      const recordedStoragePathParts = recordedStoragePath.split("/");
 
       // // should have a record of the correct path to the export in storage
-      // expect(recordedStoragePathParts[0]).toBe(
-      //     config.firestoreExportsCollection
-      // );
-      // expect(recordedStoragePathParts[1]).toBe(user.uid);
-      // expect(recordedStoragePathParts[2]).toBe(exportId);
+      expect(recordedStoragePathParts[0]).toBe(
+        config.firestoreExportsCollection
+      );
+      expect(recordedStoragePathParts[1]).toBe(exportId);
 
       // /** Check that the document was exported correctly */
 
-      // const bucket = admin.storage().bucket(config.storageBucketDefault);
-      // const [files] = await bucket.getFiles();
+      const bucket = admin.storage().bucket(config.cloudStorageBucketDefault);
+
+      const [files] = await bucket.getFiles({
+        prefix: config.cloudStorageExportDirectory,
+      });
 
       // // expect 1 file to be exported
-      // expect(files.length).toBe(1);
+      expect(files.length).toBe(1);
 
-      // const file = files[0];
-      // const fileName = file.name;
-      // const parts = fileName.split("/");
+      const file = files[0];
+      const fileName = file.name;
+      const parts = fileName.split("/");
       // // should be in the exports directory
-      // expect(parts[0]).toBe(config.cloudStorageExportDirectory);
-      // // should be in the user's directory
-      // expect(parts[1]).toBe(user.uid);
+      expect(parts[0]).toBe(config.cloudStorageExportDirectory);
       // // should be in the export directory
-      // expect(parts[2]).toBe(exportId);
+      expect(parts[1]).toBe(exportId);
       // // should have the user id as the name and have the .firestore.csv extension
-      // expect(parts[3]).toBe(`${user.uid}.firestore.csv`);
       // // should have the correct content
-      // const downloadResponse = await file.download();
+      const downloadResponse = await file.download();
 
-      // const content = downloadResponse[0].toString();
+      const content = downloadResponse[0].toString();
+
+      expect(content).toBe("Hello World!");
       // unsubscribe();
     });
   });
