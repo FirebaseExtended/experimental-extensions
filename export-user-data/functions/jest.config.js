@@ -25,4 +25,5 @@ module.exports = {
       "<rootDir>/node_modules/firebase-admin/lib/eventarc/index.js",
   },
   setupFiles: ["<rootDir>/__tests__/jest.setup.ts"],
+  maxConcurrency: 1,
 };

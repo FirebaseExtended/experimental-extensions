@@ -15,19 +15,18 @@
  */
 
 import * as admin from "firebase-admin";
+import unzip from "unzipper";
 import waitForExpect from "wait-for-expect";
 import { UserRecord } from "firebase-functions/v1/auth";
 import {
   clearFirestore,
   clearStorage,
   createFirebaseUser,
-  generateFileInUserStorage,
-  generateUserCollection,
-  generateUserDocument,
+  generateDatabaseNode,
   resetFirebaseData,
   validateCompleteRecord,
-  validateCSVFile,
   validatePendingRecord,
+  validateZippedExport,
 } from "../helpers";
 import setupEnvironment from "../helpers/setupEnvironment";
 
@@ -53,14 +52,14 @@ jest.mock("../../src/config", () => ({
   storageBucketDefault: process.env.STORAGE_BUCKET,
   cloudStorageExportDirectory: "exports",
   firestoreExportsCollection: "exports",
-  firestorePaths: "users/{UID}",
-  zip: false,
+  databasePaths: "{UID}",
+  zip: true,
 }));
 
-describe("firestore", () => {
-  describe("top level collection", () => {
+describe("extension", () => {
+  describe("top level node", () => {
     let user: UserRecord;
-    let unsubscribe: () => void;
+    let unsubscribe;
 
     beforeEach(async () => {
       await resetFirebaseData();
@@ -75,15 +74,14 @@ describe("firestore", () => {
       }
     });
 
-    test("can export a top level collection with an id of {userId}", async () => {
+    test("can zip a top level rtdb node with an key of {userId}", async () => {
       /** Create a top level collection with a single document */
 
-      await generateUserDocument("users", user.uid, { foo: "bar" });
+      const ref = await generateDatabaseNode({ foo: "bar" }, user.uid);
       const exportUserDatafn = fft.wrap(funcs.exportUserData);
 
       // watch the exports collection for changes
       const observer = jest.fn();
-
       unsubscribe = admin
         .firestore()
         .collection(config.firestoreExportsCollection)
@@ -95,48 +93,51 @@ describe("firestore", () => {
         { auth: { uid: user.uid } }
       );
 
-      // expect exportId to be defined and to be a string
+      // // expect exportId to be defined and to be a string
       expect(exportId).toBeDefined();
       expect(typeof exportId).toBe("string");
 
-      // expect firestore to have a record of the export
-      const pendingRecordData = observer.mock.calls[0][0].docs[0].data();
-      // should be pending
-      validatePendingRecord(pendingRecordData, { user });
-
       // wait for the record to have been updated
       await waitForExpect(() => {
-        expect(observer).toHaveBeenCalledTimes(2);
+        expect(observer).toHaveBeenCalledTimes(3);
       });
+      // // expect firestore to have a record of the export
+      const pendingRecordData = observer.mock.calls[1][0].docs[0].data();
+      validatePendingRecord(pendingRecordData, { user });
 
-      const completeRecordData = observer.mock.calls[1][0].docs[0].data();
-      // should be complete
+      const completeRecordData = observer.mock.calls[2][0].docs[0].data();
+
       validateCompleteRecord(completeRecordData, {
         user,
         config,
         exportId,
-        shouldZip: false,
+        shouldZip: true,
       });
 
-      /** Check that the document was exported correctly */
+      // /** Check that the document was exported correctly */
 
       const bucket = admin.storage().bucket(config.cloudStorageBucketDefault);
       const [files] = await bucket.getFiles();
 
-      // expect 1 file to be exported
+      // // expect 1 file to be exported
       expect(files.length).toBe(1);
 
       const file = files[0];
-
-      const expectedCSVData = [
-        ["FIRESTORE", `users/${user.uid}/foo`, '"""bar"""'],
+      const expectedUnzippedPath = `${user.uid}.database.csv`;
+      const expectedData = [
+        [
+          "DATABASE",
+          `${user.uid}/${ref.key}`,
+          // TODO: why so many quotes?
+          '"{""foo"":""bar""}"',
+        ],
       ];
-
-      await validateCSVFile(file, {
+      await validateZippedExport(file, {
         config,
         exportId,
-        expectedFileName: `users_${user.uid}.firestore.csv`,
-        expectedCSVData,
+        expectedUnzippedPath,
+        expectedData,
+        contentType: "csv",
       });
     });
   });

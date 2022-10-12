@@ -24,6 +24,10 @@ import {
   generateFileInUserStorage,
   generateUserCollection,
   generateUserDocument,
+  resetFirebaseData,
+  validateCompleteRecord,
+  validateCSVFile,
+  validatePendingRecord,
 } from "../helpers";
 import setupEnvironment from "../helpers/setupEnvironment";
 
@@ -59,23 +63,22 @@ describe("extension", () => {
     let unsubscribe;
 
     beforeEach(async () => {
+      await resetFirebaseData();
       user = await createFirebaseUser();
-      await clearFirestore();
-      await clearStorage();
     });
 
     afterEach(async () => {
       jest.clearAllMocks();
-      await clearFirestore();
-      await clearStorage();
-      await admin.auth().revokeRefreshTokens(user.uid);
-      unsubscribe();
+      await resetFirebaseData();
+      if (unsubscribe && typeof unsubscribe === "function") {
+        unsubscribe();
+      }
     });
 
     test("can export a top level collection with an id of {userId}", async () => {
       /** Create a top level collection with a single document */
 
-      const docId = await generateUserCollection(user.uid, { foo: "bar" });
+      const colId = await generateUserCollection(user.uid, { foo: "bar" });
       const exportUserDatafn = fft.wrap(funcs.exportUserData);
 
       // watch the exports collection for changes
@@ -91,15 +94,6 @@ describe("extension", () => {
         { auth: { uid: user.uid } }
       );
 
-      // expect firestore to have a record of the export
-      const pendingRecordData = observer.mock.calls[0][0].docs[0].data();
-      // should be pending
-      expect(pendingRecordData.status).toBe("pending");
-      expect(pendingRecordData.uid).toBe(user.uid);
-      // should be a server timestamp
-      expect(pendingRecordData.startedAt).toHaveProperty("_nanoseconds");
-      expect(pendingRecordData.startedAt).toHaveProperty("_seconds");
-
       // expect exportId to be defined and to be a string
       expect(exportId).toBeDefined();
       expect(typeof exportId).toBe("string");
@@ -109,33 +103,19 @@ describe("extension", () => {
         expect(observer).toHaveBeenCalledTimes(2);
       });
 
+      /** expect firestore to have a record of the export */
+
+      // should be pending
+      const pendingRecordData = observer.mock.calls[0][0].docs[0].data();
+      validatePendingRecord(pendingRecordData, { user });
+
       const completeRecordData = observer.mock.calls[1][0].docs[0].data();
-
-      // should be success
-      expect(completeRecordData.status).toBe("complete");
-      expect(completeRecordData.uid).toBe(user.uid);
-      // should be a server timestamp
-      expect(completeRecordData.startedAt).toHaveProperty("_nanoseconds");
-      expect(completeRecordData.startedAt).toHaveProperty("_seconds");
-
-      // should have a null zipPath
-      expect(completeRecordData.zipPath).toBeNull();
-
-      // should have the right number of files exported
-      expect(completeRecordData.exportedFileCount).toBe(1);
-
-      // should have a string storage path
-      expect(completeRecordData.storagePath).toBeDefined();
-      expect(typeof completeRecordData.storagePath).toBe("string");
-
-      const recordedStoragePath = completeRecordData.storagePath;
-      const recordedStoragePathParts = recordedStoragePath.split("/");
-
-      // should have a record of the correct path to the export in storage
-      expect(recordedStoragePathParts[0]).toBe(
-        config.firestoreExportsCollection
-      );
-      expect(recordedStoragePathParts[1]).toBe(exportId);
+      validateCompleteRecord(completeRecordData, {
+        user,
+        exportId,
+        config,
+        shouldZip: false,
+      });
 
       /** Check that the document was exported correctly */
 
@@ -146,36 +126,21 @@ describe("extension", () => {
       expect(files.length).toBe(1);
 
       const file = files[0];
-      const fileName = file.name;
-      const parts = fileName.split("/");
-      // should be in the exports directory
-      expect(parts[0]).toBe(config.cloudStorageExportDirectory);
-      // should be in the export directory
-      expect(parts[1]).toBe(exportId);
-      // should have the user id as the name and have the .firestore.csv extension
-      expect(parts[2]).toBe(`${user.uid}.firestore.csv`);
-      // should have the correct content
-      const downloadResponse = await file.download();
-
-      const content = downloadResponse[0].toString();
-
-      // parse the csv string into arrays
-      const lines = content.split("\n");
-
-      // should have 2 lines with content and the last will be empty.
-      expect(lines.length).toBe(3);
-      expect(lines[2]).toBe("");
-      // should have correct headers
-      const headers = lines[0].split(",");
-      expect(headers[0]).toBe("TYPE");
-      expect(headers[1]).toBe("path");
-      expect(headers[2]).toBe("data");
-      // should have correct data
-      const data = lines[1].split(",");
-      expect(data[0]).toBe("FIRESTORE");
-      expect(data[1]).toBe(`${user.uid}/${docId}`);
-      // TODO: why the extra quotes?
-      // expect(data[2]).toEqual(`"{ ""foo"": ""bar"" }"`);
+      const expectedFileName = `${user.uid}.firestore.csv`;
+      const expectedCSVData = [
+        [
+          "FIRESTORE",
+          `${user.uid}/${colId}`,
+          // TODO: why so many quotation marks?
+          '"{""foo"":""bar""}"',
+        ],
+      ];
+      await validateCSVFile(file, {
+        config,
+        exportId,
+        expectedFileName,
+        expectedCSVData,
+      });
     });
   });
 });

@@ -5,6 +5,7 @@
   "storage": {
     "rules": "storage.rules"
   },
+  "database": {},
   "emulators": {
     "hub": {
       "port": 4000
@@ -20,6 +21,9 @@
     },
     "functions": {
       "port": 5001
+    },
+    "database": {
+      "port": 9000
     },
     "ui": {
       "enabled": true

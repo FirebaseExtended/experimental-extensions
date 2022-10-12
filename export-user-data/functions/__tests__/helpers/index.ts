@@ -3,17 +3,21 @@ import { Query, DocumentData } from "@google-cloud/firestore";
 import { UserRecord } from "firebase-functions/v1/auth";
 import setupEnvironment from "./setupEnvironment";
 import fetch from "node-fetch";
+import { File } from "@google-cloud/storage";
+import unzip from "unzipper";
 
 if (!admin.apps.length) {
   admin.initializeApp({
     projectId: "demo-experimental",
     storageBucket: process.env.STORAGE_BUCKET,
+    databaseURL: "http://localhost:9000/?ns=demo-experimental",
   });
 }
 
 setupEnvironment();
-const db = admin.firestore();
+const firestore = admin.firestore();
 const storage = admin.storage();
+const database = admin.database();
 
 export const generateRandomId = () => {
   return (
@@ -34,194 +38,9 @@ export const getDatabaseUrl = (
   return `https://${selectedDatabaseInstance}.${selectedDatabaseLocation}.firebasedatabase.app`;
 };
 
-export async function deleteCollection(db, collectionPath, batchSize) {
-  const collectionRef = db.collection(collectionPath);
-  const query = collectionRef.orderBy("__name__").limit(batchSize);
-
-  return new Promise((resolve, reject) => {
-    deleteQueryBatch(db, query, resolve).catch(reject);
-  });
-}
-
-async function deleteQueryBatch(db, query, resolve) {
-  const snapshot = await query.get();
-
-  const batchSize = snapshot.size;
-  if (batchSize === 0) {
-    // When there are no documents left, we are done
-    resolve();
-    return;
-  }
-
-  // Delete documents in a batch
-  const batch = db.batch();
-  snapshot.docs.forEach((doc) => {
-    batch.delete(doc.ref);
-  });
-  await batch.commit();
-
-  // Recurse on the next process tick, to avoid
-  // exploding the stack.
-  process.nextTick(() => {
-    deleteQueryBatch(db, query, resolve);
-  });
-}
-
-export async function repeat(
-  fn: { (): Promise<any>; (): any },
-  until: { ($: any): any; (arg0: any): any },
-  retriesLeft = 5,
-  interval = 1000
-) {
-  const result = await fn();
-
-  if (!until(result)) {
-    if (retriesLeft) {
-      await new Promise((r) => setTimeout(r, interval));
-      return repeat(fn, until, retriesLeft - 1, interval);
-    }
-    throw new Error("Max repeats count reached");
-  }
-
-  return result;
-}
-
-export const waitForDocumentToExistWithField = (
-  document: DocumentData,
-  field: string | number,
-  timeout: number = 10_000
-): Promise<DocumentData> => {
-  return new Promise((resolve, reject) => {
-    let timedOut = false;
-    const timer = setTimeout(() => {
-      timedOut = true;
-      reject(new Error("Timeout waiting for firestore document"));
-    }, timeout);
-    const unsubscribe = document.onSnapshot(async (snapshot: DocumentData) => {
-      if (snapshot.exists && snapshot.data()[field]) {
-        unsubscribe();
-        if (!timedOut) {
-          clearTimeout(timer);
-          resolve(snapshot);
-        }
-      }
-    });
-  });
-};
-
-export const waitForDocumentUpdate = (
-  document: DocumentData,
-  field: string | number,
-  value: any,
-  timeout: number = 10_000
-): Promise<FirebaseFirestore.DocumentData> => {
-  return new Promise((resolve, reject) => {
-    let timedOut = false;
-    const timer = setTimeout(() => {
-      timedOut = true;
-      reject(new Error("Timeout waiting for firestore document"));
-    }, timeout);
-    const unsubscribe = document.onSnapshot(async (snapshot: DocumentData) => {
-      if (snapshot.exists && snapshot.data()[field] === value) {
-        unsubscribe();
-        if (!timedOut) {
-          clearTimeout(timer);
-          resolve(snapshot);
-        }
-      }
-    });
-  });
-};
-
-export const waitForDocumentToExistInCollection = (
-  query: Query,
-  field: string | number,
-  value: any,
-  timeout: number = 10_000
-): Promise<DocumentData> => {
-  return new Promise((resolve, reject) => {
-    let timedOut = false;
-    const timer = setTimeout(() => {
-      timedOut = true;
-      reject(new Error("Timeout waiting for firestore document"));
-    }, timeout);
-    const unsubscribe = query.onSnapshot(async (snapshot) => {
-      const docs = snapshot.docChanges();
-
-      const record: DocumentData = docs.filter(
-        ($) => $.doc.data()[field] === value
-      )[0];
-
-      if (record) {
-        unsubscribe();
-        if (!timedOut) {
-          clearTimeout(timer);
-          resolve(record);
-        }
-      }
-    });
-  });
-};
-
 export const createFirebaseUser = async (): Promise<UserRecord> => {
   const email = `${Math.random().toString(36).substr(2, 5)}@google.com`;
   return admin.auth().createUser({ email });
-};
-
-export const clearCollection = async (
-  collection: admin.firestore.CollectionReference
-) => {
-  const docs = await collection.listDocuments();
-
-  for await (const doc of docs || []) {
-    await doc.delete();
-  }
-};
-
-export const waitForCollectionDeletion = (
-  query: Query,
-  timeout: number = 10_000
-): Promise<boolean> => {
-  return new Promise((resolve, reject) => {
-    let timedOut = false;
-    const timer = setTimeout(() => {
-      timedOut = true;
-      reject(new Error("Timeout waiting for collection deletion"));
-    }, timeout);
-    const unsubscribe = query.onSnapshot(async (snapshot) => {
-      const hasDocuments = snapshot.docs.length;
-
-      if (!hasDocuments) {
-        unsubscribe();
-        if (!timedOut) {
-          clearTimeout(timer);
-          resolve(true);
-        }
-      }
-    });
-  });
-};
-
-export const waitForDocumentDeletion = (
-  document: DocumentData,
-  timeout: number = 10_000
-): Promise<boolean> => {
-  return new Promise((resolve, reject) => {
-    let timedOut = false;
-    const timer = setTimeout(() => {
-      timedOut = true;
-      reject(new Error("Timeout waiting for document deletion"));
-    }, timeout);
-    const unsubscribe = document.onSnapshot(async (doc) => {
-      if (!doc.exists) {
-        unsubscribe();
-        if (!timedOut) {
-          clearTimeout(timer);
-          resolve(true);
-        }
-      }
-    });
-  });
 };
 
 export const generateTopLevelUserCollection = async (db, userId) => {
@@ -231,8 +50,13 @@ export const generateTopLevelUserCollection = async (db, userId) => {
 };
 
 export const generateUserCollection = async (userId, data) => {
-  const doc = await db.collection(`${userId}`).add(data);
+  const doc = await firestore.collection(`${userId}`).add(data);
   return doc.id;
+};
+
+export const generateDatabaseNode = async (data, userId: string) => {
+  const node = database.ref(`${userId}`).push(data);
+  return node;
 };
 
 export const generateUserDocument = async (
@@ -240,7 +64,7 @@ export const generateUserDocument = async (
   userId: string,
   data
 ) => {
-  await db
+  await firestore
     .collection(collectionId)
     .doc(`${userId}`)
     .set(data)
@@ -251,6 +75,15 @@ export const generateFileInUserStorage = async (userId, value) => {
   const file = storage.bucket().file(`test/${userId}.txt`);
   await file.save(value);
   return file;
+};
+
+export const resetFirebaseData = async (user?: UserRecord) => {
+  await clearDatabase();
+  await clearStorage();
+  await clearFirestore();
+  if (user) {
+    await admin.auth().revokeRefreshTokens(user.uid);
+  }
 };
 
 export const clearFirestore = async () => {
@@ -265,4 +98,174 @@ export const clearStorage = async () => {
   for await (const file of files[0]) {
     await file.delete();
   }
+};
+
+export const clearDatabase = async () => {
+  database.ref("/").set({});
+};
+
+type validateDocumentZippedExportOptions = {
+  config: Record<string, any>;
+  exportId: string;
+  expectedUnzippedPath?: string;
+  contentType: "csv" | "text";
+  expectedData: string[][] | string;
+};
+
+export const validateZippedExport = async (
+  file: File,
+  {
+    config,
+    exportId,
+    expectedUnzippedPath,
+    contentType,
+    expectedData,
+  }: validateDocumentZippedExportOptions
+) => {
+  const fileName = file.name;
+  const parts = fileName.split("/");
+  // should be in the exports directory
+  expect(parts[0]).toBe(config.cloudStorageExportDirectory);
+  // should be in the export directory
+  expect(parts[1]).toBe(exportId);
+  // should have the user id as the name and have the .firestore.csv extension
+  expect(parts[2]).toBe(`export.zip`);
+  // should have the correct content
+  const downloadResponse = await file.download();
+
+  const zip = downloadResponse[0];
+
+  // unzip the content
+  const unzipped = await unzip.Open.buffer(zip);
+  const unzippedFiles = unzipped.files;
+  // // should have 1 file
+  expect(unzippedFiles.length).toBe(1);
+  const unzippedFile = unzippedFiles[0];
+  if (expectedUnzippedPath) {
+    expect(unzippedFile.path).toBe(expectedUnzippedPath);
+  }
+
+  // should have the correct content
+  const content = (await unzippedFiles[0].buffer()).toString();
+  if (contentType === "csv") {
+    // parse the csv string into arrays
+    const lines = content.split("\n");
+    const csvData = lines.map((line) => line.split(","));
+    // should have 2 lines with content and the last will be empty.
+    validateCSVData(csvData, expectedData);
+  }
+  if (contentType === "text") {
+    expect(content).toBe(expectedData);
+  }
+};
+
+type validateDocumentCSVFileOptions = {
+  config: Record<string, any>;
+  exportId: string;
+  expectedFileName: string;
+  expectedCSVData: string[][];
+};
+
+export const validateCSVFile = async (
+  file: File,
+  {
+    config,
+    exportId,
+    expectedFileName,
+    expectedCSVData,
+  }: validateDocumentCSVFileOptions
+) => {
+  const fileName = file.name;
+  const parts = fileName.split("/");
+  // should be in the exports directory
+  expect(parts[0]).toBe(config.cloudStorageExportDirectory);
+  // should be in the export directory
+  expect(parts[1]).toBe(exportId);
+  // should have the user id as the name and have the .firestore.csv extension
+  expect(parts[2]).toBe(expectedFileName);
+  // should have the correct content
+  const downloadResponse = await file.download();
+
+  const content = downloadResponse[0].toString();
+
+  // parse the csv string into arrays
+  const lines = content.split("\n");
+  const csvData = lines.map((line) => line.split(","));
+
+  validateCSVData(csvData, expectedCSVData);
+};
+
+const validateCSVHeaders = (headers) => {
+  expect(headers[0]).toBe("TYPE");
+  expect(headers[1]).toBe("path");
+  expect(headers[2]).toBe("data");
+};
+
+const validateCSVData = (csvData: string[][], expected) => {
+  const headers = csvData[0];
+  validateCSVHeaders(headers);
+  csvData.shift();
+
+  expect(csvData.length) === expected.length;
+  for (let i = 0; i < expected.length; i++) {
+    expect(csvData[i]).toEqual(expected[i]);
+  }
+};
+
+export const validatePendingRecord = (
+  pendingRecordData: Record<string, any>,
+  { user }: { user: UserRecord }
+) => {
+  expect(pendingRecordData.status).toBe("pending");
+  expect(pendingRecordData.uid).toBe(user.uid);
+  // // should be a server timestamp
+  expect(pendingRecordData.startedAt).toHaveProperty("_nanoseconds");
+  expect(pendingRecordData.startedAt).toHaveProperty("_seconds");
+};
+
+type validateCompleteRecordOptions = {
+  user: UserRecord;
+  config: Record<string, any>;
+  exportId: string;
+  shouldZip: boolean;
+};
+
+export const validateCompleteRecord = (
+  completeRecordData: Record<string, any>,
+  { user, config, exportId, shouldZip }: validateCompleteRecordOptions
+) => {
+  // // should be success
+  expect(completeRecordData.status).toBe("complete");
+  expect(completeRecordData.uid).toBe(user.uid);
+  // // should be a server timestamp
+  expect(completeRecordData.startedAt).toHaveProperty("_nanoseconds");
+  expect(completeRecordData.startedAt).toHaveProperty("_seconds");
+
+  // // should have a null zipPath
+  if (shouldZip) {
+    const zipPath = completeRecordData.zipPath;
+
+    const zipPathParts = zipPath.split("/");
+
+    // should have a record of the correct path to the zip in storage
+    expect(zipPathParts[0]).toBe(config.cloudStorageExportDirectory);
+    expect(zipPathParts[1]).toBe(exportId);
+    expect(zipPathParts[2]).toBe("export.zip");
+  } else {
+    expect(completeRecordData.zipPath).toBeNull();
+  }
+
+  // // should have the right number of files exported
+  expect(completeRecordData.exportedFileCount).toBe(1);
+
+  // // should have a string storage path
+  expect(completeRecordData.storagePath).toBeDefined();
+  expect(typeof completeRecordData.storagePath).toBe("string");
+
+  const recordedStoragePath = completeRecordData.storagePath;
+  const recordedStoragePathParts = recordedStoragePath.split("/");
+
+  // // should have a record of the correct path to the export in storage
+  expect(recordedStoragePathParts[0]).toBe(config.firestoreExportsCollection);
+  expect(recordedStoragePathParts[1]).toBe(exportId);
 };

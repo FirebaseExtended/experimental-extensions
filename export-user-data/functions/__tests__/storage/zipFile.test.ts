@@ -23,9 +23,10 @@ import {
   clearStorage,
   createFirebaseUser,
   generateFileInUserStorage,
-  generateUserCollection,
-  generateUserDocument,
-  waitForDocumentUpdate,
+  resetFirebaseData,
+  validateCompleteRecord,
+  validatePendingRecord,
+  validateZippedExport,
 } from "../helpers";
 import setupEnvironment from "../helpers/setupEnvironment";
 
@@ -58,18 +59,19 @@ jest.mock("../../src/config", () => ({
 describe("extension", () => {
   describe("top level storage file", () => {
     let user: UserRecord;
+    let unsubscribe;
 
     beforeEach(async () => {
+      await resetFirebaseData();
       user = await createFirebaseUser();
-      await clearFirestore();
-      await clearStorage();
     });
 
     afterEach(async () => {
       jest.clearAllMocks();
-      // await clearFirestore();
-      // await clearStorage();
-      await admin.auth().revokeRefreshTokens(user.uid);
+      await resetFirebaseData();
+      if (unsubscribe && typeof unsubscribe === "function") {
+        unsubscribe();
+      }
     });
 
     test("Can zip a top level file to storage export directory from storage", async () => {
@@ -91,9 +93,7 @@ describe("extension", () => {
         { uid: user.uid },
         { auth: { uid: user.uid } }
       );
-      // const data = await waitForDocumentUpdate(admin.firestore().collection(config.firestoreExportsCollection).doc(exportId));
 
-      // console.log(data.data());
       // // expect exportId to be defined and to be a string
       expect(exportId).toBeDefined();
       expect(typeof exportId).toBe("string");
@@ -101,42 +101,17 @@ describe("extension", () => {
       await waitForExpect(() => {
         expect(observer).toHaveBeenCalledTimes(3);
       });
-      // // expect firestore to have a record of the export
+
       const pendingRecordData = observer.mock.calls[1][0].docs[0].data();
+      validatePendingRecord(pendingRecordData, { user });
+
       const completeRecordData = observer.mock.calls[2][0].docs[0].data();
-
-      // // should be pending
-      expect(pendingRecordData.status).toBe("pending");
-      expect(pendingRecordData.uid).toBe(user.uid);
-      // // should be a server timestamp
-      expect(pendingRecordData.startedAt).toHaveProperty("_nanoseconds");
-      expect(pendingRecordData.startedAt).toHaveProperty("_seconds");
-
-      // // should be success
-      expect(completeRecordData.status).toBe("complete");
-      expect(completeRecordData.uid).toBe(user.uid);
-      // // should be a server timestamp
-      expect(completeRecordData.startedAt).toHaveProperty("_nanoseconds");
-      expect(completeRecordData.startedAt).toHaveProperty("_seconds");
-
-      // // should have a null zipPath
-      expect(completeRecordData.zipPath).toBe(`exports/${exportId}/export.zip`);
-
-      // // should have the right number of files exported
-      expect(completeRecordData.exportedFileCount).toBe(1);
-
-      // // should have a string storage path
-      expect(completeRecordData.storagePath).toBeDefined();
-      expect(typeof completeRecordData.storagePath).toBe("string");
-
-      const recordedStoragePath = completeRecordData.storagePath;
-      const recordedStoragePathParts = recordedStoragePath.split("/");
-
-      // // should have a record of the correct path to the export in storage
-      expect(recordedStoragePathParts[0]).toBe(
-        config.firestoreExportsCollection
-      );
-      expect(recordedStoragePathParts[1]).toBe(exportId);
+      validateCompleteRecord(completeRecordData, {
+        user,
+        config,
+        exportId,
+        shouldZip: true,
+      });
 
       // /** Check that the document was exported correctly */
 
@@ -150,6 +125,13 @@ describe("extension", () => {
       expect(files.length).toBe(2);
 
       const zipFile = files.find((file) => file.name.includes("export.zip"));
+
+      await validateZippedExport(zipFile, {
+        config,
+        exportId,
+        contentType: "text",
+        expectedData: "Hello World!",
+      });
       // expect(zipFile).toBeDefined();
       // // should have the user id as the name and have the .firestore.csv extension
       // // should have the correct content
