@@ -49,7 +49,7 @@ jest.mock("../../src/config", () => ({
   storageBucketDefault: process.env.STORAGE_BUCKET,
   cloudStorageExportDirectory: "exports",
   firestoreExportsCollection: "exports",
-  storagePaths: "{DEFAULT}",
+  storagePaths: "{DEFAULT}/test/{UID}.txt",
   zip: false,
 }));
 
@@ -66,7 +66,7 @@ describe("extension", () => {
 
     afterEach(async () => {
       jest.clearAllMocks();
-      await resetFirebaseData();
+      // await resetFirebaseData();
       if (unsubscribe && typeof unsubscribe === "function") {
         unsubscribe();
       }

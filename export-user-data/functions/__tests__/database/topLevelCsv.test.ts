@@ -73,7 +73,7 @@ describe("extension", () => {
       }
     });
 
-    test("can export a csv of a top level database node with an id of {userId}", async () => {
+    xtest("can export a csv of a top level database node with an id of {userId}", async () => {
       /** Create a top level collection with a single document */
 
       const ref = await generateDatabaseNode({ foo: "bar" }, user.uid);

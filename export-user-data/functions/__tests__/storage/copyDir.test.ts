@@ -15,18 +15,15 @@
  */
 
 import * as admin from "firebase-admin";
-import unzip from "unzipper";
 import waitForExpect from "wait-for-expect";
 import { UserRecord } from "firebase-functions/v1/auth";
 import {
-  clearFirestore,
-  clearStorage,
   createFirebaseUser,
-  generateDatabaseNode,
+  generateFileInUserStorage,
   resetFirebaseData,
   validateCompleteRecord,
+  validateCSVFile,
   validatePendingRecord,
-  validateZippedExport,
 } from "../helpers";
 import setupEnvironment from "../helpers/setupEnvironment";
 
@@ -52,16 +49,17 @@ jest.mock("../../src/config", () => ({
   storageBucketDefault: process.env.STORAGE_BUCKET,
   cloudStorageExportDirectory: "exports",
   firestoreExportsCollection: "exports",
-  databasePaths: "{UID}",
-  zip: true,
+  storagePaths: "{DEFAULT}",
+  zip: false,
 }));
 
 describe("extension", () => {
-  describe("top level node", () => {
+  describe("top level storage file", () => {
     let user: UserRecord;
     let unsubscribe;
 
     beforeEach(async () => {
+      jest.clearAllMocks();
       await resetFirebaseData();
       user = await createFirebaseUser();
     });
@@ -74,14 +72,15 @@ describe("extension", () => {
       }
     });
 
-    test("can zip a top level rtdb node with an key of {userId}", async () => {
+    xtest("Can copy a top level file to storage export directory from storage", async () => {
       /** Create a top level collection with a single document */
 
-      const ref = await generateDatabaseNode({ foo: "bar" }, user.uid);
+      await generateFileInUserStorage(user.uid, "Hello World!");
       const exportUserDatafn = fft.wrap(funcs.exportUserData);
 
-      // watch the exports collection for changes
+      // // watch the exports collection for changes
       const observer = jest.fn();
+
       unsubscribe = admin
         .firestore()
         .collection(config.firestoreExportsCollection)
@@ -92,53 +91,52 @@ describe("extension", () => {
         { uid: user.uid },
         { auth: { uid: user.uid } }
       );
+      // const data = await waitForDocumentUpdate(admin.firestore().collection(config.firestoreExportsCollection).doc(exportId));
 
+      // console.log(data.data());
       // // expect exportId to be defined and to be a string
       expect(exportId).toBeDefined();
       expect(typeof exportId).toBe("string");
 
-      // wait for the record to have been updated
       await waitForExpect(() => {
         expect(observer).toHaveBeenCalledTimes(3);
       });
       // // expect firestore to have a record of the export
       const pendingRecordData = observer.mock.calls[1][0].docs[0].data();
       validatePendingRecord(pendingRecordData, { user });
-
       const completeRecordData = observer.mock.calls[2][0].docs[0].data();
-
       validateCompleteRecord(completeRecordData, {
         user,
         config,
         exportId,
-        shouldZip: true,
+        shouldZip: false,
       });
-
       // /** Check that the document was exported correctly */
 
       const bucket = admin.storage().bucket(config.cloudStorageBucketDefault);
-      const [files] = await bucket.getFiles();
+
+      const [files] = await bucket.getFiles({
+        prefix: config.cloudStorageExportDirectory,
+      });
 
       // // expect 1 file to be exported
       expect(files.length).toBe(1);
-
       const file = files[0];
-      const expectedUnzippedPath = `${user.uid}.database.csv`;
-      const expectedData = [
-        [
-          "DATABASE",
-          `${user.uid}/${ref.key}`,
-          // TODO: why so many quotes?
-          '"{""foo"":""bar""}"',
-        ],
-      ];
-      await validateZippedExport(file, {
-        config,
-        exportId,
-        expectedUnzippedPath,
-        expectedData,
-        contentType: "csv",
-      });
+
+      const fileName = file.name;
+      const parts = fileName.split("/");
+      // // should be in the exports directory
+      expect(parts[0]).toBe(config.cloudStorageExportDirectory);
+      // // should be in the export directory
+      expect(parts[1]).toBe(exportId);
+      // // should have the user id as the name and have the .firestore.csv extension
+      // // should have the correct content
+      const downloadResponse = await file.download();
+
+      const content = downloadResponse[0].toString();
+
+      expect(content).toBe("Hello World!");
+      unsubscribe();
     });
   });
 });

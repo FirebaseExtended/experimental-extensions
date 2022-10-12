@@ -26,18 +26,6 @@ export const generateRandomId = () => {
   );
 };
 
-export const getDatabaseUrl = (
-  selectedDatabaseInstance: string | undefined,
-  selectedDatabaseLocation: string | undefined
-) => {
-  if (!selectedDatabaseLocation || !selectedDatabaseInstance) return null;
-
-  if (selectedDatabaseLocation === "us-central1")
-    return `https://${selectedDatabaseInstance}.firebaseio.com`;
-
-  return `https://${selectedDatabaseInstance}.${selectedDatabaseLocation}.firebasedatabase.app`;
-};
-
 export const createFirebaseUser = async (): Promise<UserRecord> => {
   const email = `${Math.random().toString(36).substr(2, 5)}@google.com`;
   return admin.auth().createUser({ email });

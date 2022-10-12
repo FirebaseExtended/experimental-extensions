@@ -28,10 +28,10 @@ import {
   validateCompleteRecord,
   validateCSVFile,
   validatePendingRecord,
-} from "../helpers";
-import setupEnvironment from "../helpers/setupEnvironment";
+} from "../../helpers";
+import setupEnvironment from "../../helpers/setupEnvironment";
 
-import config from "../../src/config";
+import config from "../../../src/config";
 
 const fft = require("firebase-functions-test")();
 
@@ -43,17 +43,17 @@ setupEnvironment();
 
 jest.spyOn(admin, "initializeApp").mockImplementation();
 
-import * as funcs from "../../src/index";
+import * as funcs from "../../../src/index";
 
 /** prepare extension functions */
 
 // const exportUserDatafn = fft.wrap(funcs.exportUserData);
 
-jest.mock("../../src/config", () => ({
+jest.mock("../../../src/config", () => ({
   storageBucketDefault: process.env.STORAGE_BUCKET,
   cloudStorageExportDirectory: "exports",
   firestoreExportsCollection: "exports",
-  firestorePaths: "{UID}",
+  firestorePaths: "users/{UID}/comments",
   zip: false,
 }));
 
@@ -75,13 +75,22 @@ describe("extension", () => {
       }
     });
 
-    test("can export a top level collection with an id of {userId}", async () => {
+    xtest("can subcollection a top level collection with an id of {userId} to a csv", async () => {
       /** Create a top level collection with a single document */
+      const ref = await admin
+        .firestore()
+        .collection("users")
+        .doc(user.uid)
+        .collection("comments")
+        .add({ content: "hello world" });
 
-      const colId = await generateUserCollection(user.uid, { foo: "bar" });
+      /** Create a subcollection with a single document */
+
+      const commentId = ref.id;
+
       const exportUserDatafn = fft.wrap(funcs.exportUserData);
 
-      // watch the exports collection for changes
+      // // watch the exports collection for changes
       const observer = jest.fn();
       unsubscribe = admin
         .firestore()
@@ -94,18 +103,18 @@ describe("extension", () => {
         { auth: { uid: user.uid } }
       );
 
-      // expect exportId to be defined and to be a string
+      // // expect exportId to be defined and to be a string
       expect(exportId).toBeDefined();
       expect(typeof exportId).toBe("string");
 
-      // wait for the record to have been updated
+      // // wait for the record to have been updated
       await waitForExpect(() => {
         expect(observer).toHaveBeenCalledTimes(2);
       });
 
-      /** expect firestore to have a record of the export */
+      // /** expect firestore to have a record of the export */
 
-      // should be pending
+      // // should be pending
       const pendingRecordData = observer.mock.calls[0][0].docs[0].data();
       validatePendingRecord(pendingRecordData, { user });
 
@@ -122,17 +131,17 @@ describe("extension", () => {
       const bucket = admin.storage().bucket(config.cloudStorageBucketDefault);
       const [files] = await bucket.getFiles();
 
-      // expect 1 file to be exported
+      // // expect 1 file to be exported
       expect(files.length).toBe(1);
 
       const file = files[0];
-      const expectedFileName = `${user.uid}.firestore.csv`;
+      const expectedFileName = `users_${user.uid}_comments.firestore.csv`;
       const expectedCSVData = [
         [
           "FIRESTORE",
-          `${user.uid}/${colId}`,
+          `users/${user.uid}/comments/${commentId}`,
           // TODO: why so many quotation marks?
-          '"{""foo"":""bar""}"',
+          '"{""content"":""hello world""}"',
         ],
       ];
       await validateCSVFile(file, {

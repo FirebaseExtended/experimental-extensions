@@ -28,10 +28,10 @@ import {
   validateCompleteRecord,
   validateCSVFile,
   validatePendingRecord,
-} from "../helpers";
-import setupEnvironment from "../helpers/setupEnvironment";
+} from "../../helpers";
+import setupEnvironment from "../../helpers/setupEnvironment";
 
-import config from "../../src/config";
+import config from "../../../src/config";
 
 const fft = require("firebase-functions-test")();
 
@@ -43,24 +43,24 @@ setupEnvironment();
 
 jest.spyOn(admin, "initializeApp").mockImplementation();
 
-import * as funcs from "../../src/index";
+import * as funcs from "../../../src/index";
 
 /** prepare extension functions */
 
 // const exportUserDatafn = fft.wrap(funcs.exportUserData);
 
-jest.mock("../../src/config", () => ({
+jest.mock("../../../src/config", () => ({
   storageBucketDefault: process.env.STORAGE_BUCKET,
   cloudStorageExportDirectory: "exports",
   firestoreExportsCollection: "exports",
-  firestorePaths: "users/{UID}",
+  firestorePaths: "{UID}",
   zip: false,
 }));
 
-describe("firestore", () => {
+describe("extension", () => {
   describe("top level collection", () => {
     let user: UserRecord;
-    let unsubscribe: () => void;
+    let unsubscribe;
 
     beforeEach(async () => {
       await resetFirebaseData();
@@ -75,15 +75,14 @@ describe("firestore", () => {
       }
     });
 
-    test("can export a top level collection with an id of {userId}", async () => {
+    xtest("can export a top level collection with an id of {userId} to a csv", async () => {
       /** Create a top level collection with a single document */
 
-      await generateUserDocument("users", user.uid, { foo: "bar" });
+      const colId = await generateUserCollection(user.uid, { foo: "bar" });
       const exportUserDatafn = fft.wrap(funcs.exportUserData);
 
       // watch the exports collection for changes
       const observer = jest.fn();
-
       unsubscribe = admin
         .firestore()
         .collection(config.firestoreExportsCollection)
@@ -99,22 +98,22 @@ describe("firestore", () => {
       expect(exportId).toBeDefined();
       expect(typeof exportId).toBe("string");
 
-      // expect firestore to have a record of the export
-      const pendingRecordData = observer.mock.calls[0][0].docs[0].data();
-      // should be pending
-      validatePendingRecord(pendingRecordData, { user });
-
       // wait for the record to have been updated
       await waitForExpect(() => {
         expect(observer).toHaveBeenCalledTimes(2);
       });
 
+      /** expect firestore to have a record of the export */
+
+      // should be pending
+      const pendingRecordData = observer.mock.calls[0][0].docs[0].data();
+      validatePendingRecord(pendingRecordData, { user });
+
       const completeRecordData = observer.mock.calls[1][0].docs[0].data();
-      // should be complete
       validateCompleteRecord(completeRecordData, {
         user,
-        config,
         exportId,
+        config,
         shouldZip: false,
       });
 
@@ -127,15 +126,19 @@ describe("firestore", () => {
       expect(files.length).toBe(1);
 
       const file = files[0];
-
+      const expectedFileName = `${user.uid}.firestore.csv`;
       const expectedCSVData = [
-        ["FIRESTORE", `users/${user.uid}/foo`, '"""bar"""'],
+        [
+          "FIRESTORE",
+          `${user.uid}/${colId}`,
+          // TODO: why so many quotation marks?
+          '"{""foo"":""bar""}"',
+        ],
       ];
-
       await validateCSVFile(file, {
         config,
         exportId,
-        expectedFileName: `users_${user.uid}.firestore.csv`,
+        expectedFileName,
         expectedCSVData,
       });
     });
