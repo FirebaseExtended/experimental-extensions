@@ -2,9 +2,9 @@
 
 ## Using the extension
 
-The extension uses multiple mechanisms to find data which needs to be exported.
+The extension uses multiple mechanisms to find data to be exported.
 
-### By path
+## By path
 
 When configuring the Cloud Firestore, Realtime Database & Cloud Storage paths in the configuration, it’s possible to define a `UID` variable in the paths which will be replaced with the authenticated users UID. When the `exportUserData` callable function is called from an authenticated client, the extension will start to export data from the given paths, for example:
 
@@ -14,11 +14,11 @@ When configuring the Cloud Firestore, Realtime Database & Cloud Storage paths in
 
 Be aware of the following behavioral differences between each service:
 
-- **Firestore**: if a document path is specified, a single CSV file for that document will be created. If a collection path is specified, a single CSV file containing all document data for that collection will be created.
-- **Realtime Database**: all data at the specified node will be exported to a single CSV per specified path.
-- **Storage**: if a file path is specified, the single file will be exported (copied). If a directory path is specified, all files within that directory will be exported.
+- Firestore: if a document path is specified, a single CSV file for that document will be created. If a collection path is specified, a single CSV file containing all document data for that collection will be created.
+- Realtime Database: all data at the specified node will be exported to a single CSV per specified path.
+- Storage: if a file path is specified, the single file will be exported (copied). If a directory path is specified, all files within that directory will be exported.
 
-### Custom function hook
+## Custom function hook
 
 For cases where data discovery requires complex queries to identify, it is possible to define a custom function hook URL. The function that accepts a UID should return an object containing Firestore, Realtime Database and/or Storage paths to export. For example:
 
@@ -30,7 +30,7 @@ export const getCustomExportPaths = functions.https.onRequest(
     // Perform custom query
 
     return {
-      firestorePaths: [‘/doc/path’],
+      firestorePaths: [‘/document/path’],
       databasePaths: [‘path/to/node’],
       storagePaths: [‘/storage/path’],
     };
@@ -39,11 +39,11 @@ export const getCustomExportPaths = functions.https.onRequest(
 
 ## Archiving exported data
 
-By default the extension will generate a list of CSV files. If you wish to instead export a single zip archive containing all files, set the `Enable Zip` configuration option to "Yes".
+By default the extension will generate a list of CSV files. If you wish to additionally export a single zip archive containing all files, set the `Zip’ configuration option to true.
 
 **Note: Archiving is resource intensive and you may run into resource limitations with large volumes of exported data.**
 
-To manually export the data into an archive, the follow code snippet can be used on a NodeJS environment using the archiver package:
+To manually export the data into an archive, the following code snippet can be used on a NodeJS environment using the archiver package:
 
 ```js
 const admin = require("firebase-admin");
@@ -75,7 +75,7 @@ function zipDirectory(storagePath, bucketName, outPath) {
 
 ## Firestore Security rules
 
-To enable your clients to read the export document, add the following security to match the user’s UID with the document uid:
+To enable your clients to read the export document, add the following security rules to match the user’s UID with the document uid:
 
 ```
 rules_version = '2';
@@ -88,24 +88,26 @@ service cloud.firestore {
 }
 ```
 
+If you initialized Firestore in production mode, your rules will be configured by default such that no clients can read the export document. If you created Firestore in test mode, your rules will be configured by default such that all clients can read the export document.
+
 ## Storage Security rules
 
-By default, security rules will prevent any client reads to exported files. Security rules should be set up so that access is only granted when the user’s UID matches the UID field of the export record document, for example:
+By default, security rules will prevent any client reads to exported files. To allow such reads, security rules can be set up so that access is only granted when the user’s UID matches the UID field of the export record document, for example:
 
 ```
 rules_version = '2';
 service firebase.storage {
-  match /b/{bucket}/o {
-    match /${param:FIRESTORE_EXPORTS_COLLECTION}/{exportId}/{allPaths=**} {
+match /b/{bucket}/o {
+match /${param:FIRESTORE_EXPORTS_COLLECTION}/{exportId}/{allPaths=**} {
       allow read: if firestore.exists(/databases/(default)/documents/${param:FIRESTORE_EXPORTS_COLLECTION}/$(exportId))
         && (request.auth != null && firestore.get(/databases/(default)/documents/${param:FIRESTORE_EXPORTS_COLLECTION}/$(exportId)).data.uid == request.auth.uid)
-    }
+}
 }
 ```
 
 ## Client SDK Usage
 
-The extension requires an authenticated user to call the `exportUserData` callable function. The function returns a unique export ID which can be used to subscribe to a Firestore document within the `${param:FIRESTORE_EXPORTS_COLLECTION}` collection. The document contains the real time status of an export, containing a `status` property. See the [reference API](./REFERENCE.md) for full details.
+The extension requires an authenticated user to call the `exportUserData` callable function. The function returns a unique export ID which can be used to subscribe to a Firestore document within the `${param:FIRESTORE_EXPORTS_COLLECTION}` collection. The document contains the real time status of an export, containing a `status` property. See the reference API for full details.
 
 Note: The following code requires that security rules have been added to the project.
 
@@ -162,54 +164,9 @@ import { listAll, ref, getDownloadURL } from "firebase/storage";
 const url = await getDownloadURL(ref(getStorage(), fullPath));
 ```
 
-### Sending an export email
+## Sending an export email
 
-To send an email to your users once an export has completed with the export, you can deploy a Custom Event Trigger. Listen to the completed export event, and send an email with the export as an attachment, for example using nodemailer:
+To send an email to your users once an export has completed with the export, you can deploy a [Custom Event Trigger](https://firebase.google.com/docs/functions/beta/custom-events). Listen to the completed export event, and send an email with the export as an attachment, for example using [nodemailer](https://nodemailer.com/).
 
-```js
-const admin = require('firebase-admin');
-const {onCustomEventPublished} = require("firebase-functions/v2/eventarc");
-const nodemailer = require('nodemailer');
-
-exports.sendemailonexport = onCustomEventPublished(
-  "firebase.extensions.export-user-data.v1.export-complete",
-  async (event) => {
-    const { uid, exportId, zipPath } = event.data;
-
-    // Only send an email is exported as a zip.
-    if (!zipPath) {
-      return;
-    }
-
-    // Get the user record.
-    const user = await  admin.auth().getUser(uid);
-
-    // Only send an email if the user has an email address.
-    if (!user.email) {
-      return;
-    }
-
-    // Get the zip file as a buffer.
-    const buffer = await admin.storage().bucket().file(zipPath).download();
-
-    // Create a email transport (see nodemailer docs).
-    const transporter = nodemailer.createTransport({ ... });
-
-    // Send the email with the export as an attachment.
-    await transporter.sendMail({
-      from: "Export <export@example.com>",
-      to: user.email,
-      subject: "Your export is ready",
-      text: "Your export is ready. Please see your attachments.",
-      attachments: [{
-        filename: 'export.zip',
-        content: buffer,
-      }],
-    });
-  }
-);
-```
-
-## Monitoring
-
-As a best practice, you can monitor the activity of your installed extension, including checks on its health, usage, and logs.
+Monitoring
+As a best practice, you can [monitor the activity](https://firebase.google.com/docs/extensions/manage-installed-extensions#monitor) of your installed extension, including checks on its health, usage, and logs.
