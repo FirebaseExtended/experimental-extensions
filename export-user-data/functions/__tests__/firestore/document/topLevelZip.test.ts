@@ -51,7 +51,7 @@ import * as funcs from "../../../src/index";
 // const exportUserDatafn = fft.wrap(funcs.exportUserData);
 
 jest.mock("../../../src/config", () => ({
-  storageBucketDefault: process.env.STORAGE_BUCKET,
+  cloudStorageBucketDefault: process.env.STORAGE_BUCKET,
   cloudStorageExportDirectory: "exports",
   firestoreExportsCollection: "exports",
   firestorePaths: "users/{UID}",
@@ -76,7 +76,7 @@ describe("firestore", () => {
       }
     });
 
-    xtest("can export zip of a top level collection with an id of {userId}", async () => {
+    test("can export zip of a top level collection with an id of {userId}", async () => {
       /** Create a top level collection with a single document */
 
       await generateUserDocument("users", user.uid, { foo: "bar" });

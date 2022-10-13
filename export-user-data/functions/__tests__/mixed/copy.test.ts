@@ -15,20 +15,23 @@
  */
 
 import * as admin from "firebase-admin";
-
 import waitForExpect from "wait-for-expect";
 import { UserRecord } from "firebase-functions/v1/auth";
 import {
+  clearFirestore,
+  clearStorage,
   createFirebaseUser,
+  generateFileInUserStorage,
   generateUserCollection,
+  generateUserDocument,
   resetFirebaseData,
   validateCompleteRecord,
+  validateCSVFile,
   validatePendingRecord,
-  validateZippedExport,
-} from "../../helpers";
-import setupEnvironment from "../../helpers/setupEnvironment";
+} from "../helpers";
+import setupEnvironment from "../helpers/setupEnvironment";
 
-import config from "../../../src/config";
+import config from "../../src/config";
 
 const fft = require("firebase-functions-test")();
 
@@ -40,21 +43,23 @@ setupEnvironment();
 
 jest.spyOn(admin, "initializeApp").mockImplementation();
 
-import * as funcs from "../../../src/index";
+import * as funcs from "../../src/index";
 
 /** prepare extension functions */
 
 // const exportUserDatafn = fft.wrap(funcs.exportUserData);
 
-jest.mock("../../../src/config", () => ({
+jest.mock("../../src/config", () => ({
   cloudStorageBucketDefault: process.env.STORAGE_BUCKET,
   cloudStorageExportDirectory: "exports",
   firestoreExportsCollection: "exports",
-  firestorePaths: "{UID}",
-  zip: true,
+  firestorePaths: "users/{UID}/comments,myCollection",
+  databasePaths: "foo,users/{UID}",
+  storagePaths: "{DEFAULT}/test/{UID}.txt",
+  zip: false,
 }));
 
-describe("firestore", () => {
+describe("extension", () => {
   describe("top level collection", () => {
     let user: UserRecord;
     let unsubscribe;
@@ -72,18 +77,40 @@ describe("firestore", () => {
       }
     });
 
-    test("can export zip of a top level collection with an id of {userId}", async () => {
+    test("can handle copying all services across (csv for firestore and db)", async () => {
       /** Create a top level collection with a single document */
+      const firestoreRef1 = await admin
+        .firestore()
+        .collection("users")
+        .doc(user.uid)
+        .collection("comments")
+        .add({ content: "hello world" });
 
-      const colId = await generateUserCollection(user.uid, { foo: "bar" });
-      const exportUserDatafn = fft.wrap(funcs.exportUserData);
-
-      // watch the exports collection for changes
       const observer = jest.fn();
+
       unsubscribe = admin
         .firestore()
         .collection(config.firestoreExportsCollection)
         .onSnapshot(observer);
+
+      await admin
+        .firestore()
+        .collection("myCollection")
+        .add({ content: "test" });
+
+      await admin.database().ref("foo").set({ text: "hello world" });
+
+      await admin.database().ref("users").child(user.uid).set("BOOP");
+
+      await admin
+        .storage()
+        .bucket()
+        .file(`test/${user.uid}.txt`)
+        .save("Hello World!");
+
+      const exportUserDatafn = fft.wrap(funcs.exportUserData);
+
+      // // watch the exports collection for changes
 
       const { exportId } = await exportUserDatafn.call(
         {},
@@ -91,54 +118,47 @@ describe("firestore", () => {
         { auth: { uid: user.uid } }
       );
 
-      // expect exportId to be defined and to be a string
+      // // expect exportId to be defined and to be a string
       expect(exportId).toBeDefined();
       expect(typeof exportId).toBe("string");
 
+      // // wait for the record to have been updated
       await waitForExpect(() => {
-        expect(observer).toHaveBeenCalledTimes(2);
+        expect(observer).toHaveBeenCalledTimes(3);
       });
 
-      // expect firestore to have a record of the export
-      const pendingRecordData = observer.mock.calls[0][0].docs[0].data();
-      // should be pending
+      // // /** expect firestore to have a record of the export */
+
+      // // // should be pending
+      const pendingRecordData = observer.mock.calls[1][0].docs[0].data();
       validatePendingRecord(pendingRecordData, { user });
 
-      const completeRecordData = observer.mock.calls[1][0].docs[0].data();
-      // should be complete
+      const completeRecordData = observer.mock.calls[2][0].docs[0].data();
       validateCompleteRecord(completeRecordData, {
         user,
-        config,
         exportId,
-        shouldZip: true,
+        config,
+        shouldZip: false,
+        fileNumber: 5,
       });
 
-      /** Check that the document was exported correctly */
+      // /** Check that the document was exported correctly */
 
       const bucket = admin.storage().bucket(config.cloudStorageBucketDefault);
-      const [files] = await bucket.getFiles();
+      const [files] = await bucket.getFiles({ prefix: "exports/" + exportId });
 
-      // expect 1 file to be exported
-      expect(files.length).toBe(1);
+      // // // expect 1 file to be exported
+      expect(files.length).toBe(5);
 
-      const file = files[0];
+      const fileNames = files.map((f) => f.name);
+      const prefix = `exports/${exportId}`;
 
-      const expectedData = [
-        [
-          "FIRESTORE",
-          `${user.uid}/${colId}`,
-          // TODO: why so many quotation marks?
-          '"{""foo"":""bar""}"',
-        ],
-      ];
-
-      await validateZippedExport(file, {
-        config,
-        exportId,
-        expectedUnzippedPath: `${user.uid}.firestore.csv`,
-        contentType: "csv",
-        expectedData,
-      });
+      expect(fileNames).toContain(`${prefix}/foo.database.csv`);
+      expect(fileNames).toContain(`${prefix}/myCollection.firestore.csv`);
+      expect(fileNames).toContain(`${prefix}/users_${user.uid}.database.csv`);
+      expect(fileNames).toContain(
+        `${prefix}/users_${user.uid}_comments.firestore.csv`
+      );
     });
   });
 });

@@ -48,7 +48,7 @@ import * as funcs from "../../src/index";
 // const exportUserDatafn = fft.wrap(funcs.exportUserData);
 
 jest.mock("../../src/config", () => ({
-  storageBucketDefault: process.env.STORAGE_BUCKET,
+  cloudStorageBucketDefault: process.env.STORAGE_BUCKET,
   cloudStorageExportDirectory: "exports",
   firestoreExportsCollection: "exports",
   databasePaths: "{UID}",
@@ -73,7 +73,7 @@ describe("extension", () => {
       }
     });
 
-    xtest("can export a csv of a top level database node with an id of {userId}", async () => {
+    test("can export a csv of a top level database node with an id of {userId}", async () => {
       /** Create a top level collection with a single document */
 
       const ref = await generateDatabaseNode({ foo: "bar" }, user.uid);

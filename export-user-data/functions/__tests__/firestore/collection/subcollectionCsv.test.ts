@@ -18,12 +18,7 @@ import * as admin from "firebase-admin";
 import waitForExpect from "wait-for-expect";
 import { UserRecord } from "firebase-functions/v1/auth";
 import {
-  clearFirestore,
-  clearStorage,
   createFirebaseUser,
-  generateFileInUserStorage,
-  generateUserCollection,
-  generateUserDocument,
   resetFirebaseData,
   validateCompleteRecord,
   validateCSVFile,
@@ -50,7 +45,7 @@ import * as funcs from "../../../src/index";
 // const exportUserDatafn = fft.wrap(funcs.exportUserData);
 
 jest.mock("../../../src/config", () => ({
-  storageBucketDefault: process.env.STORAGE_BUCKET,
+  cloudStorageBucketDefault: process.env.STORAGE_BUCKET,
   cloudStorageExportDirectory: "exports",
   firestoreExportsCollection: "exports",
   firestorePaths: "users/{UID}/comments",
@@ -75,7 +70,7 @@ describe("extension", () => {
       }
     });
 
-    xtest("can subcollection a top level collection with an id of {userId} to a csv", async () => {
+    test("can subcollection a top level collection with an id of {userId} to a csv", async () => {
       /** Create a top level collection with a single document */
       const ref = await admin
         .firestore()

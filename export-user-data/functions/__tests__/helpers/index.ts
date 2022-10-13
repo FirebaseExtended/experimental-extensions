@@ -126,6 +126,8 @@ export const validateZippedExport = async (
   // unzip the content
   const unzipped = await unzip.Open.buffer(zip);
   const unzippedFiles = unzipped.files;
+
+  // validation for one zipped or unzipped csv built in:
   // // should have 1 file
   expect(unzippedFiles.length).toBe(1);
   const unzippedFile = unzippedFiles[0];
@@ -216,11 +218,18 @@ type validateCompleteRecordOptions = {
   config: Record<string, any>;
   exportId: string;
   shouldZip: boolean;
+  fileNumber?: number;
 };
 
 export const validateCompleteRecord = (
   completeRecordData: Record<string, any>,
-  { user, config, exportId, shouldZip }: validateCompleteRecordOptions
+  {
+    user,
+    config,
+    exportId,
+    shouldZip,
+    fileNumber,
+  }: validateCompleteRecordOptions
 ) => {
   // // should be success
   expect(completeRecordData.status).toBe("complete");
@@ -244,7 +253,7 @@ export const validateCompleteRecord = (
   }
 
   // // should have the right number of files exported
-  expect(completeRecordData.exportedFileCount).toBe(1);
+  expect(completeRecordData.exportedFileCount).toBe(fileNumber || 1);
 
   // // should have a string storage path
   expect(completeRecordData.storagePath).toBeDefined();

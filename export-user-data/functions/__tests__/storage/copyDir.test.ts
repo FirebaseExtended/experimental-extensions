@@ -22,7 +22,6 @@ import {
   generateFileInUserStorage,
   resetFirebaseData,
   validateCompleteRecord,
-  validateCSVFile,
   validatePendingRecord,
 } from "../helpers";
 import setupEnvironment from "../helpers/setupEnvironment";
@@ -46,7 +45,7 @@ import * as funcs from "../../src/index";
 // const exportUserDatafn = fft.wrap(funcs.exportUserData);
 
 jest.mock("../../src/config", () => ({
-  storageBucketDefault: process.env.STORAGE_BUCKET,
+  cloudStorageBucketDefault: process.env.STORAGE_BUCKET,
   cloudStorageExportDirectory: "exports",
   firestoreExportsCollection: "exports",
   storagePaths: "{DEFAULT}",
@@ -72,7 +71,7 @@ describe("extension", () => {
       }
     });
 
-    xtest("Can copy a top level file to storage export directory from storage", async () => {
+    test("Can copy a top level file to storage export directory from storage", async () => {
       /** Create a top level collection with a single document */
 
       await generateFileInUserStorage(user.uid, "Hello World!");

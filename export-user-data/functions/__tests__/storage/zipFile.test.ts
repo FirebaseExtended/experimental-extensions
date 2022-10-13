@@ -19,8 +19,6 @@ import unzip from "unzipper";
 import waitForExpect from "wait-for-expect";
 import { UserRecord } from "firebase-functions/v1/auth";
 import {
-  clearFirestore,
-  clearStorage,
   createFirebaseUser,
   generateFileInUserStorage,
   resetFirebaseData,
@@ -49,7 +47,7 @@ import * as funcs from "../../src/index";
 // const exportUserDatafn = fft.wrap(funcs.exportUserData);
 
 jest.mock("../../src/config", () => ({
-  storageBucketDefault: process.env.STORAGE_BUCKET,
+  cloudStorageBucketDefault: process.env.STORAGE_BUCKET,
   cloudStorageExportDirectory: "exports",
   firestoreExportsCollection: "exports",
   storagePaths: "{DEFAULT}",
@@ -74,7 +72,7 @@ describe("extension", () => {
       }
     });
 
-    xtest("Can zip a top level file to storage export directory from storage", async () => {
+    test("Can zip a top level file to storage export directory from storage", async () => {
       /** Create a top level collection with a single document */
 
       await generateFileInUserStorage(user.uid, "Hello World!");
