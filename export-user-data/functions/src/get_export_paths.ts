@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import fetch from "node-fetch";
 import config from "./config";
 import * as log from "./logs";
+import { fetchFromCustomHook } from "./utils";
 export interface ExportPaths {
   firestorePaths: unknown[];
   databasePaths: unknown[];
@@ -103,11 +103,7 @@ function getPathsFromConfig(uid: string): ExportPaths {
  * @returns ExportPaths
  */
 async function getPathsFromCustomHook(uid: string): Promise<ExportPaths> {
-  const response = await fetch(config.customHookEndpoint, {
-    method: "POST",
-    body: JSON.stringify({ data: { uid } }),
-    headers: { "Content-Type": "application/json" },
-  });
+  const response = await fetchFromCustomHook(uid);
 
   if (!response.ok) {
     log.customHookBadResponse(config.customHookEndpoint);
@@ -117,8 +113,8 @@ async function getPathsFromCustomHook(uid: string): Promise<ExportPaths> {
   let data: ValidatedReponseJson;
 
   try {
-    const parsedBody = JSON.parse(await response.json());
-    data = validateResponseJson(parsedBody);
+    const parsedData = JSON.parse(await response.text());
+    data = validateResponseJson(parsedData);
   } catch (e) {
     log.customHookInvalidData(config.customHookEndpoint);
     return emptyPaths;

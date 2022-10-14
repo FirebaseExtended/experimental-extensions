@@ -18,6 +18,8 @@ import admin from "firebase-admin";
 import { eventChannel } from ".";
 import config from "./config";
 import { ExportPaths } from "./get_export_paths";
+import fetch, { Response } from "node-fetch";
+
 import * as log from "./logs";
 
 export const replaceUID = (path: string, uid: string) =>
@@ -126,3 +128,11 @@ export const finalizeExport = async (
     });
   }
 };
+
+export async function fetchFromCustomHook(uid: string): Promise<Response> {
+  return fetch(config.customHookEndpoint, {
+    method: "POST",
+    body: JSON.stringify({ data: { uid } }),
+    headers: { "Content-Type": "application/json" },
+  });
+}

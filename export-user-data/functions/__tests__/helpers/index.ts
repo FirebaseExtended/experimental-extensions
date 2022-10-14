@@ -1,5 +1,4 @@
 import * as admin from "firebase-admin";
-import { Query, DocumentData } from "@google-cloud/firestore";
 import { UserRecord } from "firebase-functions/v1/auth";
 import setupEnvironment from "./setupEnvironment";
 import fetch from "node-fetch";
@@ -27,7 +26,7 @@ export const generateRandomId = () => {
 };
 
 export const createFirebaseUser = async (): Promise<UserRecord> => {
-  const email = `${Math.random().toString(36).substr(2, 5)}@google.com`;
+  const email = `${Math.random().toString(36).substring(2, 5)}@google.com`;
   return admin.auth().createUser({ email });
 };
 

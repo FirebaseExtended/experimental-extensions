@@ -13,17 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Archiver } from "archiver";
 import * as sync from "csv-stringify/sync";
 import admin from "firebase-admin";
 import { v4 as uuidv4 } from "uuid";
 import config from "./config";
-const HEADERS = ["TYPE", "path", "data"];
 import { File } from "@google-cloud/storage";
 import { replaceUID } from "./utils";
 import * as log from "./logs";
 import { eventChannel } from ".";
 
+const HEADERS = ["TYPE", "path", "data"];
 const dataSources = {
   firestore: "FIRESTORE",
   database: "DATABASE",
@@ -95,13 +94,12 @@ export const copyStorageFilesToExportDirectory = async (
             },
           });
         }
-        filePromises = [
-          ...filePromises,
-          ...(await copyStorageFilesAtPathToExportDirectory(
-            pathWithUID,
-            storagePrefix
-          )),
-        ];
+
+        const newFilePromises = await copyStorageFilesAtPathToExportDirectory(
+          pathWithUID,
+          storagePrefix
+        );
+        filePromises = [...filePromises, ...newFilePromises];
       } else {
         log.storagePathNotString();
       }
@@ -141,15 +139,12 @@ export const copyStorageFilesAtPathToExportDirectory = async (
 
     log.StoragePathExporting(originalPath);
 
-    return file
-      .copy(outputBucket.file(newPrefix), {
-        metadata: {
-          originalPath,
-        },
-      })
-      .then(([file, _]) => {
-        log.StoragePathExported(originalPath);
-        return file;
-      });
+    const [newFile] = await file.copy(outputBucket.file(newPrefix), {
+      metadata: {
+        originalPath,
+      },
+    });
+
+    return newFile;
   });
 };
