@@ -17,6 +17,8 @@
 import * as admin from "firebase-admin";
 import * as functions from "firebase-functions";
 
+import { FieldValue } from 'firebase-admin/firestore'
+
 import config from "./config";
 import * as logs from "./logs";
 
@@ -112,9 +114,7 @@ const deleteEntryLeaderboardDocument = async (
   }
 
   await db.runTransaction((transaction) => {
-    console.log(`Trying to delete entry: ${change.before.ref.id}.`);
-
-    leaderboardCollectionRef.update(change.before.ref.id, admin.firestore.FieldValue.delete());
+    leaderboardCollectionRef.update(change.before.ref.id, FieldValue.delete());
  
     return Promise.resolve();
   });
