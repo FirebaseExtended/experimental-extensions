@@ -8,4 +8,4 @@
 
 ## 🧩 Install this extension
 
-**To install this extension visit the repository [firebase/firebase-bundle-builder](https://github.com/firebase/firestore-bundle-builder)**
+**To install this extension visit the repository [firebase/firestore-bundle-builder](https://github.com/firebase/firestore-bundle-builder)**
