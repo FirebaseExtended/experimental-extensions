@@ -1,0 +1,30 @@
+{
+    "name": "firestore-new-user-template",
+    "description": "Firebase Cloud Functions for the create user documents for new users",
+    "main": "lib/index.js",
+    "license": "Apache-2.0",
+    "scripts": {
+        "prepare": "npm run build",
+        "build": "npm run clean && npm run compile",
+        "clean": "rimraf lib",
+        "compile": "tsc",
+        "test": "jest",
+        "generate-readme": "firebase ext:info .. --markdown > ../README.md"
+    },
+    "dependencies": {
+        "@types/node": "^12.6.9",
+        "firebase-admin": "^11.2.0",
+        "firebase-functions": "^4.0.1",
+        "rimraf": "^2.6.3",
+        "typescript": "^4.4.4"
+    },
+    "devDependencies": {
+        "@types/jest": "^24.0.18",
+        "firebase-functions-test": "^0.1.7",
+        "jest": "^29.2.2",
+        "js-yaml": "^3.13.1",
+        "mocked-env": "^1.3.1",
+        "ts-jest": "^29.0.3"
+    },
+    "private": true
+}
