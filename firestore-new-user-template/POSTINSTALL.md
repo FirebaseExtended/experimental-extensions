@@ -4,19 +4,18 @@ You can test out this extension right away!
 
 1. Go to your [Cloud Firestore dashboard](https://console.firebase.google.com/project/${param:PROJECT_ID}/firestore/data) in the Firebase console.
 
-1. If it doesn't exist already, create a collection called `${param:USER_COLLECTION_NAME}`.
+2. If it doesn't exist already, create a document with path `${param:TEMPLATE_DOC_PATH}`.
 
-1. In the `${param:USER_COLLECTION_NAME}`, create a few documents with fields named `${param:SCORE_FIELD_NAME}`, `${param:LEADER_BOARD_FIELDS}`
+3. In the `${param:TEMPLATE_DOC_PATH}`, create multiple fields, one of them need to be `${param:USER_NAME_FIELD_NAME}`.
 
-1. In a few seconds, under `${param:LEADERBOARD_COLLECTION_NAME}`, there will be a new leaderboard document.
+4. In the [Firebase Authentication console](https://console.firebase.google.com/project/${param:PROJECT_ID}/authentication/users), create a new user.
 
-1. Make a change to the `${param:SCORE_FIELD_NAME}` field on any user document. In a few seconds, the leaderboard document will update with the new value.
+5. In a few seconds, under `${param:USER_COLLECTION_PATH}`, there will be a new user document with the `${param:USER_NAME_FIELD_NAME}` filled with the new user's display name.
+
+6. Delete any user in [Firebase Authentication console](https://console.firebase.google.com/project/${param:PROJECT_ID}/authentication/users), the user document with that userID will disappear from `${param:USER_COLLECTION_PATH}`.
 
 
 ### Using the extension
-
-This extension TODO `${param:SCORE_FIELD_NAME}` field of the document is updated
-
 
 
 
