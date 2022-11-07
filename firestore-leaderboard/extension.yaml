@@ -36,7 +36,7 @@ resources:
       Update the leaderboard when new score entry is writen
     properties:
       location: ${param:LOCATION}
-      runtime: nodejs14
+      runtime: nodejs16
       eventTrigger:
         eventType: providers/cloud.firestore/eventTypes/document.write
         resource: projects/${param:PROJECT_ID}/databases/(default)/documents/users/{userId}

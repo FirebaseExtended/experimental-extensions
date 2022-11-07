@@ -84,20 +84,15 @@ const addEntryLeaderboardDocument = async (
 ):Promise<void> => {
   console.log(`Start addEntryLeaderboardDocument()`);
 
-  const leaderboardCollectionRef = db.collection(config.leaderboardCollectionPath).doc(config.leaderboardName);
+  const leaderboardDocRef = db.collection(config.leaderboardCollectionPath).doc(config.leaderboardName);
 
-  await db.runTransaction((transaction) => {
-    if (leaderboardCollectionRef == null) {
-      transaction.create(leaderboardCollectionRef, {});
-    }
+  await db.runTransaction(async (transaction) => {
+    const user_id = change.after.ref.id;
     const entryData = {
-      score: change.after.data()[config.scoreFieldName],
-      user_name : change.after.data()[config.userNameFieldName],
+      [config.scoreFieldName]: change.after.data()[config.scoreFieldName],
+      [config.userNameFieldName] : change.after.data()[config.userNameFieldName],
     };
-    leaderboardCollectionRef.update(
-      change.after.ref.id , entryData
-    )
- 
+    transaction.set(leaderboardDocRef,  {[user_id]: entryData}, {merge: true});
     return Promise.resolve();
   });
   console.log(`End addEntryLeaderboardDocument()`);
