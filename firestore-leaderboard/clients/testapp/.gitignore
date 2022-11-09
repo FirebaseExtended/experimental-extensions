@@ -1,0 +1,15 @@
+# Unity project temp files
+Assets/Editor Default Resources
+Assets/ExternalDependencyManager
+Assets/Firebase/Editor
+Assets/Firebase/m2repository
+Assets/Firebase/Plugins
+Assets/Plugins
+Library/
+Logs/
+Packages/
+Temp/
+
+Assembly-CSharp.csproj
+testapp.sln
+*.meta
