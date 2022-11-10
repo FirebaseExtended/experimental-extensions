@@ -145,14 +145,14 @@ namespace Firebase.Sample.Leaderboard {
             GUILayout.BeginScrollView(controlsScrollViewVector);
         GUILayout.BeginVertical();
 
-        if (GUILayout.Button("Get ID")) {
-          GetIdAsync();
+        if (GUILayout.Button("Get Leaderboard")) {
+          
         }
-        if (GUILayout.Button("Delete")) {
-          DeleteAsync();
+        if (GUILayout.Button("Add User")) {
+          
         }
-        if (GUILayout.Button("Get Token")) {
-          GetTokenAsync();
+        if (GUILayout.Button("Delete User")) {
+          
         }
         GUILayout.EndVertical();
         GUILayout.EndScrollView();

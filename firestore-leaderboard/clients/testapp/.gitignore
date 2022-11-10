@@ -8,6 +8,7 @@ Assets/Plugins
 Library/
 Logs/
 Packages/
+ProjectSettings/GvhProjectSettings.xml
 Temp/
 
 Assembly-CSharp.csproj
