@@ -29,6 +29,10 @@ author:
   authorName: Firebase
   url: https://firebase.google.com
 
+roles:
+  - role: datastore.owner
+    reason: Allows the extension to create and update user data from Cloud Firestore.
+
 resources:
   - name: onUserAdd
     type: firebaseextensions.v1beta.function
@@ -37,7 +41,7 @@ resources:
       Authentication), then automatically created the document for the user using the template. 
     properties:
       location: ${param:LOCATION}
-      runtime: nodejs16
+      runtime: nodejs14
       eventTrigger:
         eventType: providers/firebase.auth/eventTypes/user.create
         resource: projects/${param:PROJECT_ID}
@@ -49,7 +53,7 @@ resources:
       Authentication), then automatically removes the document for the user.
     properties:
       location: ${param:LOCATION}
-      runtime: nodejs16
+      runtime: nodejs14
       eventTrigger:
         eventType: providers/firebase.auth/eventTypes/user.delete
         resource: projects/${param:PROJECT_ID}
@@ -60,7 +64,7 @@ resources:
       Batch modify the documents that use the template 
     properties:
       location: ${param:LOCATION}
-      runtime: nodejs16
+      runtime: nodejs14
       eventTrigger:
         eventType: providers/cloud.firestore/eventTypes/document.write
         resource: projects/${param:PROJECT_ID}/databases/(default)/documents/${param:TEMPLATE_DOC_PATH}

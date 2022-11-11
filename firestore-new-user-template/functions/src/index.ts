@@ -29,6 +29,8 @@ enum ChangeType {
   UPDATE,
 }
 
+process.env.GCLOUD_PROJECT = process.env.GCP_PROJECT;
+
 // Initialize the Firebase Admin SDK
 admin.initializeApp();
 const db = admin.firestore();
