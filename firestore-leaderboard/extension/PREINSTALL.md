@@ -8,7 +8,7 @@ You can use this extension to generate global leaderboards, or segmented leaderb
 
 The leaderboards themselves will be stored in Firestore under a collection path that you configure during installation.
 
-This extension comes with a sample Unity project to demonstrate usage. The project shows off a Leaderboard component (with code snippet) connected to the extension, which you can use out-of-the-box or as a starting point for a custom Leaderboard UI. You can find the project [here](https://github.com/FirebaseExtended/experimental-extensions/tree/next/firestore-leaderboard/client) and follow the [instructions](https://github.com/FirebaseExtended/experimental-extensions/tree/next/firestore-leaderboard/client/README.md) to set up and run the demo.
+This extension comes with a sample Unity project to demonstrate usage. The project shows off a Leaderboard component (with code snippet) connected to the extension, which you can use out-of-the-box or as a starting point for a custom Leaderboard UI. You can find the project [here](https://github.com/FirebaseExtended/experimental-extensions/tree/next/firestore-leaderboard/client_sample) and follow the [instructions](https://github.com/FirebaseExtended/experimental-extensions/tree/next/firestore-leaderboard/client_sample/README.md) to set up and run the demo.
 
 Note: To use this extension, you need to manage your user scores using Firestore. The documents in this collection must contain fields representing score and keyed by user id.
 

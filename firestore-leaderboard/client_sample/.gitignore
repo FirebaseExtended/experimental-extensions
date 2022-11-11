@@ -4,7 +4,9 @@ Assets/ExternalDependencyManager
 Assets/Firebase/Editor
 Assets/Firebase/m2repository
 Assets/Firebase/Plugins
+Assets/Firebase/Sample/GuiSkin.guiskin
 Assets/Plugins
+Assets/StreamingAssets
 Library/
 Logs/
 Packages/
@@ -14,3 +16,5 @@ Temp/
 Assembly-CSharp.csproj
 testapp.sln
 *.meta
+google-services.json
+GoogleService-Info.plist

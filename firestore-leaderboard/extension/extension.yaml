@@ -22,12 +22,16 @@ description:
 
 license: Apache-2.0
 
-sourceUrl: https://github.com/firebase/experimental-extensions/tree/next/firestore-leaderboard
-releaseNotesUrl: https://github.com/firebase/experimental-extensions/blob/next/firestore-leaderboard/CHANGELOG.md
+sourceUrl: https://github.com/firebase/experimental-extensions/tree/next/firestore-leaderboard/extension
+releaseNotesUrl: https://github.com/firebase/experimental-extensions/blob/next/firestore-leaderboard/extension/CHANGELOG.md
 
 author:
   authorName: Firebase
   url: https://firebase.google.com
+
+roles:
+  - role: datastore.owner
+    reason: Allows the extension to create and update leaderboard from Cloud Firestore.
 
 resources:
   - name: onScoreUpdate
@@ -36,7 +40,7 @@ resources:
       Update the leaderboard when new score entry is writen
     properties:
       location: ${param:LOCATION}
-      runtime: nodejs16
+      runtime: nodejs14
       eventTrigger:
         eventType: providers/cloud.firestore/eventTypes/document.write
         resource: projects/${param:PROJECT_ID}/databases/(default)/documents/users/{userId}
