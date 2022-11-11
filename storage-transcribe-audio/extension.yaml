@@ -1,1 +1,135 @@
-# TODO(reao): fill this in
+name: storage-transcribe-audio
+version: 0.0.1
+specVersion: v1beta
+
+displayName: Transcribe Audio
+description:
+  Transcribes speech in audio files, writing the transcription to
+  Storage and/or to Firestore.
+
+license: Apache-2.0 # The license you want for the extension
+
+author:
+  authorName: Firebase
+  url: https://firebase.google.com
+
+sourceUrl: TODO
+
+apis:
+  - apiName: speech.googleapis.com
+    reason: Used for transcribing the audio of sound files.
+
+resources:
+  - name: transcribeAudio
+    type: firebaseextensions.v1beta.function
+    description: >-
+      Listens for new audio files uploaded to a specified Cloud Storage bucket,
+      transcribes the speech in those files, then stores the transcription in
+      storage, or in firestore, or in both.
+    properties:
+      location: ${param:LOCATION}
+      runtime: nodejs14
+      availableMemoryMb: 1024
+      eventTrigger:
+        eventType: google.storage.object.finalize
+        resource: projects/_/buckets/${param:EXTENSION_BUCKET}
+
+params:
+  - param: LOCATION
+    label: Cloud Functions location
+    description: >-
+      Where do you want to deploy the functions created for this extension?
+      You usually want a location close to your database. Realtime Database
+      instances are located in `us-central1`. For help selecting a
+      location, refer to the [location selection
+      guide](https://firebase.google.com/docs/functions/locations).
+    type: select
+    options:
+      - label: Iowa (us-central1)
+        value: us-central1
+      - label: South Carolina (us-east1)
+        value: us-east1
+      - label: Northern Virginia (us-east4)
+        value: us-east4
+      - label: Belgium (europe-west1)
+        value: europe-west1
+      - label: London (europe-west2)
+        value: europe-west2
+      - label: Frankfurt (europe-west3)
+        value: europe-west3
+      - label: Hong Kong (asia-east2)
+        value: asia-east2
+      - label: Tokyo (asia-northeast1)
+        value: asia-northeast1
+    default: us-central1
+    required: true
+    immutable: true
+
+  - param: EXTENSION_BUCKET
+    label: Cloud Storage bucket for input and output
+    description: >
+      The Cloud Storage bucket that the extension should be listening to. Files
+      uploaded to this bucket will be transcribed by the extension. If cloud
+      storage output is enabled, transcripts will be written to this bucket.
+    type: string
+    example: e.g. my-project-12345.appspot.com
+    validationRegex: ^([0-9a-z_.-]*)$
+    validationErrorMessage: Invalid storage bucket
+    default: ${STORAGE_BUCKET}
+    required: true
+
+  - param: OUTPUT_TYPES
+    label: Output to storage, firestore, or both.
+    description: >
+      The kinds of outputs the extension will have. Storage and firestore can
+      both be selected. Defaults to storage.
+    type: multiSelect
+    options:
+      - label: Cloud Storage
+        value: storage
+      - label: Firestore
+        value: firestore
+    example: storage
+    default: storage
+    required: true
+
+  - param: OUTPUT_FIRESTORE_COLLECTION
+    label: Firestore collection for transcriptions
+    description: >
+      The Firestore collection that the extension will write transcriptions to.
+      *This field is ignored if output to firestore is not selected.*
+    example: transcription
+    validationRegex: "^[^/]+(/[^/]+/[^/]+)*$"
+    validationErrorMessage: Must be a valid Cloud Firestore Collection
+    default: transcription
+    required: true
+
+  - param: LANGUAGE_CODE
+    label: BCP-47 code of the transcript language
+    description: >
+      The BCP-47 code of the transcript language, as shown in the
+      [Language support documentation](https://cloud.google.com/speech-to-text/docs/languages)
+    example: e.g. en-US
+    # TODO(reao): Here I assume that language codes need to end in two
+    #   uppercase characters -- is that correct? It is a pattern in the language
+    #   support documentation.
+    validationRegex: "^([a-zA-Z-])*[A-Z][A-Z]$"
+    validationErrorMessage: Must be a valid code from https://cloud.google.com/speech-to-text/docs/languages
+    required: true
+
+  - param: MODEL
+    label: Language model used for transcription
+    description: >
+      Which kind of use-case should the speech-to-text transcription algorithm
+      be honed for? For details, see [the model field in the documentation](https://cloud.google.com/speech-to-text/docs/reference/rest/v1/RecognitionConfig)
+
+      If you're not sure, just use the default.
+    example: default
+    default: default
+    required: true
+
+roles:
+  - role: storage.admin
+    reason: Allows the extension to write to your Cloud Storage.
+  - role: datastore.user
+    reason: Allows the extension to write to your Firestore Database instance.
