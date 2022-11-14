@@ -1,0 +1,27 @@
+{
+  "name": "firestore-dialogflow-fulfillment",
+  "scripts": {
+    "lint": "eslint \"src/**/*\"",
+    "build": "tsc",
+    "serve": "npm run build && firebase emulators:start --only functions",
+    "shell": "npm run build && firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log",
+    "generate-readme": "node ../../generate-experimental-readme.js firestore-dialogflow-fulfillment > ../README.md"
+  },
+  "engines": {
+    "node": "12"
+  },
+  "main": "lib/index.js",
+  "dependencies": {
+    "firebase-admin": "^11.2.1",
+    "firebase-functions": "^4.0.2"
+  },
+  "devDependencies": {
+    "@types/node": "^18.11.9",
+    "rimraf": "^3.0.2",
+    "typescript": "^4.8.4"
+  },
+  "private": true
+}
