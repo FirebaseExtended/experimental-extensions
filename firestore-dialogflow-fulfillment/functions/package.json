@@ -15,6 +15,7 @@
   },
   "main": "lib/index.js",
   "dependencies": {
+    "@google-cloud/dialogflow": "^5.3.0",
     "firebase-admin": "^11.2.1",
     "firebase-functions": "^4.0.2"
   },

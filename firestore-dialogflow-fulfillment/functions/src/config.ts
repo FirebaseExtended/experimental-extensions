@@ -14,11 +14,6 @@
  * limitations under the License.
  */
 
-import * as functions from "firebase-functions";
-import * as admin from "firebase-admin";
-import DialogFlow from "@google-cloud/dialogflow";
-import config from "./config";
-
-const flow = DialogFlow.v2beta1;
-
-admin.initializeApp();
+export default {
+  
+};
