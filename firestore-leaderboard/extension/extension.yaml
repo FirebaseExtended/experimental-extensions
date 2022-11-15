@@ -139,8 +139,8 @@ params:
     label: Leaderboard Name
     description: >
       The name of the leaderboard document.
-    example: globel_leaderboard
-    default: globel_leaderboard
+    example: global_leaderboard
+    default: global_leaderboard
     required: true
 
   - param: LEADER_BOARD_SIZE
