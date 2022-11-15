@@ -14,7 +14,7 @@ ProjectSettings/GvhProjectSettings.xml
 Temp/
 
 Assembly-CSharp.csproj
-testapp.sln
+client_sample.sln
 *.meta
 google-services.json
 GoogleService-Info.plist
