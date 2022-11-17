@@ -1,7 +1,6 @@
 {
   "extensions": {
-    "firestore-record-user-acknowledgements": "../firestore-record-user-acknowledgements",
-    "firestore-bundle-server": "../firestore-bundle-server"
+    "firestore-dialogflow-fulfillment": "../firestore-dialogflow-fulfillment"
   },
   "storage": {
     "rules": "storage.rules"

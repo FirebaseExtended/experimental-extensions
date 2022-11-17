@@ -15,5 +15,5 @@
  */
 
 export default {
-  
+  projectId: "extensions-testing",
 };

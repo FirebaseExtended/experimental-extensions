@@ -19,16 +19,30 @@ apis:
     reason: Powers all Vision tasks performed by the extension.
 
 resources:
-  - name: labelImage
+  - name: newConversation
     type: firebaseextensions.v1beta.function
-    description: Listens to incoming Storage documents, executes image labeling on them and writes labels back to Storage into a preconfigured location.
+    location: ${LOCATION}
+    runtime: nodejs16
+    httpsTrigger: {}
+  - name: newMessage
+    type: firebaseextensions.v1beta.function
+    location: ${LOCATION}
+    runtime: nodejs16
+    httpsTrigger: {}
+  - name: onNewMessage
+    type: firebaseextensions.v1beta.function
     properties:
-      location: ${param:LOCATION}
-      availableMemoryMb: 1024
+      location: ${LOCATION}
       eventTrigger:
-        eventType: google.storage.object.finalize
-        resource: projects/_/buckets/${param:IMG_BUCKET}
-      runtime: "nodejs10"
+        eventType: providers/cloud.firestore/eventTypes/document.create
+        resource: projects/${PROJECT_ID}/databases/(default)/documents/conversations/{conversationId}/{messageCollectionId}/{messageId}
+  - name: dialogflowFulfillmentWebhook
+    type: firebaseextensions.v1beta.function
+    description: TODO
+    properties:
+      location: ${LOCATION}
+      runtime: nodejs16
+      httpsTrigger: {}
 
 params:
   - param: LOCATION
@@ -60,25 +74,6 @@ params:
     default: us-central1
     required: true
     immutable: true
-  - param: IMG_BUCKET
-    label: Cloud Storage bucket for images
-    description: >
-      To which Cloud Storage bucket will you upload images on which you want to perform labelling?
-    type: string
-    example: my-project-12345.appspot.com
-    validationRegex: ^([0-9a-z_.-]*)$
-    validationErrorMessage: Invalid storage bucket
-    default: ${STORAGE_BUCKET}
-    required: true
-  - param: COLLECTION_PATH
-    label: Collection path
-    description: >
-      What is the path to the collection where labels will be written to.
-    example: imageLabels
-    validationRegex: "^[^/]+(/[^/]+/[^/]+)*$"
-    validationErrorMessage: Must be a valid Cloud Firestore Collection
-    default: imageLabels
-    required: true
 
 roles:
   - role: storage.admin
