@@ -16,6 +16,7 @@
 
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
+import { getEventarc, Channel } from "firebase-admin/eventarc";
 import * as speech from "@google-cloud/speech";
 import * as path from "path";
 import * as os from "os";
@@ -26,6 +27,13 @@ import mkdirp = require("mkdirp");
 import { transcodeToLinear16, transcribeAndUpload } from "./transcribe-audio";
 
 admin.initializeApp();
+
+const eventChannel: Channel | null = process.env.EXT_SELECTED_EVENTS
+  ? getEventarc().channel(process.env.EXT_SELECTED_EVENTS, {
+      allowedEventTypes: process.env.EXT_SELECTED_EVENTS,
+    })
+  : null;
+
 logs.init();
 
 const client = new speech.SpeechClient();
@@ -52,7 +60,6 @@ export const transcribeAudio = functions.storage
       return;
     }
 
-    // TODO(reao): other non-happy paths
     if (object.name === undefined) {
       logs.undefinedObjectName(object);
       return;
@@ -93,12 +100,21 @@ export const transcribeAudio = functions.storage
         uploadResponse: [file /* metadata */],
       } = transcodeResult;
 
-      transcribeAndUpload({
+      const transcript = await transcribeAndUpload({
         client,
         file,
         sampleRateHertz,
         audioChannelCount,
       });
+
+      eventChannel &&
+        (await eventChannel.publish({
+          type: "firebase.extensions.storage-transcribe-audio.v1.complete",
+          subject: filePath,
+          data: {
+            transcript,
+          },
+        }));
       // TODO(reao): Write to firestore if that setting is enabled
       // TODO(reao): Don't write to storage if that setting is not enabled
       // TODO(reao): emit event

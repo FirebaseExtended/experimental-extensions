@@ -21,7 +21,7 @@ export async function transcribeAndUpload({
   file: { bucket: Bucket; name: string };
   sampleRateHertz: number;
   audioChannelCount: number;
-}): Promise<google.cloud.speech.v1.ILongRunningRecognizeResponse> {
+}): Promise<string[] | null> {
   const request: google.cloud.speech.v1.ILongRunningRecognizeRequest = {
     config: {
       encoding,
@@ -49,11 +49,11 @@ export async function transcribeAndUpload({
 
   if (!isStringArray(transcript)) {
     logs.undefinedResultsTranscript(transcript);
+    return null;
   } else {
     logs.logResponseTranscript(transcript);
+    return transcript;
   }
-
-  return response;
 }
 
 export async function transcodeToLinear16(
