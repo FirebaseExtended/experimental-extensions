@@ -138,6 +138,8 @@ exports.onNewMessage = functions.firestore
       //   },
       // });
 
+      // console.log(intent);
+
       const batch = admin.firestore().bulkWriter();
 
       batch.update(change.ref, {
@@ -185,7 +187,7 @@ exports.dialogflowFulfillment = functions.https.onRequest(
       agent.add("fallback response...");
     });
 
-    intents.set("TODO DISPLAY NAME", (agent: any) => {
+    intents.set("intent.calendar", (agent: any) => {
       const params = agent.parameters;
       console.log({ params });
       if (params?.DATE && params?.TIME) {
@@ -220,7 +222,7 @@ exports.dialogflowFulfillment = functions.https.onRequest(
 //   await intentsClient.createIntent({
 //     parent: agentPath,
 //     intent: {
-//       displayName: "TODO DISPLAY NAME",
+//       displayName: "intent.calendar",
 //       messages: [
 //         {
 //           text: {

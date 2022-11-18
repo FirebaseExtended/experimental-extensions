@@ -4,8 +4,9 @@ Setup the dev environment:
 
 (Make sure `firebase-tools` is installed: `npm i -g firebase-tools` and you are using Node 14 (`nvm use 14`)).
 
-1. `cd _emulator` && `firebase emulators:start`
+1. `cd firestore-dialogflow-fulfillment/functions` && `npm run build`
 2. `cd firestore-dialogflow-fulfillment/demo` && `npm run dev`
+3. `cd _emulator` && `firebase emulators:start`
 
 # DialogFlow
 
@@ -29,3 +30,4 @@ The current general flow for the extension is:
 - `onNewMessage` - a firestore trigger that listens for new messages. If it's from the user, we'll send a message to dialog flow and wait for a response. Once we have that, add a message to the conversation.
 - `dialogflowFulfillment` - HTTP function (ignores auth for now), which DialogFlow calls - here we can respond with our own messages to the user if we want.
 
+Use `lsof -t -i:4001 -i:8080 -i:9000 -i:9099 -i:9199 -i:8085 | xargs kill -9` to kill emulators.
