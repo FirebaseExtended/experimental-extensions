@@ -15,33 +15,38 @@ author:
 billingRequired: true
 
 apis:
-  - apiName: vision.googleapis.com
-    reason: Powers all Vision tasks performed by the extension.
+  - apiName: dialogflow.googleapis.com
+    reason: Powers all DialogFlow tasks performed by the extension.
 
 resources:
   - name: newConversation
     type: firebaseextensions.v1beta.function
-    location: ${LOCATION}
-    runtime: nodejs16
-    httpsTrigger: {}
+    description: todo
+    properties:
+      location: ${LOCATION}
+      runtime: nodejs14
+      httpsTrigger: {}
   - name: newMessage
     type: firebaseextensions.v1beta.function
-    location: ${LOCATION}
-    runtime: nodejs16
-    httpsTrigger: {}
+    description: todo
+    properties:
+      location: ${LOCATION}
+      runtime: nodejs14
+      httpsTrigger: {}
   - name: onNewMessage
     type: firebaseextensions.v1beta.function
+    description: todo
     properties:
       location: ${LOCATION}
       eventTrigger:
         eventType: providers/cloud.firestore/eventTypes/document.create
-        resource: projects/${PROJECT_ID}/databases/(default)/documents/conversations/{conversationId}/{messageCollectionId}/{messageId}
-  - name: dialogflowFulfillmentWebhook
+        resource: projects/${PROJECT_ID}/databases/(default)/documents/conversations/{conversationId}/messages/{messageId}
+  - name: dialogflowFulfillment
     type: firebaseextensions.v1beta.function
     description: TODO
     properties:
       location: ${LOCATION}
-      runtime: nodejs16
+      runtime: nodejs14
       httpsTrigger: {}
 
 params:
@@ -76,7 +81,5 @@ params:
     immutable: true
 
 roles:
-  - role: storage.admin
-    reason: Allows the extension to write to your Cloud Storage.
   - role: datastore.user
     reason: Allows the extension to write to your Firestore Database instance.

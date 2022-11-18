@@ -16,6 +16,7 @@
 
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
+import { FieldValue } from "firebase-admin/firestore";
 import { WebhookClient } from "dialogflow-fulfillment-helper";
 import { HttpsError } from "firebase-functions/v1/auth";
 import DialogFlow from "@google-cloud/dialogflow";
@@ -48,15 +49,15 @@ exports.newConversation = functions.https.onCall(async (data, ctx) => {
 
   batch.create(ref, {
     users: [uid],
-    started_at: admin.firestore.FieldValue.serverTimestamp(),
-    updated_at: admin.firestore.FieldValue.serverTimestamp(),
+    started_at: FieldValue.serverTimestamp(),
+    updated_at: FieldValue.serverTimestamp(),
     message_count: 1,
   });
 
   batch.create(ref.collection("messages").doc(), {
     type: "USER",
-    uid,
-    created_at: admin.firestore.FieldValue.serverTimestamp(),
+    uid: uid,
+    created_at: FieldValue.serverTimestamp(),
     message,
   });
 
@@ -99,54 +100,51 @@ exports.newMessage = functions.https.onCall(async (data, ctx) => {
     );
   }
 
-  ref.collection("messages").doc().create({
+  await ref.collection("messages").doc().create({
     type: "USER",
     status: "PENDING",
-    uid,
-    created_at: admin.firestore.FieldValue.serverTimestamp(),
+    uid: uid,
+    created_at: FieldValue.serverTimestamp(),
     message,
   });
-
-  // TODO maybe confirm this convo is for the user?
-
-  // TODO: check conversation exists
-  // TODO: add message to subcollection
 });
 
 exports.onNewMessage = functions.firestore
   .document("conversations/{conversationId}/{messageCollectionId}/{messageId}")
-  .onWrite(async (change, ctx) => {
+  .onCreate(async (change, ctx) => {
     const { conversationId } = ctx.params;
-    const { type, message } = change.after.data() as any; // TODO: add types
+    const { type, message } = change.data() as any; // TODO: add types
     const ref = admin
       .firestore()
       .collection("conversations")
       .doc(conversationId);
 
     await ref.update({
-      updated_at: admin.firestore.FieldValue.serverTimestamp(),
-      message_count: admin.firestore.FieldValue.increment(1),
+      updated_at: FieldValue.serverTimestamp(),
+      message_count: FieldValue.increment(1),
     });
 
     if (type === "USER") {
-      const sessionClient = new dialogflow.SessionsClient();
+      // const sessionClient = new dialogflow.SessionsClient();
 
       // TODO handle error
-      const [intent] = await sessionClient.detectIntent({
-        session: `projects/${config.projectId}/agent/sessions/${conversationId}`,
-        queryInput: {
-          text: {
-            languageCode: "en", // TODO make this configurable?
-            text: message,
-          },
-        },
-      });
+      // const [intent] = await sessionClient.detectIntent({
+      //   session: `projects/${config.projectId}/agent/sessions/${conversationId}`,
+      //   queryInput: {
+      //     text: {
+      //       languageCode: "en", // TODO make this configurable?
+      //       text: message,
+      //     },
+      //   },
+      // });
 
       const batch = admin.firestore().bulkWriter();
 
-      batch.update(change.after.ref, {
+      batch.update(change.ref, {
         status: "SUCCESS",
       });
+
+      // TODO: get data from intent and add to message
 
       batch.create(
         admin
@@ -158,27 +156,27 @@ exports.onNewMessage = functions.firestore
         {
           type: "BOT",
           status: "SUCCESS",
-          created_at: admin.firestore.FieldValue.serverTimestamp(),
+          created_at: FieldValue.serverTimestamp(),
           message: "Response from DialogFlow",
         }
       );
 
-      const finalized = true;
+      // const finalized = true;
 
-      if (finalized) {
-        batch.update(
-          admin.firestore().collection("conversations").doc(conversationId),
-          {
-            status: "COMPLETE",
-          }
-        );
-      }
+      // if (finalized) {
+      //   batch.update(
+      //     admin.firestore().collection("conversations").doc(conversationId),
+      //     {
+      //       status: "COMPLETE",
+      //     }
+      //   );
+      // }
 
       await batch.close();
     }
   });
 
-exports.dialogflowFulfillmentWebhook = functions.https.onRequest(
+exports.dialogflowFulfillment = functions.https.onRequest(
   async (request, response) => {
     console.log(request.body);
     const agent1 = new WebhookClient({ request, response });
