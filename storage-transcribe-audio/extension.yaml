@@ -133,3 +133,7 @@ roles:
     reason: Allows the extension to write to your Cloud Storage.
   - role: datastore.user
     reason: Allows the extension to write to your Firestore Database instance.
+
+events:
+  - type: firebase.extensions.storage-transcribe-audio.v1.complete
+    description: Occurs when audio transcription completes. The event will contain the full transcription, along with transcription details.
