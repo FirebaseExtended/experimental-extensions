@@ -16,10 +16,4 @@
 
 export default {
   projectId: "extensions-testing",
-  // TODO - add Firebase project credentials to authenticate DialogFlow
-  // TODO - how would this work when the extension is deployed?
-  credentials: {
-    private_key: "",
-    client_email: "",
-  },
 };

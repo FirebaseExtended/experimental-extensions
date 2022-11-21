@@ -127,9 +127,7 @@ exports.onNewMessage = functions.firestore
     });
 
     if (type === "USER") {
-      const sessionClient = new dialogflow.SessionsClient({
-        credentials: config.credentials,
-      });
+      const sessionClient = new dialogflow.SessionsClient();
 
       // TODO handle error
       const [intent] = await sessionClient.detectIntent({
