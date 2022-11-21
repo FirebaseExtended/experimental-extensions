@@ -16,4 +16,5 @@
 
 export default {
   projectId: "extensions-testing",
+  servicePath: "../extensions-testing-firebase.json",
 };

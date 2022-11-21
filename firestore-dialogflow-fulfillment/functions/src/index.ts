@@ -23,9 +23,15 @@ import DialogFlow from "@google-cloud/dialogflow";
 import config from "./config";
 import Status from "./types/status";
 import Conversation from "./types/conversation";
+var fs = require("fs");
+
+admin.initializeApp();
 
 const dialogflow = DialogFlow.v2beta1;
-admin.initializeApp();
+const sessionClient = new dialogflow.SessionsClient({
+  projectId: config.projectId,
+  ...(fs.existsSync(config.servicePath) && { keyFilename: config.servicePath }),
+});
 
 exports.newConversation = functions.https.onCall(async (data, ctx) => {
   if (!ctx.auth) {
@@ -127,11 +133,13 @@ exports.onNewMessage = functions.firestore
     });
 
     if (type === "USER") {
-      const sessionClient = new dialogflow.SessionsClient();
+      const sessionPath = sessionClient.projectAgentSessionPath(
+        config.projectId,
+        conversationId
+      );
 
-      // TODO handle error
-      const [intent] = await sessionClient.detectIntent({
-        session: `projects/${config.projectId}/agent/sessions/${conversationId}`,
+      const request = {
+        session: sessionPath,
         queryInput: {
           text: {
             languageCode: "en", // TODO make this configurable?
@@ -141,7 +149,9 @@ exports.onNewMessage = functions.firestore
         queryParams: {
           timeZone: "UTC",
         },
-      });
+      };
+
+      const [intent] = await sessionClient.detectIntent(request);
 
       console.log(intent);
 
