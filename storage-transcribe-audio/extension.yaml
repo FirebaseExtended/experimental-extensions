@@ -70,7 +70,7 @@ params:
     description: >
       The Cloud Storage bucket that the extension should be listening to. Files
       uploaded to this bucket will be transcribed by the extension. If cloud
-      storage output is enabled, transcripts will be written to this bucket.
+      storage output is enabled, transcriptions will be written to this bucket.
     type: string
     example: e.g. my-project-12345.appspot.com
     validationRegex: ^([0-9a-z_.-]*)$
@@ -105,9 +105,9 @@ params:
     required: true
 
   - param: LANGUAGE_CODE
-    label: BCP-47 code of the transcript language
+    label: BCP-47 code of the transcription language
     description: >
-      The BCP-47 code of the transcript language, as shown in the
+      The BCP-47 code of the transcription language, as shown in the
       [Language support documentation](https://cloud.google.com/speech-to-text/docs/languages)
     example: e.g. en-US
     # TODO(reao): Here I assume that language codes need to end in two
@@ -136,4 +136,6 @@ roles:
 
 events:
   - type: firebase.extensions.storage-transcribe-audio.v1.complete
-    description: Occurs when audio transcription completes. The event will contain the full transcription, along with transcription details.
+    description: Occurs when audio transcription completes. The event will contain the full transcription.
+  - type: firebase.extensions.storage-transcribe-audio.v1.fail
+    description: Occurs when audio transcription fails. The event will contain information about the failure.
