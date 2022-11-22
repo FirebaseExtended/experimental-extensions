@@ -19,7 +19,12 @@ import { logger } from "firebase-functions";
 import { ObjectMetadata } from "firebase-functions/v1/storage";
 
 import config from "./config";
-import { TranscodeAudioResult } from "./types";
+import {
+  Failure,
+  failureTypeToMessage,
+  TranscodeAudioResult,
+  warningTypeToMessage,
+} from "./types";
 
 export const error = (err: Error) => {
   logger.error("Error when transcribing audio");
@@ -66,8 +71,22 @@ export const downloading = (path: string) => {
   logger.log(`Downloading file: '${path}'`);
 };
 
-export function transcodingFailed(failure: TranscodeAudioResult) {
-  logger.error("Failed to transcode audio into linear16", { info: failure });
+function messageify({ details, warnings, type }: Failure) {
+  return {
+    failureType: failureTypeToMessage[type],
+    warnings: warnings.map((warning) => warningTypeToMessage[warning]),
+    details,
+  };
+}
+
+export function transcodingFailed(failure: Failure) {
+  logger.error("Failed to transcode audio into linear16", {
+    info: messageify(failure),
+  });
+}
+
+export function transcribingFailed(failure: Failure) {
+  logger.error("Failed to transcribe audio", { info: messageify(failure) });
 }
 
 export const receivedLongRunningRecognizeResponse = (
@@ -76,17 +95,18 @@ export const receivedLongRunningRecognizeResponse = (
   logger.log("Received response for sound file transcription:", response);
 };
 
-export const logResponseTranscript = (transcript: string[]) => {
-  logger.log("Response transcript is the following:", transcript);
+export const logResponseTranscription = (
+  transcription: Record<number, string[]>
+) => {
+  logger.log("Response transcription is the following:", transcription);
 };
 
-export const undefinedResultsTranscript = (
-  transcript: (string | null | undefined)[] | undefined
-) => {
-  logger.log(
-    "Response transcript is ill-defined; it looks like this:",
-    transcript
-  );
+export const ffmpegStderr = (stderr: string) => {
+  logger.error("stderr output of audio transcoder:", stderr);
+};
+
+export const ffmpegStdout = (stdout: string) => {
+  logger.log("stdout output of audio transcoder:", stdout);
 };
 
 // DO NOT MERGE: debugging stuff
