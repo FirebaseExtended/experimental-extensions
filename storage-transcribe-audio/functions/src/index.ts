@@ -22,9 +22,16 @@ import * as path from "path";
 import * as os from "os";
 
 import * as logs from "./logs";
-import { errorFromAny } from "./util";
+import {
+  publishFailureEvent,
+  errorFromAny,
+  publishCompleteEvent,
+} from "./util";
 import mkdirp = require("mkdirp");
-import { transcodeToLinear16, transcribeAndUpload } from "./transcribe-audio";
+import {
+  transcodeToLinear16AndUpload,
+  transcribeAndUpload,
+} from "./transcribe-audio";
 
 admin.initializeApp();
 
@@ -37,8 +44,9 @@ const eventChannel: Channel | null = process.env.EXT_SELECTED_EVENTS
 logs.init();
 
 const client = new speech.SpeechClient();
-//const db = admin.firestore();
 
+// TODO(reao): Write to firestore if that setting is enabled
+// TODO(reao): Don't write to storage if that setting is not enabled
 export const transcribeAudio = functions.storage
   .object()
   .onFinalize(async (object): Promise<void> => {
@@ -81,7 +89,7 @@ export const transcribeAudio = functions.storage
       await remoteFile.download({ destination: localCopyPath });
       logs.audioDownloaded(filePath, localCopyPath);
 
-      const transcodeResult = await transcodeToLinear16(
+      const transcodeResult = await transcodeToLinear16AndUpload(
         {
           localCopyPath,
           storageOutputPath: "out.wav",
@@ -90,8 +98,9 @@ export const transcribeAudio = functions.storage
       );
 
       if (transcodeResult.state === "failure") {
-        // TODO(reao): log something here
         logs.transcodingFailed(transcodeResult);
+        eventChannel &&
+          (await publishFailureEvent(eventChannel, transcodeResult));
         return;
       }
 
@@ -100,26 +109,33 @@ export const transcribeAudio = functions.storage
         uploadResponse: [file /* metadata */],
       } = transcodeResult;
 
-      const transcript = await transcribeAndUpload({
+      const transcriptionResult = await transcribeAndUpload({
         client,
         file,
         sampleRateHertz,
         audioChannelCount,
       });
 
+      if (transcriptionResult.state === "failure") {
+        logs.transcribingFailed(transcriptionResult);
+        eventChannel &&
+          (await publishFailureEvent(eventChannel, transcriptionResult));
+        return;
+      }
+
       eventChannel &&
-        (await eventChannel.publish({
-          type: "firebase.extensions.storage-transcribe-audio.v1.complete",
-          subject: filePath,
-          data: {
-            transcript,
-          },
-        }));
-      // TODO(reao): Write to firestore if that setting is enabled
-      // TODO(reao): Don't write to storage if that setting is not enabled
-      // TODO(reao): emit event
+        (await publishCompleteEvent(eventChannel, transcriptionResult));
+      return;
     } catch (err) {
       const error = errorFromAny(err);
       logs.error(error);
+
+      eventChannel &&
+        (await eventChannel.publish({
+          type: "firebase.extensions.storage-transcribe-audio.v1.fail",
+          data: {
+            error,
+          },
+        }));
     }
   });
