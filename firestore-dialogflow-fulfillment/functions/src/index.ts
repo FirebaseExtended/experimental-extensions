@@ -42,46 +42,46 @@ const CALENDAR_ID = ""; //TODO make configurable
 const DEFAULT_DURATION = 30; //TODO make configurable
 
 async function createCalendarEvent(dateTime: Date) {
+  const auth = new google.auth.GoogleAuth({
+    scopes: SCOPE,
+    projectId: config.projectId,
+    ...(fs.existsSync(config.servicePath) && {
+      keyFilename: config.servicePath,
+    }),
+  });
+
+  const authClient = await auth.getClient();
+
+  const calendar = google.calendar({
+    version: "v3",
+    auth: authClient,
+  });
+
+  var dateTimeEnd = new Date(dateTime.getTime() + DEFAULT_DURATION * 60000);
+
+  var event = {
+    summary: "Meeting by DialogFlow",
+    description: "This is a meeting created by DialogFlow",
+    start: {
+      dateTime: dateTime.toISOString(),
+      timeZone: "UTC",
+    },
+    end: {
+      dateTime: dateTimeEnd.toISOString(),
+      timeZone: "UTC",
+    },
+    attendees: [],
+    reminders: {
+      useDefault: false,
+      overrides: [
+        { method: "email", minutes: 24 * 60 },
+        { method: "popup", minutes: 10 },
+      ],
+    },
+  };
+
   try {
-    const auth = new google.auth.GoogleAuth({
-      scopes: SCOPE,
-      projectId: config.projectId,
-      ...(fs.existsSync(config.servicePath) && {
-        keyFilename: config.servicePath,
-      }),
-    });
-
-    const authClient = await auth.getClient();
-
-    const calendar = google.calendar({
-      version: "v3",
-      auth: authClient,
-    });
-
-    var dateTimeEnd = new Date(dateTime.getTime() + DEFAULT_DURATION * 60000);
-
-    var event = {
-      summary: "Meeting by DialogFlow",
-      description: "This is a meeting created by DialogFlow",
-      start: {
-        dateTime: dateTime.toISOString(),
-        timeZone: "UTC",
-      },
-      end: {
-        dateTime: dateTimeEnd.toISOString(),
-        timeZone: "UTC",
-      },
-      attendees: [],
-      reminders: {
-        useDefault: false,
-        overrides: [
-          { method: "email", minutes: 24 * 60 },
-          { method: "popup", minutes: 10 },
-        ],
-      },
-    };
-
-    calendar.events.insert({
+    await calendar.events.insert({
       requestBody: event,
       calendarId: CALENDAR_ID,
     });
@@ -183,6 +183,7 @@ exports.onNewMessage = functions.firestore
       .firestore()
       .collection("conversations")
       .doc(conversationId);
+    let finalized = false;
 
     await ref.update({
       updated_at: FieldValue.serverTimestamp(),
@@ -224,6 +225,10 @@ exports.onNewMessage = functions.firestore
           created_at: FieldValue.serverTimestamp(),
           message: intent.queryResult.fulfillmentText,
         });
+
+        if (intent.queryResult.intent?.displayName === "intent.calendar") {
+          finalized = true;
+        }
       } else {
         batch.create(ref.collection("messages").doc(), {
           type: "BOT",
@@ -233,15 +238,14 @@ exports.onNewMessage = functions.firestore
         });
       }
 
-      const finalized = true;
-
       if (finalized) {
-        batch.update(
-          admin.firestore().collection("conversations").doc(conversationId),
-          {
-            status: Status.COMPLETE,
-          }
-        );
+        batch.update(ref, {
+          status: Status.COMPLETE,
+        });
+      } else {
+        batch.update(ref, {
+          status: Status.PENDING,
+        });
       }
 
       await batch.close();
