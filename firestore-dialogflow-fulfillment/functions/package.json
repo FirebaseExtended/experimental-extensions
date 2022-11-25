@@ -19,7 +19,8 @@
     "actions-on-google": "^3.0.0",
     "dialogflow-fulfillment-helper": "^0.7.1",
     "firebase-admin": "^11.2.1",
-    "firebase-functions": "^4.0.2"
+    "firebase-functions": "^4.0.2",
+    "googleapis": "^105.0.0"
   },
   "devDependencies": {
     "@types/node": "^18.11.9",

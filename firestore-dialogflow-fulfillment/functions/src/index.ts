@@ -20,9 +20,13 @@ import { FieldValue } from "firebase-admin/firestore";
 import { WebhookClient } from "dialogflow-fulfillment-helper";
 import { HttpsError } from "firebase-functions/v1/auth";
 import DialogFlow from "@google-cloud/dialogflow";
+import { google } from "googleapis";
+
 import config from "./config";
 import Status from "./types/status";
 import Conversation from "./types/conversation";
+import { extratDate, getDateTimeFormatted } from "./util";
+
 var fs = require("fs");
 
 admin.initializeApp();
@@ -32,6 +36,59 @@ const sessionClient = new dialogflow.SessionsClient({
   projectId: config.projectId,
   ...(fs.existsSync(config.servicePath) && { keyFilename: config.servicePath }),
 });
+
+const SCOPE = ["https://www.googleapis.com/auth/calendar"];
+const CALENDAR_ID = ""; //TODO make configurable
+const DEFAULT_DURATION = 30; //TODO make configurable
+
+async function createCalendarEvent(dateTime: Date) {
+  try {
+    const auth = new google.auth.GoogleAuth({
+      scopes: SCOPE,
+      projectId: config.projectId,
+      ...(fs.existsSync(config.servicePath) && {
+        keyFilename: config.servicePath,
+      }),
+    });
+
+    const authClient = await auth.getClient();
+
+    const calendar = google.calendar({
+      version: "v3",
+      auth: authClient,
+    });
+
+    var dateTimeEnd = new Date(dateTime.getTime() + DEFAULT_DURATION * 60000);
+
+    var event = {
+      summary: "Meeting by DialogFlow",
+      description: "This is a meeting created by DialogFlow",
+      start: {
+        dateTime: dateTime.toISOString(),
+        timeZone: "UTC",
+      },
+      end: {
+        dateTime: dateTimeEnd.toISOString(),
+        timeZone: "UTC",
+      },
+      attendees: [],
+      reminders: {
+        useDefault: false,
+        overrides: [
+          { method: "email", minutes: 24 * 60 },
+          { method: "popup", minutes: 10 },
+        ],
+      },
+    };
+
+    calendar.events.insert({
+      requestBody: event,
+      calendarId: CALENDAR_ID,
+    });
+  } catch (error) {
+    throw error;
+  }
+}
 
 exports.newConversation = functions.https.onCall(async (data, ctx) => {
   if (!ctx.auth) {
@@ -121,7 +178,7 @@ exports.onNewMessage = functions.firestore
   .document("conversations/{conversationId}/{messageCollectionId}/{messageId}")
   .onCreate(async (change, ctx) => {
     const { conversationId } = ctx.params;
-    const { type, message } = change.data() as any; // TODO: add types
+    const { type, message, uid } = change.data() as any; // TODO: add types
     const ref = admin
       .firestore()
       .collection("conversations")
@@ -148,17 +205,16 @@ exports.onNewMessage = functions.firestore
         },
         queryParams: {
           timeZone: "UTC",
+          uid: uid,
         },
       };
 
       const [intent] = await sessionClient.detectIntent(request);
 
-      console.log(intent);
-
       const batch = admin.firestore().bulkWriter();
 
       batch.update(change.ref, {
-        status: "SUCCESS",
+        status: Status.SUCCESS,
       });
 
       if (intent.queryResult?.fulfillmentText) {
@@ -194,40 +250,31 @@ exports.onNewMessage = functions.firestore
 
 exports.dialogflowFulfillment = functions.https.onRequest(
   async (request, response) => {
-    const agent1 = new WebhookClient({ request, response });
+    const agent = new WebhookClient({ request, response });
     const intents = new Map<string, any>();
+
     intents.set("ext.fallback", (agent: any) => {
       agent.add("fallback response...");
     });
 
-    intents.set("intent.calendar", (agent: any) => {
+    intents.set("intent.calendar", async (agent: any) => {
       const { parameters } = agent;
-      console.log(parameters);
 
       if (parameters?.DATE && parameters?.TIME) {
-        var date = new Date(parameters.DATE);
-        var time = new Date(parameters.TIME);
-        var dateTime = new Date(
-          date.getFullYear(),
-          date.getMonth(),
-          date.getDate(),
-          time.getHours(),
-          time.getMinutes()
-        );
-
-        console.log(time);
-
-        let dateTimeFormatted = new Intl.DateTimeFormat("en-US", {
-          dateStyle: "medium",
-          timeStyle: "short",
-          weekday: "long",
-        }).format(dateTime);
-
-        agent.add(`You are all set for ${dateTimeFormatted}. See you then!`);
+        const dateTime = extratDate(parameters.DATE, parameters.TIME);
+        const dateTimeFormatted = getDateTimeFormatted(dateTime);
+        try {
+          await createCalendarEvent(dateTime);
+          agent.add(`You are all set for ${dateTimeFormatted}. See you then!`);
+        } catch (error) {
+          agent.add(
+            `I'm sorry, there are no slots available for ${dateTimeFormatted}.`
+          );
+        }
       }
     });
 
-    return agent1.handleRequest(intents);
+    return agent.handleRequest(intents);
   }
 );
 
