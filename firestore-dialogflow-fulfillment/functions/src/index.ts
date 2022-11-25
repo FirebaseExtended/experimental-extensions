@@ -21,6 +21,7 @@ import { WebhookClient } from "dialogflow-fulfillment-helper";
 import { HttpsError } from "firebase-functions/v1/auth";
 import DialogFlow from "@google-cloud/dialogflow";
 import { google } from "googleapis";
+import { GaxiosError } from "gaxios";
 
 import config from "./config";
 import Status from "./types/status";
@@ -86,7 +87,16 @@ async function createCalendarEvent(dateTime: Date) {
       calendarId: CALENDAR_ID,
     });
   } catch (error) {
-    throw error;
+    if (
+      error instanceof GaxiosError &&
+      error.code &&
+      parseInt(error.code) === 404
+    ) {
+      throw new HttpsError("not-found", "Calendar not found");
+    } else {
+      functions.logger.error(error);
+      throw error;
+    }
   }
 }
 
@@ -271,9 +281,13 @@ exports.dialogflowFulfillment = functions.https.onRequest(
           await createCalendarEvent(dateTime);
           agent.add(`You are all set for ${dateTimeFormatted}. See you then!`);
         } catch (error) {
-          agent.add(
-            `I'm sorry, there are no slots available for ${dateTimeFormatted}.`
-          );
+          if (error instanceof HttpsError && error.code === "not-found") {
+            agent.add(`Sorry, I couldn't find your calendar.`);
+          } else {
+            agent.add(
+              `I'm sorry, there are no slots available for ${dateTimeFormatted}.`
+            );
+          }
         }
       }
     });
