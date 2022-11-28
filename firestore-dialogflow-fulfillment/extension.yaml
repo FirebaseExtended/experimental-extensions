@@ -86,7 +86,6 @@ params:
     type: string
     default: ""
     required: true
-    immutable: true
   - param: DEFAULT_DURATION
     label: Default event duration
     description: >-
@@ -98,3 +97,5 @@ params:
 roles:
   - role: datastore.user
     reason: Allows the extension to write to your Firestore Database instance.
+  - role: dialogflow.sessions.detectIntent
+    reason: Allows the extension to detect intents from Dialogflow.
