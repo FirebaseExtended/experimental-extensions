@@ -16,7 +16,8 @@
 
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
-import { FieldValue } from "firebase-admin/firestore";
+import "firebase-functions";
+
 import { WebhookClient } from "dialogflow-fulfillment-helper";
 import { HttpsError } from "firebase-functions/v1/auth";
 import DialogFlow from "@google-cloud/dialogflow";
@@ -28,24 +29,35 @@ import Status from "./types/status";
 import Conversation from "./types/conversation";
 import { extratDate, getDateTimeFormatted } from "./util";
 
+admin.initializeApp();
+
 var fs = require("fs");
 
-admin.initializeApp();
+const firebaseConfig = process.env.FIREBASE_CONFIG;
+if (firebaseConfig === undefined) {
+  throw new Error("Firebase Config is undefined");
+}
+
+const adminConfig: {
+  databaseURL: string;
+  storageBucket: string;
+  projectId: string;
+} = JSON.parse(firebaseConfig);
+
+const PROJECT_ID = adminConfig.projectId;
 
 const dialogflow = DialogFlow.v2beta1;
 const sessionClient = new dialogflow.SessionsClient({
-  projectId: config.projectId,
+  projectId: process.env.GCP_PROJECT,
   ...(fs.existsSync(config.servicePath) && { keyFilename: config.servicePath }),
 });
 
 const SCOPE = ["https://www.googleapis.com/auth/calendar"];
-const CALENDAR_ID = ""; //TODO make configurable
-const DEFAULT_DURATION = 30; //TODO make configurable
 
 async function createCalendarEvent(dateTime: Date) {
   const auth = new google.auth.GoogleAuth({
     scopes: SCOPE,
-    projectId: config.projectId,
+    projectId: PROJECT_ID,
     ...(fs.existsSync(config.servicePath) && {
       keyFilename: config.servicePath,
     }),
@@ -58,7 +70,9 @@ async function createCalendarEvent(dateTime: Date) {
     auth: authClient,
   });
 
-  var dateTimeEnd = new Date(dateTime.getTime() + DEFAULT_DURATION * 60000);
+  var dateTimeEnd = new Date(
+    dateTime.getTime() + config.defaultDuration * 60000
+  );
 
   var event = {
     summary: "Meeting by DialogFlow",
@@ -84,7 +98,7 @@ async function createCalendarEvent(dateTime: Date) {
   try {
     await calendar.events.insert({
       requestBody: event,
-      calendarId: CALENDAR_ID,
+      calendarId: process.env.CALENDAR_ID,
     });
   } catch (error) {
     if (
@@ -124,15 +138,15 @@ exports.newConversation = functions.https.onCall(async (data, ctx) => {
 
   batch.create(ref, {
     users: [uid],
-    started_at: FieldValue.serverTimestamp(),
-    updated_at: FieldValue.serverTimestamp(),
+    started_at: admin.firestore.FieldValue.serverTimestamp(),
+    updated_at: admin.firestore.FieldValue.serverTimestamp(),
     message_count: 0,
   });
 
   batch.create(ref.collection("messages").doc(), {
     type: "USER",
     uid: uid,
-    created_at: FieldValue.serverTimestamp(),
+    created_at: admin.firestore.FieldValue.serverTimestamp(),
     message,
   });
 
@@ -179,7 +193,7 @@ exports.newMessage = functions.https.onCall(async (data, ctx) => {
     type: "USER",
     status: Status.PENDING,
     uid: uid,
-    created_at: FieldValue.serverTimestamp(),
+    created_at: admin.firestore.FieldValue.serverTimestamp(),
     message,
   });
 });
@@ -195,14 +209,16 @@ exports.onNewMessage = functions.firestore
       .doc(conversationId);
     let finalized = false;
 
+    functions.logger.log("New message", { conversationId, type, message, uid });
+
     await ref.update({
-      updated_at: FieldValue.serverTimestamp(),
-      message_count: FieldValue.increment(1),
+      updated_at: admin.firestore.FieldValue.serverTimestamp(),
+      message_count: admin.firestore.FieldValue.increment(1),
     });
 
     if (type === "USER") {
       const sessionPath = sessionClient.projectAgentSessionPath(
-        config.projectId,
+        PROJECT_ID,
         conversationId
       );
 
@@ -232,7 +248,7 @@ exports.onNewMessage = functions.firestore
         batch.create(ref.collection("messages").doc(), {
           type: "BOT",
           status: Status.SUCCESS,
-          created_at: FieldValue.serverTimestamp(),
+          created_at: admin.firestore.FieldValue.serverTimestamp(),
           message: intent.queryResult.fulfillmentText,
         });
 
@@ -243,7 +259,7 @@ exports.onNewMessage = functions.firestore
         batch.create(ref.collection("messages").doc(), {
           type: "BOT",
           status: Status.SUCCESS,
-          created_at: FieldValue.serverTimestamp(),
+          created_at: admin.firestore.FieldValue.serverTimestamp(),
           message: "Response from DialogFlow",
         });
       }

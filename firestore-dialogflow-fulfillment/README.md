@@ -1,14 +1,52 @@
-# WIP
+# Firestore DialogFlow Fulfillment
 
-Setup the dev environment:
+This extension integrates with DialogFlow through Firestore.
 
-(Make sure `firebase-tools` is installed: `npm i -g firebase-tools` and you are using Node 14 (`nvm use 14`)).
+## Setup and development
+
+You need a DialogFlow agent and Firebase project to use this extension.
+
+### DialogFlow Calendar Intent
+
+1. Create a new agent in DialogFlow.
+2. Add a new intent to the agent named `intent.calendar`.
+3. Train the agent on phrases like:
+   1. I have a meeting `tomorrow` at `6 PM`.
+   2. Set an appointment on `Wednesday` at `2 PM`.
+
+   Annotate the date and time expressions.
+4. Add 2 parameters: `DATE` and `TIME`. Give them the `@sys.date` and `@sys.time` entity types respectively. Make them required. Provide a prompt for each.
+
+### Install The Extension
+
+#### Pre-requisites
+
+1. Make sure `firebase-tools` is installed: `npm i -g firebase-tools`.
+2. You are using Node 14 (`nvm use 14`).
+
+#### Install
+
+To install the extension, run:
+
+```bash
+firebase ext:install . --project=extensions-testing
+```
+
+The extension will deploy a HTTP function that will be used as a Fullfilment webhook for DialogFlow. The function will look like this, with the `PROJECT_ID` replaced with your project ID, and the `LOCATION` replaced with your project's default Cloud Functions location:
+
+```bash
+https://{LOCATION}-{PROJECT_ID}.cloudfunctions.net/ext-firestore-dialogflow-fulfillment-dialogflowFulfillment
+```
+
+Provide the URL to DialogFlow as the Fulfillment webhook URL.
+
+### Development
 
 1. `cd firestore-dialogflow-fulfillment/functions` && `npm run build`
 2. `cd firestore-dialogflow-fulfillment/demo` && `npm run dev`
 3. `cd _emulator` && `firebase emulators:start`
 
-# DialogFlow
+## DialogFlow
 
 https://dialogflow.cloud.google.com/#/agent/extensions-testing/editIntent/334a55e8-3280-4651-b1d8-109ceb78cfd4/
 

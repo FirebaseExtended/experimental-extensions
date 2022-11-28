@@ -15,6 +15,6 @@
  */
 
 export default {
-  projectId: "extensions-testing",
+  defaultDuration: parseInt(process.env.DEFAULT_DURATION ?? "30"),
   servicePath: "../extensions-testing-firebase.json",
 };
