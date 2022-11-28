@@ -16,7 +16,7 @@
 
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
-import "firebase-functions";
+import { FieldValue } from "firebase-admin/firestore";
 
 import { WebhookClient } from "dialogflow-fulfillment-helper";
 import { HttpsError } from "firebase-functions/v1/auth";
@@ -193,7 +193,7 @@ exports.newMessage = functions.https.onCall(async (data, ctx) => {
     type: "USER",
     status: Status.PENDING,
     uid: uid,
-    created_at: admin.firestore.FieldValue.serverTimestamp(),
+    created_at: FieldValue.serverTimestamp(),
     message,
   });
 });
@@ -212,8 +212,8 @@ exports.onNewMessage = functions.firestore
     functions.logger.log("New message", { conversationId, type, message, uid });
 
     await ref.update({
-      updated_at: admin.firestore.FieldValue.serverTimestamp(),
-      message_count: admin.firestore.FieldValue.increment(1),
+      updated_at: FieldValue.serverTimestamp(),
+      message_count: FieldValue.increment(1),
     });
 
     if (type === "USER") {
