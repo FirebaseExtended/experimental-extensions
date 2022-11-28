@@ -21,7 +21,7 @@ import { FieldValue } from "firebase-admin/firestore";
 import { WebhookClient } from "dialogflow-fulfillment-helper";
 import { HttpsError } from "firebase-functions/v1/auth";
 import DialogFlow from "@google-cloud/dialogflow";
-import { google } from "googleapis";
+import { calendar_v3, google } from "googleapis";
 import { GaxiosError } from "gaxios";
 
 import config from "./config";
@@ -48,13 +48,17 @@ const PROJECT_ID = adminConfig.projectId;
 
 const dialogflow = DialogFlow.v2beta1;
 const sessionClient = new dialogflow.SessionsClient({
-  projectId: process.env.GCP_PROJECT,
+  projectId: PROJECT_ID,
   ...(fs.existsSync(config.servicePath) && { keyFilename: config.servicePath }),
 });
 
 const SCOPE = ["https://www.googleapis.com/auth/calendar"];
 
 async function createCalendarEvent(dateTime: Date) {
+  functions.logger.info(
+    "Authenticating with Google Calendar API for project: " + PROJECT_ID
+  );
+
   const auth = new google.auth.GoogleAuth({
     scopes: SCOPE,
     projectId: PROJECT_ID,
@@ -74,7 +78,7 @@ async function createCalendarEvent(dateTime: Date) {
     dateTime.getTime() + config.defaultDuration * 60000
   );
 
-  var event = {
+  const event: calendar_v3.Schema$Event = {
     summary: "Meeting by DialogFlow",
     description: "This is a meeting created by DialogFlow",
     start: {
@@ -96,6 +100,8 @@ async function createCalendarEvent(dateTime: Date) {
   };
 
   try {
+    functions.logger.info("Inserting a new event for: " + PROJECT_ID);
+
     await calendar.events.insert({
       requestBody: event,
       calendarId: process.env.CALENDAR_ID,
