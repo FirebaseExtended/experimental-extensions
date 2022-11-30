@@ -27,6 +27,7 @@ const adminConfig: {
 
 export default {
   projectId: adminConfig.projectId,
+  agentName: process.env.AGENT_NAME!,
   defaultDuration: parseInt(process.env.DEFAULT_DURATION ?? "30"),
   langugageCode: process.env.LANGUAGE_CODE ?? "en",
   timeZone: process.env.TIMEZONE ?? "UTC",

@@ -23,6 +23,14 @@ roles:
     reason: Allows the extension to write to your Firestore Database instance.
 
 resources:
+  - name: createDialogflowAgent
+    type: firebaseextensions.v1beta.function
+    description:
+      Create a new agent named ${param:AGENT_NAME} and set-up required intents.
+    properties:
+      location: ${param:LOCATION}
+      runtime: nodejs14
+      taskQueueTrigger: {}
   - name: newConversation
     type: firebaseextensions.v1beta.function
     description: todo
@@ -52,6 +60,11 @@ resources:
       location: ${LOCATION}
       runtime: nodejs14
       httpsTrigger: {}
+
+lifecycleEvents:
+  onInstall:
+    function: createDialogflowAgent
+    processingMessage: "Create a new agent named ${param:AGENT_NAME} and set-up required intents."
 
 params:
   - param: LOCATION
@@ -113,4 +126,11 @@ params:
     type: string
     default: "UTC"
     required: false
+  - param: AGENT_NAME
+    label: The diaplay name of the DialogFlow agent.
+    description: >-
+      The diaplay name of the DialogFlow agent.
+    type: string
+    required: true
+    immutable: true
 

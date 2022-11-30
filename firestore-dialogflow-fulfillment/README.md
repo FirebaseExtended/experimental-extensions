@@ -2,24 +2,9 @@
 
 This extension integrates with DialogFlow through Firestore.
 
-## Setup and development
+## Install The Extension
 
-You need a DialogFlow agent and Firebase project to use this extension.
-
-### DialogFlow Calendar Intent
-
-1. Create a new agent in DialogFlow.
-2. Add a new intent to the agent named `intent.calendar`.
-3. Train the agent on phrases like:
-   1. I have a meeting `tomorrow` at `6 PM`.
-   2. Set an appointment on `Wednesday` at `2 PM`.
-
-   Annotate the date and time expressions.
-4. Add 2 parameters: `DATE` and `TIME`. Give them the `@sys.date` and `@sys.time` entity types respectively. Make them required. Provide a prompt for each.
-
-### Install The Extension
-
-#### Pre-requisites
+### Pre-requisites
 
 1. Make sure `firebase-tools` is installed: `npm i -g firebase-tools`.
 2. You are using Node 14 (`nvm use 14`).
