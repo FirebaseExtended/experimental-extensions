@@ -99,8 +99,9 @@ export const transcribeAudio = functions.storage
 
       if (transcodeResult.state === "failure") {
         logs.transcodingFailed(transcodeResult);
-        eventChannel &&
-          (await publishFailureEvent(eventChannel, transcodeResult));
+        if (eventChannel) {
+          await publishFailureEvent(eventChannel, transcodeResult);
+        }
         return;
       }
 
@@ -118,24 +119,27 @@ export const transcribeAudio = functions.storage
 
       if (transcriptionResult.state === "failure") {
         logs.transcribingFailed(transcriptionResult);
-        eventChannel &&
-          (await publishFailureEvent(eventChannel, transcriptionResult));
+        if (eventChannel) {
+          await publishFailureEvent(eventChannel, transcriptionResult);
+        }
         return;
       }
 
-      eventChannel &&
-        (await publishCompleteEvent(eventChannel, transcriptionResult));
+      if (eventChannel) {
+        await publishCompleteEvent(eventChannel, transcriptionResult);
+      }
       return;
     } catch (err) {
       const error = errorFromAny(err);
       logs.error(error);
 
-      eventChannel &&
-        (await eventChannel.publish({
+      if (eventChannel) {
+        await eventChannel.publish({
           type: "firebase.extensions.storage-transcribe-audio.v1.fail",
           data: {
             error,
           },
-        }));
+        });
+      }
     }
   });
