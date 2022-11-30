@@ -33,39 +33,31 @@ admin.initializeApp();
 
 var fs = require("fs");
 
-const firebaseConfig = process.env.FIREBASE_CONFIG;
-if (firebaseConfig === undefined) {
-  throw new Error("Firebase Config is undefined");
-}
-
-const adminConfig: {
-  databaseURL: string;
-  storageBucket: string;
-  projectId: string;
-} = JSON.parse(firebaseConfig);
-
-const PROJECT_ID = adminConfig.projectId;
+const SCOPE = [
+  "https://www.googleapis.com/auth/calendar",
+  "https://www.googleapis.com/auth/dialogflow",
+];
 
 const dialogflow = DialogFlow.v2beta1;
+
+const auth = new google.auth.GoogleAuth({
+  scopes: SCOPE,
+  projectId: config.projectId,
+  ...(fs.existsSync(config.servicePath) && {
+    keyFilename: config.servicePath,
+  }),
+});
+
 const sessionClient = new dialogflow.SessionsClient({
-  projectId: PROJECT_ID,
+  projectId: config.projectId,
+  auth: auth,
   ...(fs.existsSync(config.servicePath) && { keyFilename: config.servicePath }),
 });
 
-const SCOPE = ["https://www.googleapis.com/auth/calendar"];
-
 async function createCalendarEvent(dateTime: Date) {
   functions.logger.info(
-    "Authenticating with Google Calendar API for project: " + PROJECT_ID
+    "Authenticating with Google Calendar API for project: " + config.projectId
   );
-
-  const auth = new google.auth.GoogleAuth({
-    scopes: SCOPE,
-    projectId: PROJECT_ID,
-    ...(fs.existsSync(config.servicePath) && {
-      keyFilename: config.servicePath,
-    }),
-  });
 
   const authClient = await auth.getClient();
 
@@ -83,11 +75,11 @@ async function createCalendarEvent(dateTime: Date) {
     description: "This is a meeting created by DialogFlow",
     start: {
       dateTime: dateTime.toISOString(),
-      timeZone: "UTC",
+      timeZone: config.timeZone,
     },
     end: {
       dateTime: dateTimeEnd.toISOString(),
-      timeZone: "UTC",
+      timeZone: config.timeZone,
     },
     attendees: [],
     reminders: {
@@ -100,7 +92,7 @@ async function createCalendarEvent(dateTime: Date) {
   };
 
   try {
-    functions.logger.info("Inserting a new event for: " + PROJECT_ID);
+    functions.logger.info("Inserting a new event for: " + config.projectId);
 
     await calendar.events.insert({
       requestBody: event,
@@ -215,8 +207,6 @@ exports.onNewMessage = functions.firestore
       .doc(conversationId);
     let finalized = false;
 
-    functions.logger.log("New message", { conversationId, type, message, uid });
-
     await ref.update({
       updated_at: FieldValue.serverTimestamp(),
       message_count: FieldValue.increment(1),
@@ -224,7 +214,7 @@ exports.onNewMessage = functions.firestore
 
     if (type === "USER") {
       const sessionPath = sessionClient.projectAgentSessionPath(
-        PROJECT_ID,
+        config.projectId,
         conversationId
       );
 
@@ -232,12 +222,12 @@ exports.onNewMessage = functions.firestore
         session: sessionPath,
         queryInput: {
           text: {
-            languageCode: "en", // TODO make this configurable?
+            languageCode: config.langugageCode,
             text: message,
           },
         },
         queryParams: {
-          timeZone: "UTC",
+          timeZone: config.timeZone,
           uid: uid,
         },
       };

@@ -14,7 +14,21 @@
  * limitations under the License.
  */
 
+const firebaseConfig = process.env.FIREBASE_CONFIG;
+if (firebaseConfig === undefined) {
+  throw new Error("Firebase Config is undefined");
+}
+
+const adminConfig: {
+  databaseURL: string;
+  storageBucket: string;
+  projectId: string;
+} = JSON.parse(firebaseConfig);
+
 export default {
+  projectId: adminConfig.projectId,
   defaultDuration: parseInt(process.env.DEFAULT_DURATION ?? "30"),
+  langugageCode: process.env.LANGUAGE_CODE ?? "en",
+  timeZone: process.env.TIMEZONE ?? "UTC",
   servicePath: "../extensions-testing-firebase.json",
 };

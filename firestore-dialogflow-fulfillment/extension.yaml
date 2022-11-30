@@ -18,6 +18,10 @@ apis:
   - apiName: dialogflow.googleapis.com
     reason: Powers all DialogFlow tasks performed by the extension.
 
+roles:
+  - role: datastore.user
+    reason: Allows the extension to write to your Firestore Database instance.
+
 resources:
   - name: newConversation
     type: firebaseextensions.v1beta.function
@@ -93,9 +97,20 @@ params:
     type: number
     default: 30
     required: false
+  - param: LANGUAGE_CODE
+    label: The language code of the DialogFlow agent.
+    description: >-
+      The language code of the DialogFlow agent.
+    # TODO - add a list of supported languages
+    type: string
+    default: "en"
+    required: false
+  - param: TIMEZONE
+    label: The timezone of the event to be scheduled.
+    description: >-
+      The timezone of the event to be scheduled.
+    # TODO - add a list of timezones
+    type: string
+    default: "UTC"
+    required: false
 
-roles:
-  - role: datastore.user
-    reason: Allows the extension to write to your Firestore Database instance.
-  - role: dialogflow.sessions.detectIntent
-    reason: Allows the extension to detect intents from Dialogflow.
