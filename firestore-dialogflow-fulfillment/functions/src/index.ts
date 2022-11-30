@@ -17,6 +17,7 @@
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
 import { FieldValue } from "firebase-admin/firestore";
+import { getExtensions } from "firebase-admin/extensions";
 
 import { WebhookClient } from "dialogflow-fulfillment-helper";
 import { HttpsError } from "firebase-functions/v1/auth";
@@ -311,7 +312,9 @@ exports.createDialogflowAgent = functions.tasks
   .taskQueue()
   .onDispatch(onInstall);
 
-async function onInstall(data: any, task: functions.tasks.TaskContext) {
+async function onInstall(data: any) {
+  const runtime = getExtensions().runtime();
+
   const agent = new dialogflow.AgentsClient({
     auth: auth,
     projectId: config.projectId,
@@ -390,8 +393,14 @@ async function onInstall(data: any, task: functions.tasks.TaskContext) {
       },
     });
 
-    functions.logger.info("Dialogflow agent created 🎉");
+    await runtime.setProcessingState(
+      "PROCESSING_COMPLETE",
+      `Successfully creeated a new agent named ${config.agentName}.`
+    );
   } catch (error) {
-    functions.logger.error(error);
+    await runtime.setProcessingState(
+      "PROCESSING_FAILED",
+      `Agent ${config.agentName} wasn't created.`
+    );
   }
 }
