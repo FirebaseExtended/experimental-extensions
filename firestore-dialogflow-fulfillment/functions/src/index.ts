@@ -17,13 +17,108 @@
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
 import { FieldValue } from "firebase-admin/firestore";
+
 import { WebhookClient } from "dialogflow-fulfillment-helper";
 import { HttpsError } from "firebase-functions/v1/auth";
 import DialogFlow from "@google-cloud/dialogflow";
+import { calendar_v3, google } from "googleapis";
+import { GaxiosError } from "gaxios";
+
 import config from "./config";
+import Status from "./types/status";
+import Conversation from "./types/conversation";
+import { extratDate, getDateTimeFormatted } from "./util";
+
+admin.initializeApp();
+
+var fs = require("fs");
+
+const firebaseConfig = process.env.FIREBASE_CONFIG;
+if (firebaseConfig === undefined) {
+  throw new Error("Firebase Config is undefined");
+}
+
+const adminConfig: {
+  databaseURL: string;
+  storageBucket: string;
+  projectId: string;
+} = JSON.parse(firebaseConfig);
+
+const PROJECT_ID = adminConfig.projectId;
 
 const dialogflow = DialogFlow.v2beta1;
-admin.initializeApp();
+const sessionClient = new dialogflow.SessionsClient({
+  projectId: PROJECT_ID,
+  ...(fs.existsSync(config.servicePath) && { keyFilename: config.servicePath }),
+});
+
+const SCOPE = ["https://www.googleapis.com/auth/calendar"];
+
+async function createCalendarEvent(dateTime: Date) {
+  functions.logger.info(
+    "Authenticating with Google Calendar API for project: " + PROJECT_ID
+  );
+
+  const auth = new google.auth.GoogleAuth({
+    scopes: SCOPE,
+    projectId: PROJECT_ID,
+    ...(fs.existsSync(config.servicePath) && {
+      keyFilename: config.servicePath,
+    }),
+  });
+
+  const authClient = await auth.getClient();
+
+  const calendar = google.calendar({
+    version: "v3",
+    auth: authClient,
+  });
+
+  var dateTimeEnd = new Date(
+    dateTime.getTime() + config.defaultDuration * 60000
+  );
+
+  const event: calendar_v3.Schema$Event = {
+    summary: "Meeting by DialogFlow",
+    description: "This is a meeting created by DialogFlow",
+    start: {
+      dateTime: dateTime.toISOString(),
+      timeZone: "UTC",
+    },
+    end: {
+      dateTime: dateTimeEnd.toISOString(),
+      timeZone: "UTC",
+    },
+    attendees: [],
+    reminders: {
+      useDefault: false,
+      overrides: [
+        { method: "email", minutes: 24 * 60 },
+        { method: "popup", minutes: 10 },
+      ],
+    },
+  };
+
+  try {
+    functions.logger.info("Inserting a new event for: " + PROJECT_ID);
+
+    await calendar.events.insert({
+      requestBody: event,
+      calendarId: process.env.CALENDAR_ID,
+    });
+  } catch (error) {
+    if (
+      error instanceof GaxiosError &&
+      error.code &&
+      parseInt(error.code) === 404
+    ) {
+      throw new HttpsError("not-found", "Calendar not found");
+    } else {
+      functions.logger.error(error);
+      throw error;
+    }
+  }
+}
 
 exports.newConversation = functions.https.onCall(async (data, ctx) => {
   if (!ctx.auth) {
@@ -49,15 +144,15 @@ exports.newConversation = functions.https.onCall(async (data, ctx) => {
 
   batch.create(ref, {
     users: [uid],
-    started_at: FieldValue.serverTimestamp(),
-    updated_at: FieldValue.serverTimestamp(),
-    message_count: 1,
+    started_at: admin.firestore.FieldValue.serverTimestamp(),
+    updated_at: admin.firestore.FieldValue.serverTimestamp(),
+    message_count: 0,
   });
 
   batch.create(ref.collection("messages").doc(), {
     type: "USER",
     uid: uid,
-    created_at: FieldValue.serverTimestamp(),
+    created_at: admin.firestore.FieldValue.serverTimestamp(),
     message,
   });
 
@@ -91,7 +186,7 @@ exports.newMessage = functions.https.onCall(async (data, ctx) => {
     throw new HttpsError("not-found", "The conversation does not exist.");
   }
 
-  const { users } = snapshot.data() as any; // TODO: add types
+  const { users } = snapshot.data() as Conversation;
 
   if (!users.includes(uid)) {
     throw new HttpsError(
@@ -102,7 +197,7 @@ exports.newMessage = functions.https.onCall(async (data, ctx) => {
 
   await ref.collection("messages").doc().create({
     type: "USER",
-    status: "PENDING",
+    status: Status.PENDING,
     uid: uid,
     created_at: FieldValue.serverTimestamp(),
     message,
@@ -113,11 +208,14 @@ exports.onNewMessage = functions.firestore
   .document("conversations/{conversationId}/{messageCollectionId}/{messageId}")
   .onCreate(async (change, ctx) => {
     const { conversationId } = ctx.params;
-    const { type, message } = change.data() as any; // TODO: add types
+    const { type, message, uid } = change.data() as any; // TODO: add types
     const ref = admin
       .firestore()
       .collection("conversations")
       .doc(conversationId);
+    let finalized = false;
+
+    functions.logger.log("New message", { conversationId, type, message, uid });
 
     await ref.update({
       updated_at: FieldValue.serverTimestamp(),
@@ -125,54 +223,62 @@ exports.onNewMessage = functions.firestore
     });
 
     if (type === "USER") {
-      // const sessionClient = new dialogflow.SessionsClient();
+      const sessionPath = sessionClient.projectAgentSessionPath(
+        PROJECT_ID,
+        conversationId
+      );
 
-      // TODO handle error
-      // const [intent] = await sessionClient.detectIntent({
-      //   session: `projects/${config.projectId}/agent/sessions/${conversationId}`,
-      //   queryInput: {
-      //     text: {
-      //       languageCode: "en", // TODO make this configurable?
-      //       text: message,
-      //     },
-      //   },
-      // });
+      const request = {
+        session: sessionPath,
+        queryInput: {
+          text: {
+            languageCode: "en", // TODO make this configurable?
+            text: message,
+          },
+        },
+        queryParams: {
+          timeZone: "UTC",
+          uid: uid,
+        },
+      };
 
-      // console.log(intent);
+      const [intent] = await sessionClient.detectIntent(request);
 
       const batch = admin.firestore().bulkWriter();
 
       batch.update(change.ref, {
-        status: "SUCCESS",
+        status: Status.SUCCESS,
       });
 
-      // TODO: get data from intent and add to message
-
-      batch.create(
-        admin
-          .firestore()
-          .collection("conversations")
-          .doc(conversationId)
-          .collection("messages")
-          .doc(),
-        {
+      if (intent.queryResult?.fulfillmentText) {
+        batch.create(ref.collection("messages").doc(), {
           type: "BOT",
-          status: "SUCCESS",
-          created_at: FieldValue.serverTimestamp(),
-          message: "Response from DialogFlow",
+          status: Status.SUCCESS,
+          created_at: admin.firestore.FieldValue.serverTimestamp(),
+          message: intent.queryResult.fulfillmentText,
+        });
+
+        if (intent.queryResult.intent?.displayName === "intent.calendar") {
+          finalized = true;
         }
-      );
+      } else {
+        batch.create(ref.collection("messages").doc(), {
+          type: "BOT",
+          status: Status.SUCCESS,
+          created_at: admin.firestore.FieldValue.serverTimestamp(),
+          message: "Response from DialogFlow",
+        });
+      }
 
-      // const finalized = true;
-
-      // if (finalized) {
-      //   batch.update(
-      //     admin.firestore().collection("conversations").doc(conversationId),
-      //     {
-      //       status: "COMPLETE",
-      //     }
-      //   );
-      // }
+      if (finalized) {
+        batch.update(ref, {
+          status: Status.COMPLETE,
+        });
+      } else {
+        batch.update(ref, {
+          status: Status.PENDING,
+        });
+      }
 
       await batch.close();
     }
@@ -180,23 +286,35 @@ exports.onNewMessage = functions.firestore
 
 exports.dialogflowFulfillment = functions.https.onRequest(
   async (request, response) => {
-    console.log(request.body);
-    const agent1 = new WebhookClient({ request, response });
+    const agent = new WebhookClient({ request, response });
     const intents = new Map<string, any>();
+
     intents.set("ext.fallback", (agent: any) => {
       agent.add("fallback response...");
     });
 
-    intents.set("intent.calendar", (agent: any) => {
-      const params = agent.parameters;
-      console.log({ params });
-      if (params?.DATE && params?.TIME) {
-        // TODO - check calendar
-        agent.add("SUCCESSS!!!!!!!!!");
+    intents.set("intent.calendar", async (agent: any) => {
+      const { parameters } = agent;
+
+      if (parameters?.DATE && parameters?.TIME) {
+        const dateTime = extratDate(parameters.DATE, parameters.TIME);
+        const dateTimeFormatted = getDateTimeFormatted(dateTime);
+        try {
+          await createCalendarEvent(dateTime);
+          agent.add(`You are all set for ${dateTimeFormatted}. See you then!`);
+        } catch (error) {
+          if (error instanceof HttpsError && error.code === "not-found") {
+            agent.add(`Sorry, I couldn't find your calendar.`);
+          } else {
+            agent.add(
+              `I'm sorry, there are no slots available for ${dateTimeFormatted}.`
+            );
+          }
+        }
       }
     });
 
-    return agent1.handleRequest(intents);
+    return agent.handleRequest(intents);
   }
 );
 

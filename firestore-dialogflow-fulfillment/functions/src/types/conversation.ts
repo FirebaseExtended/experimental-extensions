@@ -14,7 +14,12 @@
  * limitations under the License.
  */
 
-export default {
-  defaultDuration: parseInt(process.env.DEFAULT_DURATION ?? "30"),
-  servicePath: "../extensions-testing-firebase.json",
-};
+import Status from "./status";
+
+export default interface Conversation {
+  message_count: number;
+  started_at: Date;
+  updated_at: Date;
+  status: Status;
+  users: string[];
+}

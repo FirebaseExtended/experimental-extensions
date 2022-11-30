@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
-export default {
-  defaultDuration: parseInt(process.env.DEFAULT_DURATION ?? "30"),
-  servicePath: "../extensions-testing-firebase.json",
-};
+enum Status {
+  PENDING = "PENDING",
+  SUCCESS = "SUCCESS",
+  COMPLETE = "COMPLETE",
+  ERROR = "ERROR",
+}
+
+export default Status;

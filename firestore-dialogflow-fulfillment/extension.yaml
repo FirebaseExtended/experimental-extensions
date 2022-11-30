@@ -2,7 +2,7 @@ name: firestore-dialogflow-fulfillment
 version: 0.0.1
 specVersion: v1beta
 
-displayName: TODO
+displayName: Firestore DialogFlow Fulfillment
 description: TODO
 
 license: Apache-2.0 # The license you want for the extension
@@ -79,7 +79,23 @@ params:
     default: us-central1
     required: true
     immutable: true
+  - param: CALENDAR_ID
+    label: Calendar ID
+    description: >-
+      The ID of the calendar to use for scheduling events.
+    type: string
+    default: ""
+    required: true
+  - param: DEFAULT_DURATION
+    label: Default event duration
+    description: >-
+      The default duration of events in minutes.
+    type: number
+    default: 30
+    required: false
 
 roles:
   - role: datastore.user
     reason: Allows the extension to write to your Firestore Database instance.
+  - role: dialogflow.sessions.detectIntent
+    reason: Allows the extension to detect intents from Dialogflow.
