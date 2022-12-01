@@ -1,7 +1,5 @@
-import { UploadResponse } from "@google-cloud/storage";
 
 export type TranscodeAudioResult = TranscodeAudioSuccess | Failure;
-
 export type TranscribeAudioResult = TranscribeAudioSuccess | Failure;
 
 export enum Status {
@@ -15,7 +13,6 @@ export interface TranscodeAudioSuccess {
   warnings: WarningType[];
   audioChannelCount: number;
   outputPath: string;
-  uploadResponse: UploadResponse;
 }
 
 export interface TranscribeAudioSuccess {

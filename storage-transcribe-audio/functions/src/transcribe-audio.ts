@@ -1,6 +1,6 @@
 import { SpeechClient } from "@google-cloud/speech";
 import { google } from "@google-cloud/speech/build/protos/protos";
-import { Bucket } from "@google-cloud/storage";
+import { Bucket, UploadResponse } from "@google-cloud/storage";
 import * as ffmpeg from "fluent-ffmpeg";
 
 import {
@@ -100,14 +100,10 @@ export async function transcribeAndUpload({
   };
 }
 
-export async function transcodeToLinear16AndUpload(
-  {
-    localCopyPath,
-    storageOutputPath,
-  }: { localCopyPath: string; storageOutputPath: string },
-  bucket: Bucket
+export async function transcodeToLinear16(
+  localTmpPath: string,
 ): Promise<TranscodeAudioResult> {
-  const probeData: ffmpeg.FfprobeData = await probePromise(localCopyPath);
+  const probeData: ffmpeg.FfprobeData = await probePromise(localTmpPath);
   const warnings: WarningType[] = [];
 
   logs.debug("probe data before transcription:", probeData);
@@ -141,12 +137,12 @@ export async function transcodeToLinear16AndUpload(
     };
   }
 
-  const localOutputPath = localCopyPath + TRANSCODE_TARGET_FILE_EXTENSION;
+  const localTranscodedPath = localTmpPath + TRANSCODE_TARGET_FILE_EXTENSION;
   logs.debug("transcoding locally");
   try {
     await transcodeLocally({
-      inputPath: localCopyPath,
-      outputPath: localOutputPath,
+      inputPath: localTmpPath,
+      outputPath: localTranscodedPath,
     });
   } catch (error: unknown) {
     const { err, stdout, stderr } = error as {
@@ -167,21 +163,20 @@ export async function transcodeToLinear16AndUpload(
   }
   logs.debug("finished transcoding locally");
 
-  logs.debug("uploading transcoded file");
-  const uploadResponse = await bucket.upload(localOutputPath, {
-    destination: storageOutputPath,
-    metadata: { metadata: { isTranscodeOutput: true } },
-  });
-  logs.debug("uploaded transcoded file");
-
   return {
     status: Status.SUCCESS,
     sampleRateHertz: streams[0].sample_rate,
     audioChannelCount: streams[0].channels,
-    uploadResponse,
-    outputPath: storageOutputPath,
+    outputPath: localTranscodedPath,
     warnings,
   };
+}
+
+export async function uploadTranscodedFile({localPath, storagePath, bucket}: {localPath: string; storagePath: string; bucket: Bucket}): Promise<UploadResponse> {
+  return bucket.upload(localPath, {
+    destination: storagePath,
+    metadata: { metadata: { isTranscodeOutput: true } },
+  });
 }
 
 async function transcodeLocally({
