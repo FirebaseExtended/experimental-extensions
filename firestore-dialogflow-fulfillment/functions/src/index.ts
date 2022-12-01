@@ -387,9 +387,30 @@ exports.createDialogflowAgent = functions.https.onCall(async (_, ctx) => {
               },
             ],
           },
+          {
+            type: "EXAMPLE",
+            parts: [
+              {
+                text: "I have a meeting ",
+              },
+              {
+                text: "tomorrow",
+                entityType: "@sys.date",
+              },
+              {
+                text: " at ",
+              },
+              {
+                text: "9 PM",
+                entityType: "@sys.time",
+              },
+            ],
+          },
         ],
       },
     });
+
+    return "Successfully created Dialogflow agent.";
 
     // await runtime.setProcessingState(
     //   "PROCESSING_COMPLETE",
@@ -397,6 +418,8 @@ exports.createDialogflowAgent = functions.https.onCall(async (_, ctx) => {
     // );
   } catch (error) {
     functions.logger.error(error);
+
+    throw new HttpsError("internal", `Couldn't create agent`, error);
     // await runtime.setProcessingState(
     //   "PROCESSING_FAILED",
     //   `Agent ${config.agentName} wasn't created.`
