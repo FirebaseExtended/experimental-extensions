@@ -29,10 +29,12 @@ import {
 } from "./util";
 import mkdirp = require("mkdirp");
 import {
-  transcodeToLinear16AndUpload,
+  transcodeToLinear16,
   transcribeAndUpload,
+  uploadTranscodedFile,
 } from "./transcribe-audio";
 import { Status } from "./types";
+import config from "./config";
 
 admin.initializeApp();
 
@@ -90,13 +92,7 @@ export const transcribeAudio = functions.storage
       await remoteFile.download({ destination: localCopyPath });
       logs.audioDownloaded(filePath, localCopyPath);
 
-      const transcodeResult = await transcodeToLinear16AndUpload(
-        {
-          localCopyPath,
-          storageOutputPath: "out.wav",
-        },
-        bucket
-      );
+      const transcodeResult = await transcodeToLinear16(localCopyPath);
 
       if (transcodeResult.status == Status.FAILURE) {
         logs.transcodingFailed(transcodeResult);
@@ -106,10 +102,15 @@ export const transcribeAudio = functions.storage
         return;
       }
 
+      logs.debug("uploading transcoded file");
+      const [file /*, metadata */] = await uploadTranscodedFile({
+        localPath: transcodeResult.outputPath,
+        storagePath: (config.outputCollection || "") + transcodeResult,
+        bucket: bucket,
+      })
+      logs.debug("uploaded transcoded file");
+
       const { sampleRateHertz, audioChannelCount } = transcodeResult;
-      const {
-        uploadResponse: [file /*, metadata */],
-      } = transcodeResult;
 
       const transcriptionResult = await transcribeAndUpload({
         client,
