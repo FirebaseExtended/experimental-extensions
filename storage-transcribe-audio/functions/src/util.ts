@@ -2,9 +2,7 @@ import * as util from "util";
 import * as ffmpeg from "fluent-ffmpeg";
 import {
   Failure,
-  failureTypeToMessage,
   TranscribeAudioSuccess,
-  warningTypeToMessage,
 } from "./types";
 import { Channel } from "firebase-admin/eventarc";
 import {google} from "@google-cloud/speech/build/protos/protos";
@@ -66,7 +64,7 @@ export const probePromise = util.promisify<string, ffmpeg.FfprobeData>(
 
 export async function publishFailureEvent(
   eventChannel: Channel,
-  { state, ...contents }: Failure
+  { status, ...contents }: Failure
 ): Promise<void> {
   return eventChannel.publish({
     type: "firebase.extensions.storage-transcribe-audio.v1.fail",
@@ -78,7 +76,7 @@ export async function publishFailureEvent(
 
 export async function publishCompleteEvent(
   eventChannel: Channel,
-  { state, ...contents }: TranscribeAudioSuccess
+  { status, ...contents }: TranscribeAudioSuccess
 ): Promise<void> {
   return eventChannel.publish({
     type: "firebase.extensions.storage-transcribe-audio.v1.complete",

@@ -8,6 +8,7 @@ import {
   WarningType,
   FailureType,
   TranscribeAudioResult,
+  Status,
 } from "./types";
 import * as logs from "./logs";
 import config from "./config";
@@ -50,7 +51,7 @@ export async function transcribeAndUpload({
 
   if (response.outputError) {
     return {
-      state: "failure",
+      status: Status.FAILURE,
       warnings,
       type: FailureType.TRANSCRIPTION_UPLOAD_FAILED,
       details: {
@@ -63,7 +64,7 @@ export async function transcribeAndUpload({
   logs.receivedLongRunningRecognizeResponse(response);
   if (response.results == null) {
     return {
-      state: "failure",
+      status: Status.FAILURE,
       warnings,
       type: FailureType.NULL_TRANSCRIPTION,
     };
@@ -73,7 +74,7 @@ export async function transcribeAndUpload({
 
   if (!isNullFreeList(taggedTranscription)) {
     return {
-      state: "failure",
+      status: Status.FAILURE,
       warnings,
       type: FailureType.NULL_TRANSCRIPTION,
     };
@@ -93,7 +94,7 @@ export async function transcribeAndUpload({
 
   logs.logResponseTranscription(transcription);
   return {
-    state: "success",
+    status: Status.SUCCESS,
     warnings,
     transcription,
   };
@@ -114,7 +115,7 @@ export async function transcodeToLinear16AndUpload(
 
   if (streams.length === 0) {
     return {
-      state: "failure",
+      status: Status.FAILURE,
       type: FailureType.ZERO_STREAMS,
       warnings,
     };
@@ -126,7 +127,7 @@ export async function transcodeToLinear16AndUpload(
 
   if (streams[0].sample_rate == null) {
     return {
-      state: "failure",
+      status: Status.FAILURE,
       type: FailureType.NULL_SAMPLE_RATE,
       warnings,
     };
@@ -134,7 +135,7 @@ export async function transcodeToLinear16AndUpload(
 
   if (streams[0].channels == null) {
     return {
-      state: "failure",
+      status: Status.FAILURE,
       type: FailureType.NULL_CHANNELS,
       warnings,
     };
@@ -154,7 +155,7 @@ export async function transcodeToLinear16AndUpload(
       stderr: string;
     };
     return {
-      state: "failure",
+      status: Status.FAILURE,
       type: FailureType.FFMPEG_FAILURE,
       warnings,
       details: {
@@ -174,7 +175,7 @@ export async function transcodeToLinear16AndUpload(
   logs.debug("uploaded transcoded file");
 
   return {
-    state: "success",
+    status: Status.SUCCESS,
     sampleRateHertz: streams[0].sample_rate,
     audioChannelCount: streams[0].channels,
     uploadResponse,
