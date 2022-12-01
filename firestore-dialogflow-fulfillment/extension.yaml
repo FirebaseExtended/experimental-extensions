@@ -17,10 +17,14 @@ billingRequired: true
 apis:
   - apiName: dialogflow.googleapis.com
     reason: Powers all DialogFlow tasks performed by the extension.
+  - apiName: calendar-json.googleapis.com
+    reason: Powers all Calendar tasks performed by the extension.
 
 roles:
   - role: datastore.user
     reason: Allows the extension to write to your Firestore Database instance.
+  - role: dialogflow.client
+    reason: Allows the extension to detect intents.
 
 resources:
   - name: createDialogflowAgent
@@ -30,7 +34,7 @@ resources:
     properties:
       location: ${param:LOCATION}
       runtime: nodejs14
-      taskQueueTrigger: {}
+      httpsTrigger: {}
   - name: newConversation
     type: firebaseextensions.v1beta.function
     description: todo
@@ -61,10 +65,10 @@ resources:
       runtime: nodejs14
       httpsTrigger: {}
 
-lifecycleEvents:
-  onInstall:
-    function: createDialogflowAgent
-    processingMessage: "Create a new agent named ${param:AGENT_NAME} and set-up required intents."
+# lifecycleEvents:
+#   onInstall:
+#     function: createDialogflowAgent
+#     processingMessage: "Create a new agent named ${param:AGENT_NAME} and set-up required intents."
 
 params:
   - param: LOCATION
