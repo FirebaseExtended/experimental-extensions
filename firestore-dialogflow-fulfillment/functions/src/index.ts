@@ -17,8 +17,6 @@
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
 import { FieldValue } from "firebase-admin/firestore";
-import { getExtensions } from "firebase-admin/extensions";
-
 import { WebhookClient } from "dialogflow-fulfillment-helper";
 import { HttpsError } from "firebase-functions/v1/auth";
 import DialogFlow from "@google-cloud/dialogflow";
@@ -32,38 +30,23 @@ import { extratDate, getDateTimeFormatted } from "./util";
 
 admin.initializeApp();
 
-var fs = require("fs");
-
-const SCOPE = [
-  "https://www.googleapis.com/auth/calendar",
-  "https://www.googleapis.com/auth/dialogflow",
-];
+// var fs = require("fs");
 
 const dialogflow = DialogFlow.v2beta1;
-
-const auth = new google.auth.GoogleAuth({
-  scopes: SCOPE,
-  projectId: config.projectId,
-  ...(fs.existsSync(config.servicePath) && {
-    keyFilename: config.servicePath,
-  }),
-});
-
-const sessionClient = new dialogflow.SessionsClient({
-  projectId: config.projectId,
-  auth: auth,
-});
 
 async function createCalendarEvent(dateTime: Date) {
   functions.logger.info(
     "Authenticating with Google Calendar API for project: " + config.projectId
   );
-
-  const authClient = await auth.getClient();
+  const auth = new google.auth.GoogleAuth({
+    projectId: config.projectId,
+    scopes: ["https://www.googleapis.com/auth/calendar"],
+  });
+  const client = await auth.getClient();
 
   const calendar = google.calendar({
     version: "v3",
-    auth: authClient,
+    auth: client,
   });
 
   var dateTimeEnd = new Date(
@@ -136,15 +119,15 @@ exports.newConversation = functions.https.onCall(async (data, ctx) => {
 
   batch.create(ref, {
     users: [uid],
-    started_at: admin.firestore.FieldValue.serverTimestamp(),
-    updated_at: admin.firestore.FieldValue.serverTimestamp(),
+    started_at: FieldValue.serverTimestamp(),
+    updated_at: FieldValue.serverTimestamp(),
     message_count: 0,
   });
 
   batch.create(ref.collection("messages").doc(), {
     type: "USER",
     uid: uid,
-    created_at: admin.firestore.FieldValue.serverTimestamp(),
+    created_at: FieldValue.serverTimestamp(),
     message,
   });
 
@@ -212,7 +195,19 @@ exports.onNewMessage = functions.firestore
       message_count: FieldValue.increment(1),
     });
 
+    const auth = new google.auth.GoogleAuth({
+      projectId: config.projectId,
+      scopes: [
+        "https://www.googleapis.com/auth/cloud-platform",
+        "https://www.googleapis.com/auth/dialogflow",
+      ],
+    });
+
     if (type === "USER") {
+      const sessionClient = new dialogflow.SessionsClient({
+        auth: auth,
+      });
+
       const sessionPath = sessionClient.projectAgentSessionPath(
         config.projectId,
         conversationId
@@ -232,45 +227,49 @@ exports.onNewMessage = functions.firestore
         },
       };
 
-      const [intent] = await sessionClient.detectIntent(request);
+      try {
+        var [intent] = await sessionClient.detectIntent(request);
 
-      const batch = admin.firestore().bulkWriter();
+        const batch = admin.firestore().bulkWriter();
 
-      batch.update(change.ref, {
-        status: Status.SUCCESS,
-      });
-
-      if (intent.queryResult?.fulfillmentText) {
-        batch.create(ref.collection("messages").doc(), {
-          type: "BOT",
+        batch.update(change.ref, {
           status: Status.SUCCESS,
-          created_at: admin.firestore.FieldValue.serverTimestamp(),
-          message: intent.queryResult.fulfillmentText,
         });
 
-        if (intent.queryResult.intent?.displayName === "intent.calendar") {
-          finalized = true;
+        if (intent.queryResult?.fulfillmentText) {
+          batch.create(ref.collection("messages").doc(), {
+            type: "BOT",
+            status: Status.SUCCESS,
+            created_at: admin.firestore.FieldValue.serverTimestamp(),
+            message: intent.queryResult.fulfillmentText,
+          });
+
+          if (intent.queryResult.intent?.displayName === "intent.calendar") {
+            finalized = true;
+          }
+        } else {
+          batch.create(ref.collection("messages").doc(), {
+            type: "BOT",
+            status: Status.SUCCESS,
+            created_at: admin.firestore.FieldValue.serverTimestamp(),
+            message: "Response from DialogFlow",
+          });
         }
-      } else {
-        batch.create(ref.collection("messages").doc(), {
-          type: "BOT",
-          status: Status.SUCCESS,
-          created_at: admin.firestore.FieldValue.serverTimestamp(),
-          message: "Response from DialogFlow",
-        });
-      }
 
-      if (finalized) {
-        batch.update(ref, {
-          status: Status.COMPLETE,
-        });
-      } else {
-        batch.update(ref, {
-          status: Status.PENDING,
-        });
-      }
+        if (finalized) {
+          batch.update(ref, {
+            status: Status.COMPLETE,
+          });
+        } else {
+          batch.update(ref, {
+            status: Status.PENDING,
+          });
+        }
 
-      await batch.close();
+        await batch.close();
+      } catch (error) {
+        functions.logger.error(error);
+      }
     }
   });
 
@@ -308,21 +307,19 @@ exports.dialogflowFulfillment = functions.https.onRequest(
   }
 );
 
-exports.createDialogflowAgent = functions.tasks
-  .taskQueue()
-  .onDispatch(onInstall);
-
-async function onInstall(data: any) {
-  const runtime = getExtensions().runtime();
+exports.createDialogflowAgent = functions.https.onCall(async (_, ctx) => {
+  // const runtime = getExtensions().runtime();
+  const auth = new google.auth.GoogleAuth({
+    projectId: config.projectId,
+    scopes: "https://www.googleapis.com/auth/dialogflow",
+  });
 
   const agent = new dialogflow.AgentsClient({
     auth: auth,
-    projectId: config.projectId,
   });
 
   const intentsClient = new dialogflow.IntentsClient({
     auth: auth,
-    projectId: config.projectId,
   });
 
   try {
@@ -369,6 +366,7 @@ async function onInstall(data: any) {
             prompts: ["What time would you like to schedule the appointment?"],
           },
         ],
+        webhookState: "WEBHOOK_STATE_ENABLED",
         trainingPhrases: [
           {
             type: "EXAMPLE",
@@ -393,14 +391,15 @@ async function onInstall(data: any) {
       },
     });
 
-    await runtime.setProcessingState(
-      "PROCESSING_COMPLETE",
-      `Successfully creeated a new agent named ${config.agentName}.`
-    );
+    // await runtime.setProcessingState(
+    //   "PROCESSING_COMPLETE",
+    //   `Successfully creeated a new agent named ${config.agentName}.`
+    // );
   } catch (error) {
-    await runtime.setProcessingState(
-      "PROCESSING_FAILED",
-      `Agent ${config.agentName} wasn't created.`
-    );
+    functions.logger.error(error);
+    // await runtime.setProcessingState(
+    //   "PROCESSING_FAILED",
+    //   `Agent ${config.agentName} wasn't created.`
+    // );
   }
-}
+});
