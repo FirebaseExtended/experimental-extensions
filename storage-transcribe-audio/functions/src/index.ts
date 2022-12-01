@@ -32,6 +32,7 @@ import {
   transcodeToLinear16AndUpload,
   transcribeAndUpload,
 } from "./transcribe-audio";
+import { Status } from "./types";
 
 admin.initializeApp();
 
@@ -97,7 +98,7 @@ export const transcribeAudio = functions.storage
         bucket
       );
 
-      if (transcodeResult.state === "failure") {
+      if (transcodeResult.status == Status.FAILURE) {
         logs.transcodingFailed(transcodeResult);
         if (eventChannel) {
           await publishFailureEvent(eventChannel, transcodeResult);
@@ -107,7 +108,7 @@ export const transcribeAudio = functions.storage
 
       const { sampleRateHertz, audioChannelCount } = transcodeResult;
       const {
-        uploadResponse: [file /* metadata */],
+        uploadResponse: [file /*, metadata */],
       } = transcodeResult;
 
       const transcriptionResult = await transcribeAndUpload({
@@ -117,7 +118,7 @@ export const transcribeAudio = functions.storage
         audioChannelCount,
       });
 
-      if (transcriptionResult.state === "failure") {
+      if (transcriptionResult.status == Status.FAILURE) {
         logs.transcribingFailed(transcriptionResult);
         if (eventChannel) {
           await publishFailureEvent(eventChannel, transcriptionResult);

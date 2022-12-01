@@ -4,8 +4,13 @@ export type TranscodeAudioResult = TranscodeAudioSuccess | Failure;
 
 export type TranscribeAudioResult = TranscribeAudioSuccess | Failure;
 
+export enum Status {
+  SUCCESS,
+  FAILURE
+}
+
 export interface TranscodeAudioSuccess {
-  state: "success";
+  status: Status.SUCCESS;
   sampleRateHertz: number;
   warnings: WarningType[];
   audioChannelCount: number;
@@ -14,13 +19,13 @@ export interface TranscodeAudioSuccess {
 }
 
 export interface TranscribeAudioSuccess {
-  state: "success";
+  status: Status.SUCCESS;
   warnings: WarningType[];
   transcription: Record<number, string[]>;
 }
 
 export interface Failure {
-  state: "failure";
+  status: Status.FAILURE;
   warnings: WarningType[];
   type: FailureType;
   details?: any;
