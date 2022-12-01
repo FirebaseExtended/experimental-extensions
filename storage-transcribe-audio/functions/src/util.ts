@@ -7,6 +7,7 @@ import {
   warningTypeToMessage,
 } from "./types";
 import { Channel } from "firebase-admin/eventarc";
+import {google} from "@google-cloud/speech/build/protos/protos";
 
 export function errorFromAny(anyErr: any): Error {
   let error: Error;
@@ -22,17 +23,26 @@ export function errorFromAny(anyErr: any): Error {
   return error;
 }
 
-export function isTaggedStringArray(
-  transcription?: (readonly [
-    number | null | undefined,
-    string | null | undefined
-  ])[]
-): transcription is [number, string][] {
-  return (
-    transcription != null &&
-    transcription.every(([tag, string]) => tag != null && string != null)
-  );
-}
+export function isNullFreeList<T>(list: (NonNullable<T> | null | undefined)[])
+  : list is NonNullable<T>[] {
+    return list.every((item) => item != null);
+  }
+
+export function getTaggedTranscriptionOrNull(result: google.cloud.speech.v1.ISpeechRecognitionResult):
+  ([number, string] | null) {
+    const channelTag = result?.channelTag;
+
+    // The API supports requests for multiple alternative transcriptions, so it
+    // gives an array of transcription alternatives.
+    //
+    // Since we're not using that feature, our transcript will be in the first alternative.
+    const transcript = result?.alternatives?.[0].transcript;
+    if (channelTag == null || transcript == null) {
+      return null;
+    }
+
+    return [channelTag, transcript];
+  }
 
 export function separateByTags(
   taggedStringList: [number, string][]
