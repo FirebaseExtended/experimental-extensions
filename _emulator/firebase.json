@@ -1,5 +1,7 @@
 {
   "extensions": {
+    "firestore-record-user-acknowledgements": "../firestore-record-user-acknowledgements",
+    "firestore-bundle-server": "../firestore-bundle-server",
     "firestore-dialogflow-fulfillment": "../firestore-dialogflow-fulfillment"
   },
   "storage": {
@@ -34,7 +36,11 @@
   },
   "hosting": {
     "public": "dist",
-    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
     "rewrites": [
       {
         "source": "/bundles/*",
