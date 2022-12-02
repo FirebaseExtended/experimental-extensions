@@ -10,7 +10,7 @@ This will create a new DialogFlow agent named `${param:AGENT_NAME}` for you. You
 
 ## Setting up DialogFlow Fulfillment
 
-First, copy this URL `https://${param:LOCATION}-${param:PROJECT_ID}.cloudfunctions.net/ext-firestore-dialogflow-fulfillment-dialogflowFulfillment`, which is the URL of the DialogFlow webhook.
+First, copy this URL, which is the URL of the DialogFlow webhook: `https://${param:LOCATION}-${param:PROJECT_ID}.cloudfunctions.net/ext-firestore-dialogflow-fulfillment-dialogflowFulfillment`
 
 Next, go to the DialogFlow console [here](https://dialogflow.cloud.google.com/#/agent/${param:PROJECT_ID}/fulfillment), enable the Webhook and add this URL as the Fulfillment webhook URL.
 
