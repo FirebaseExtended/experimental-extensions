@@ -36,8 +36,8 @@ import { Status } from "./types";
 
 admin.initializeApp();
 
-const eventChannel: Channel | null = process.env.EXT_SELECTED_EVENTS
-  ? getEventarc().channel(process.env.EXT_SELECTED_EVENTS, {
+const eventChannel: Channel | null = process.env.EVENTARC_CHANNEL
+  ? getEventarc().channel(process.env.EVENTARC_CHANNEL, {
       allowedEventTypes: process.env.EXT_SELECTED_EVENTS,
     })
   : null;
