@@ -93,11 +93,10 @@ exports.createBigQueryConnection = functions.tasks
     const runtime = (0, extensions_1.getExtensions)().runtime();
     console.log("Task received => ", task);
     const parent = `projects/${config_1.default.projectId}/locations/${config_1.default.location}`;
-    functions.logger.debug(`${parent}/connections/deidentify`);
     try {
         const connection1 = await bigqueryConnectionClient.createConnection({
             parent: parent,
-            connectionId: `${parent}/connections/deidentify`,
+            connectionId: `deidentify`,
             connection: {
                 cloudResource: {
                     serviceAccountId: "ext-bigquery-dlp-function@extensions-testing.iam.gserviceaccount.com",
@@ -108,7 +107,7 @@ exports.createBigQueryConnection = functions.tasks
         });
         const connection2 = await bigqueryConnectionClient.createConnection({
             parent: parent,
-            connectionId: `projects/${config_1.default.projectId}/locations/${config_1.default.location}/connections/reidentify`,
+            connectionId: `reidentify`,
             connection: {
                 cloudResource: {
                     serviceAccountId: "ext-bigquery-dlp-function@extensions-testing.iam.gserviceaccount.com",
@@ -127,7 +126,7 @@ exports.createBigQueryConnection = functions.tasks
       )`;
             const options = {
                 query: query,
-                location: "US",
+                location: config_1.default.location,
             };
             // Run the query as a job
             const [job] = await bigqueryClient.createQueryJob(options);

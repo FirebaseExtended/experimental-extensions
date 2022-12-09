@@ -127,12 +127,10 @@ exports.createBigQueryConnection = functions.tasks
 
     const parent = `projects/${config.projectId}/locations/${config.location}`;
 
-    functions.logger.debug(`${parent}/connections/deidentify`);
-
     try {
       const connection1 = await bigqueryConnectionClient.createConnection({
         parent: parent,
-        connectionId: `${parent}/connections/deidentify`,
+        connectionId: `deidentify`,
         connection: {
           cloudResource: {
             serviceAccountId:
@@ -145,7 +143,7 @@ exports.createBigQueryConnection = functions.tasks
 
       const connection2 = await bigqueryConnectionClient.createConnection({
         parent: parent,
-        connectionId: `projects/${config.projectId}/locations/${config.location}/connections/reidentify`,
+        connectionId: `reidentify`,
         connection: {
           cloudResource: {
             serviceAccountId:
@@ -168,7 +166,7 @@ exports.createBigQueryConnection = functions.tasks
 
         const options = {
           query: query,
-          location: "US",
+          location: config.location,
         };
 
         // Run the query as a job

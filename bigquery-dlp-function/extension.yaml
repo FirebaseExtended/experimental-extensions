@@ -26,8 +26,8 @@ apis:
     reason: Allows the extension to create a BigQuery connection.
 
 roles:
-  # - role: actions.Viewer
-  #   reason: Allows the extension to use services.
+  - role: bigquery.jobUser
+    reason: Allows the extension to create BigQuery jobs.
   - role: bigquery.connectionAdmin
     reason: Allows the extension to create a BigQuery connection.
 
