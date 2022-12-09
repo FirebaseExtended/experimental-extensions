@@ -1,23 +1,22 @@
 import * as functions from "firebase-functions";
+import * as admin from "firebase-admin";
 import DLP from "@google-cloud/dlp";
 import { ConnectionServiceClient } from "@google-cloud/bigquery-connection";
+import { BigQuery } from "@google-cloud/bigquery";
+import { getExtensions } from "firebase-admin/extensions";
+
 import config from "./config";
 import CallMode from "./types/call_mode";
 
 const CALL_MODE_KEY = "mode";
-const TRANSFORM_ALGO_KEY = "algo";
 
-// Instantiates a client
-const dlp = new DLP.DlpServiceClient({
-  keyFilename: config.servicePath,
-});
-const bigqueryClient = new ConnectionServiceClient({
-  keyFilename: config.servicePath,
-});
+admin.initializeApp();
 
-interface Item {
-  value: string;
-}
+const dlp = new DLP.DlpServiceClient();
+const bigqueryClient = new BigQuery();
+const bigqueryConnectionClient = new ConnectionServiceClient();
+
+interface CallerRow {}
 
 interface BQRequest {
   requestId: string;
@@ -27,24 +26,6 @@ interface BQRequest {
   calls: [];
 }
 
-const deidentifyConfig = {
-  parent: parent,
-  deidentifyConfig: {
-    infoTypeTransformations: {
-      transformations: [
-        {
-          primitiveTransformation: {
-            characterMaskConfig: {
-              maskingCharacter: "x",
-              numberToMask: 5,
-            },
-          },
-        },
-      ],
-    },
-  },
-};
-
 /**
  * Deidentify sensitive data in a string using the Data Loss Prevention API.
  *
@@ -52,45 +33,69 @@ const deidentifyConfig = {
  *
  * @returns {string} The deidentified text.
  */
-async function deidentifyWithMask(rows: Item[]) {
+async function deidentifyWithMask(rows: CallerRow[]) {
   const deidentifiedItems = [];
 
-  const parent = `projects/${config.projectId}/locations/${location}`;
+  const parent = `projects/${config.projectId}/locations/${config.location}`;
+  const deidentifyConfig = {
+    parent: parent,
+    deidentifyConfig: {
+      infoTypeTransformations: {
+        transformations: [
+          {
+            primitiveTransformation: {
+              characterMaskConfig: {
+                maskingCharacter: "x",
+                numberToMask: 5,
+              },
+            },
+          },
+        ],
+      },
+    },
+  };
 
   for (const row of rows) {
-    const request = {
-      ...deidentifyConfig,
-      item: { value: row.value },
-      parent: parent,
-    };
+    for (const value in row) {
+      const request = {
+        ...deidentifyConfig,
+        item: { value: value },
+        parent: parent,
+      };
+      const [response] = await dlp.deidentifyContent(request);
+      deidentifiedItems.push(response.item?.value);
 
-    const [response] = await dlp.deidentifyContent(request);
-    deidentifiedItems.push(response.item?.value);
-
-    console.log(response);
+      functions.logger.debug(response);
+    }
   }
 
   return deidentifiedItems;
 }
 
-export const deidentifyData = functions.https.onCall(async (data, ctx) => {
-  const bqrequest = data as BQRequest;
+export const deidentifyData = functions.https.onRequest(
+  async (request, response) => {
+    const { calls } = request.body as BQRequest;
 
-  const options = checkNotNull(bqrequest.userDefinedContext);
-  const callMode = identifyCallMode(options);
+    functions.logger.debug("Incoming request from BigQuery", request.body);
 
-  switch (callMode) {
-    case CallMode.DEIDENTIFY:
-      break;
-    case CallMode.REIDENTIFY:
-      break;
+    // const options = checkNotNull(userDefinedContext);
+    // const callMode = identifyCallMode(options);
+
+    // switch (callMode) {
+    //   case CallMode.DEIDENTIFY:
+    //     break;
+    //   case CallMode.REIDENTIFY:
+    //     break;
+    // }
+
+    try {
+      const result = await deidentifyWithMask(calls);
+      response.send(JSON.stringify({ replies: result }));
+    } catch (error) {
+      response.status(500).send(`Something wrong happend ${error}`);
+    }
   }
-
-  const items = bqrequest.calls;
-  const result = await deidentifyWithMask(items);
-
-  return JSON.stringify(result);
-});
+);
 
 function checkNotNull(options: BQRequest["userDefinedContext"]) {
   if (options == null) {
@@ -113,19 +118,79 @@ function identifyCallMode(options: any): string {
   }
 }
 
-exports.onInstall = functions.tasks.taskQueue().onDispatch(async (task) => {
-  const data = task.data;
-  console.log("Task received: ", data);
+exports.createBigQueryConnection = functions.tasks
+  .taskQueue()
+  .onDispatch(async (task) => {
+    const runtime = getExtensions().runtime();
 
-  const projectId = data.projectId;
-  const location = data.location;
-  const parent = `projects/${projectId}/locations/${location}`;
+    console.log("Task received => ", task);
 
-  const connection = bigqueryClient.createConnection({
-    parent: parent,
-    connection: { name: "deidentifyData", cloudResource: {} },
-    connectionId: "connectionId",
+    const parent = `projects/${config.projectId}/locations/${config.location}`;
+
+    functions.logger.debug(`${parent}/connections/deidentify`);
+
+    try {
+      const connection1 = await bigqueryConnectionClient.createConnection({
+        parent: parent,
+        connectionId: `${parent}/connections/deidentify`,
+        connection: {
+          cloudResource: {
+            serviceAccountId:
+              "ext-bigquery-dlp-function@extensions-testing.iam.gserviceaccount.com",
+          },
+          name: "deidentify",
+          friendlyName: "Deidentify Data",
+        },
+      });
+
+      const connection2 = await bigqueryConnectionClient.createConnection({
+        parent: parent,
+        connectionId: `projects/${config.projectId}/locations/${config.location}/connections/reidentify`,
+        connection: {
+          cloudResource: {
+            serviceAccountId:
+              "ext-bigquery-dlp-function@extensions-testing.iam.gserviceaccount.com",
+          },
+          name: "reidentify",
+          friendlyName: "Reidentify Data",
+        },
+      });
+
+      functions.logger.info("Connection 1 => ", connection1);
+      functions.logger.info("Connection 2 => ", connection2);
+
+      if (connection1 && connection2) {
+        const query = `CREATE FUNCTION \`${config.projectId}.${config.datasetId}\`.deindetify(data STRING) RETURNS STRING
+      REMOTE WITH CONNECTION \`${config.projectId}.${config.location}.ext-bq-dlp.deidentify\`
+      OPTIONS (
+        endpoint = 'https://${config.location}-${config.projectId}.cloudfunctions.net/ext-bigquery-dlp-function-deidentifyData'
+      )`;
+
+        const options = {
+          query: query,
+          location: "US",
+        };
+
+        // Run the query as a job
+        const [job] = await bigqueryClient.createQueryJob(options);
+        functions.logger.debug(`Job ${job.id} started.`);
+
+        // Wait for the query to finish
+        const [rows] = await job.getQueryResults();
+
+        functions.logger.debug("Rows: ", rows);
+
+        await runtime.setProcessingState(
+          "PROCESSING_COMPLETE",
+          "Connections created successfully."
+        );
+      }
+    } catch (error) {
+      functions.logger.error(error);
+
+      await runtime.setProcessingState(
+        "PROCESSING_FAILED",
+        "Connections were not created."
+      );
+    }
   });
-
-  console.log("Connection: ", connection);
-});

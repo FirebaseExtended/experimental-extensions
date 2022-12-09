@@ -16,5 +16,6 @@
 
 export default {
   projectId: process.env.PROJECT_ID,
-  servicePath: "../extensions-sample-firebase-adminsdk.json",
+  datasetId: process.env.DATASET_ID,
+  location: process.env.LOCATION,
 };

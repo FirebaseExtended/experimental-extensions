@@ -17,6 +17,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = {
     projectId: process.env.PROJECT_ID,
-    servicePath: "../extensions-sample-firebase-adminsdk.json",
+    datasetId: process.env.DATASET_ID,
+    location: process.env.LOCATION,
 };
 //# sourceMappingURL=config.js.map

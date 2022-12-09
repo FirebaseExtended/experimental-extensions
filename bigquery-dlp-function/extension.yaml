@@ -9,37 +9,36 @@ author:
   authorName: Firebase
   url: https://firebase.google.com
 
-# Friendly display name for your extension (~3-5 words)
 displayName: BigQuery DLP Remote Function
 
-# Brief description of the task your extension performs (~1 sentence)
 description: TODO
 
 license: Apache-2.0 # https://spdx.org/licenses/
 
-# Public URL for the source code of your extension
 sourceUrl: TODO
 
-# Specify whether a paid-tier billing plan is required to use your extension.
-# Learn more in the docs: https://firebase.google.com/docs/extensions/alpha/ref-extension-yaml#billing-required-field
 billingRequired: true
 
-# In an `apis` field, list any Google APIs (like Cloud Translation, BigQuery, etc.)
-# required for your extension to operate.
-# Learn more in the docs: https://firebase.google.com/docs/extensions/alpha/ref-extension-yaml#apis-field
 apis:
   - apiName: bigquery.googleapis.com
     reason: Powers all BigQuery tasks performed by the extension.
+  - apiName: bigqueryconnection.googleapis.com
+    reason: Allows the extension to create a BigQuery connection.
 
-# In a `roles` field, list any IAM access roles required for your extension to operate.
-# Learn more in the docs: https://firebase.google.com/docs/extensions/alpha/ref-extension-yaml#roles-field
 roles:
-  - role: actions.Viewer
-    reason: Allows the extension to create BigQuery jobs.
+  # - role: actions.Viewer
+  #   reason: Allows the extension to use services.
+  - role: bigquery.connectionAdmin
+    reason: Allows the extension to create a BigQuery connection.
 
-# In the `resources` field, list each of your extension's functions, including the trigger for each function.
-# Learn more in the docs: https://firebase.google.com/docs/extensions/alpha/ref-extension-yaml#resources-field
 resources:
+  - name: createBigQueryConnection
+    type: firebaseextensions.v1beta.function
+    description: Creates a BigQuery connection.
+    properties:
+      location: ${param:LOCATION}
+      runtime: nodejs14
+      taskQueueTrigger: {}
   - name: deidentifyData
     type: firebaseextensions.v1beta.function
     description: TODO
@@ -48,9 +47,14 @@ resources:
       runtime: nodejs14
       httpsTrigger: {}
 
-# In the `params` field, set up your extension's user-configured parameters.
-# Learn more in the docs: https://firebase.google.com/docs/extensions/alpha/ref-extension-yaml#params-field
 params:
+  - param: DATASET_ID
+    label: BigQuery Dataset ID
+    description: >-
+      The ID of the dataset where the extension will create a connection.
+    type: string
+    default: deidentified_data
+    required: true
   - param: LOCATION
     label: Cloud Functions location
     description: >-
@@ -101,3 +105,8 @@ params:
     default: us-central1
     required: true
     immutable: true
+
+lifecycleEvents:
+  onInstall:
+    function: createBigQueryConnection
+    processingMessage: "Create BigQuery connections"
