@@ -24,10 +24,14 @@ apis:
     reason: Powers all BigQuery tasks performed by the extension.
   - apiName: bigqueryconnection.googleapis.com
     reason: Allows the extension to create a BigQuery connection.
+  - apiName: dlp.googleapis.com
+    reason: Allows the extension to use DLP services.
 
 roles:
   - role: bigquery.jobUser
     reason: Allows the extension to create BigQuery jobs.
+  - role: bigquery.dataOwner
+    reason: Allows the extension to create BigQuery routines.
   - role: bigquery.connectionAdmin
     reason: Allows the extension to create a BigQuery connection.
 
@@ -109,4 +113,4 @@ params:
 lifecycleEvents:
   onInstall:
     function: createBigQueryConnection
-    processingMessage: "Create BigQuery connections"
+    processingMessage: "Creating BigQuery connections"

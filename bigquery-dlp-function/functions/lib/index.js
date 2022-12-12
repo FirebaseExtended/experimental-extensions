@@ -64,11 +64,14 @@ exports.deidentifyData = functions.https.onRequest(async (request, response) => 
     //     break;
     // }
     try {
-        const result = await deidentifyWithMask(calls);
-        response.send(JSON.stringify({ replies: result }));
+        const bqResponse = {
+            replies: await deidentifyWithMask(calls),
+        };
+        response.send(bqResponse);
     }
     catch (error) {
-        response.status(500).send(`Something wrong happend ${error}`);
+        functions.logger.error(error);
+        response.status(500).send(`errorMessage: ${error}`);
     }
 });
 function checkNotNull(options) {
@@ -93,37 +96,47 @@ exports.createBigQueryConnection = functions.tasks
     const runtime = (0, extensions_1.getExtensions)().runtime();
     console.log("Task received => ", task);
     const parent = `projects/${config_1.default.projectId}/locations/${config_1.default.location}`;
+    const connectionIdPrefix = `ext-bq-dlp-`;
     try {
         const connection1 = await bigqueryConnectionClient.createConnection({
             parent: parent,
-            connectionId: `deidentify`,
+            connectionId: `${connectionIdPrefix}deidentify`,
             connection: {
                 cloudResource: {
                     serviceAccountId: "ext-bigquery-dlp-function@extensions-testing.iam.gserviceaccount.com",
                 },
-                name: "deidentify",
+                name: `${connectionIdPrefix}deidentify`,
                 friendlyName: "Deidentify Data",
             },
         });
         const connection2 = await bigqueryConnectionClient.createConnection({
             parent: parent,
-            connectionId: `reidentify`,
+            connectionId: `${connectionIdPrefix}reidentify`,
             connection: {
                 cloudResource: {
                     serviceAccountId: "ext-bigquery-dlp-function@extensions-testing.iam.gserviceaccount.com",
                 },
-                name: "reidentify",
+                name: `${connectionIdPrefix}reidentify`,
                 friendlyName: "Reidentify Data",
             },
         });
         functions.logger.info("Connection 1 => ", connection1);
         functions.logger.info("Connection 2 => ", connection2);
         if (connection1 && connection2) {
-            const query = `CREATE FUNCTION \`${config_1.default.projectId}.${config_1.default.datasetId}\`.deindetify(data STRING) RETURNS STRING
-      REMOTE WITH CONNECTION \`${config_1.default.projectId}.${config_1.default.location}.ext-bq-dlp.deidentify\`
-      OPTIONS (
-        endpoint = 'https://${config_1.default.location}-${config_1.default.projectId}.cloudfunctions.net/ext-bigquery-dlp-function-deidentifyData'
-      )`;
+            const query = `
+        BEGIN
+          CREATE FUNCTION \`${config_1.default.projectId}.${config_1.default.datasetId}\`.deindetify(data JSON) RETURNS JSON
+          REMOTE WITH CONNECTION \`${config_1.default.projectId}.${config_1.default.location}.${connectionIdPrefix}deidentify\`
+          OPTIONS (
+            endpoint = 'https://${config_1.default.location}-${config_1.default.projectId}.cloudfunctions.net/ext-bigquery-dlp-function-deidentifyData'
+          );
+          CREATE FUNCTION \`${config_1.default.projectId}.${config_1.default.datasetId}\`.reindetify(data JSON) RETURNS JSON
+          REMOTE WITH CONNECTION \`${config_1.default.projectId}.${config_1.default.location}.${connectionIdPrefix}reidentify\`
+          OPTIONS (
+            endpoint = 'https://${config_1.default.location}-${config_1.default.projectId}.cloudfunctions.net/ext-bigquery-dlp-function-deidentifyData'
+          );
+        END;
+         `;
             const options = {
                 query: query,
                 location: config_1.default.location,
