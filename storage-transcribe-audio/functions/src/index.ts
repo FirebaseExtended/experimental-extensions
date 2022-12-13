@@ -103,14 +103,22 @@ export const transcribeAudio = functions.storage
       }
 
       logs.debug("uploading transcoded file");
-      const [file /*, metadata */] = await uploadTranscodedFile({
+      const transcodedUploadResult = await uploadTranscodedFile({
         localPath: transcodeResult.outputPath,
         storagePath: (config.outputCollection || "") + transcodeResult,
         bucket: bucket,
       })
+      if (transcodedUploadResult.status == Status.FAILURE) {
+        logs.transcodeUploadFailed(transcodedUploadResult);
+        if (eventChannel) {
+          await publishFailureEvent(eventChannel, transcodedUploadResult);
+        }
+        return;
+      }
       logs.debug("uploaded transcoded file");
 
       const { sampleRateHertz, audioChannelCount } = transcodeResult;
+      const [file, /*, metadata */] = transcodedUploadResult.uploadResponse;
 
       const transcriptionResult = await transcribeAndUpload({
         client,

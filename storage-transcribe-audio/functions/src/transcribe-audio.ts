@@ -1,6 +1,6 @@
 import { SpeechClient } from "@google-cloud/speech";
 import { google } from "@google-cloud/speech/build/protos/protos";
-import { Bucket, UploadResponse } from "@google-cloud/storage";
+import { Bucket } from "@google-cloud/storage";
 import * as ffmpeg from "fluent-ffmpeg";
 
 import {
@@ -9,6 +9,7 @@ import {
   FailureType,
   TranscribeAudioResult,
   Status,
+  UploadAudioResult,
 } from "./types";
 import * as logs from "./logs";
 import config from "./config";
@@ -172,11 +173,26 @@ export async function transcodeToLinear16(
   };
 }
 
-export async function uploadTranscodedFile({localPath, storagePath, bucket}: {localPath: string; storagePath: string; bucket: Bucket}): Promise<UploadResponse> {
-  return bucket.upload(localPath, {
-    destination: storagePath,
-    metadata: { metadata: { isTranscodeOutput: true } },
-  });
+export async function uploadTranscodedFile({localPath, storagePath, bucket}: {localPath: string; storagePath: string; bucket: Bucket}): Promise<UploadAudioResult> {
+  try {
+    const uploadResponse = await bucket.upload(localPath, {
+      destination: storagePath,
+      metadata: { metadata: { isTranscodeOutput: true } },
+    })
+
+    return {
+      status: Status.SUCCESS,
+      uploadResponse,
+    };
+
+  } catch(err: unknown) {
+    return {
+      status: Status.FAILURE,
+      warnings: [],
+      type: FailureType.TRANSCODED_UPLOAD_FAILED,
+      details: err,
+    }
+  }
 }
 
 async function transcodeLocally({

@@ -22,7 +22,6 @@ import config from "./config";
 import {
   Failure,
   failureTypeToMessage,
-  TranscodeAudioResult,
   warningTypeToMessage,
 } from "./types";
 
@@ -81,6 +80,12 @@ function messageify({ details, warnings, type }: Failure) {
 
 export function transcodingFailed(failure: Failure) {
   logger.error("Failed to transcode audio into linear16", {
+    info: messageify(failure),
+  });
+}
+
+export function transcodeUploadFailed(failure: Failure) {
+  logger.error("Failed to upload transcoded audio", {
     info: messageify(failure),
   });
 }
