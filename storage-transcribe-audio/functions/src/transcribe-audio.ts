@@ -71,6 +71,7 @@ export async function transcribeAndUpload({
     };
   }
 
+  // Intermediate step prior to proper simplification
   const taggedTranscription: ([number, string]|null)[] = response.results.map(getTaggedTranscriptionOrNull)
 
   if (!isNullFreeList(taggedTranscription)) {
