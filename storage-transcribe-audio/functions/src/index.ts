@@ -33,7 +33,7 @@ import {
   transcribeAndUpload,
   uploadTranscodedFile,
 } from "./transcribe-audio";
-import { Status } from "./types";
+import { Status, WarningType } from "./types";
 import config from "./config";
 
 admin.initializeApp();
@@ -78,6 +78,7 @@ export const transcribeAudio = functions.storage
 
     const bucket = admin.storage().bucket(object.bucket);
     const filePath = object.name;
+    const accumulatedWarnings: WarningType[] = [];
 
     try {
       const localCopyPath: string = path.join(os.tmpdir(), filePath);
@@ -93,6 +94,11 @@ export const transcribeAudio = functions.storage
       logs.audioDownloaded(filePath, localCopyPath);
 
       const transcodeResult = await transcodeToLinear16(localCopyPath);
+
+      // no-op right now, but here in case more steps are added
+      // which emit warnings.
+      transcodeResult.warnings.push(...accumulatedWarnings);
+      accumulatedWarnings.push(...transcodeResult.warnings);
 
       if (transcodeResult.status == Status.FAILURE) {
         logs.transcodingFailed(transcodeResult);
@@ -126,6 +132,10 @@ export const transcribeAudio = functions.storage
         sampleRateHertz,
         audioChannelCount,
       });
+
+      // Don't forget previous warnings.
+      transcodeResult.warnings.push(...accumulatedWarnings);
+      accumulatedWarnings.push(...transcodeResult.warnings);
 
       if (transcriptionResult.status == Status.FAILURE) {
         logs.transcribingFailed(transcriptionResult);
