@@ -6,9 +6,6 @@ import { BigQuery } from "@google-cloud/bigquery";
 import { getExtensions } from "firebase-admin/extensions";
 
 import config from "./config";
-import CallMode from "./types/call_mode";
-
-const CALL_MODE_KEY = "mode";
 
 admin.initializeApp();
 
@@ -76,21 +73,11 @@ async function deidentifyWithMask(rows: CallerRow[]) {
   return deidentifiedItems;
 }
 
-export const deidentifyData = functions.https.onRequest(
+exports.deidentifyData = functions.https.onRequest(
   async (request, response) => {
     const { calls } = request.body as BQRequest;
 
     functions.logger.debug("Incoming request from BigQuery", request.body);
-
-    // const options = checkNotNull(userDefinedContext);
-    // const callMode = identifyCallMode(options);
-
-    // switch (callMode) {
-    //   case CallMode.DEIDENTIFY:
-    //     break;
-    //   case CallMode.REIDENTIFY:
-    //     break;
-    // }
 
     try {
       const bqResponse: BQResponse = {
@@ -104,27 +91,6 @@ export const deidentifyData = functions.https.onRequest(
     }
   }
 );
-
-function checkNotNull(options: BQRequest["userDefinedContext"]) {
-  if (options == null) {
-    throw new Error("userDefinedContext is required. Found null.");
-  }
-
-  return { replies: options };
-}
-
-function identifyCallMode(options: any): string {
-  var callMode =
-    CALL_MODE_KEY in options ? (options[CALL_MODE_KEY] as string) : null;
-
-  if (CALL_MODE_KEY in options) {
-    const callModeEnum = callMode as CallMode;
-
-    return callModeEnum;
-  } else {
-    return CallMode.DEIDENTIFY;
-  }
-}
 
 exports.createBigQueryConnection = functions.tasks
   .taskQueue()
@@ -163,8 +129,8 @@ exports.createBigQueryConnection = functions.tasks
         },
       });
 
-      functions.logger.info("Connection 1 => ", connection1);
-      functions.logger.info("Connection 2 => ", connection2);
+      functions.logger.info("Connection 1 created => ", connection1);
+      functions.logger.info("Connection 2 created => ", connection2);
 
       if (connection1 && connection2) {
         const query = `

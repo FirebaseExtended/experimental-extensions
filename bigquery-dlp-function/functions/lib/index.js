@@ -1,6 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deidentifyData = void 0;
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const dlp_1 = require("@google-cloud/dlp");
@@ -8,8 +7,6 @@ const bigquery_connection_1 = require("@google-cloud/bigquery-connection");
 const bigquery_1 = require("@google-cloud/bigquery");
 const extensions_1 = require("firebase-admin/extensions");
 const config_1 = require("./config");
-const call_mode_1 = require("./types/call_mode");
-const CALL_MODE_KEY = "mode";
 admin.initializeApp();
 const dlp = new dlp_1.default.DlpServiceClient();
 const bigqueryClient = new bigquery_1.BigQuery();
@@ -55,14 +52,6 @@ async function deidentifyWithMask(rows) {
 exports.deidentifyData = functions.https.onRequest(async (request, response) => {
     const { calls } = request.body;
     functions.logger.debug("Incoming request from BigQuery", request.body);
-    // const options = checkNotNull(userDefinedContext);
-    // const callMode = identifyCallMode(options);
-    // switch (callMode) {
-    //   case CallMode.DEIDENTIFY:
-    //     break;
-    //   case CallMode.REIDENTIFY:
-    //     break;
-    // }
     try {
         const bqResponse = {
             replies: await deidentifyWithMask(calls),
@@ -74,22 +63,6 @@ exports.deidentifyData = functions.https.onRequest(async (request, response) => 
         response.status(500).send(`errorMessage: ${error}`);
     }
 });
-function checkNotNull(options) {
-    if (options == null) {
-        throw new Error("userDefinedContext is required. Found null.");
-    }
-    return { replies: options };
-}
-function identifyCallMode(options) {
-    var callMode = CALL_MODE_KEY in options ? options[CALL_MODE_KEY] : null;
-    if (CALL_MODE_KEY in options) {
-        const callModeEnum = callMode;
-        return callModeEnum;
-    }
-    else {
-        return call_mode_1.default.DEIDENTIFY;
-    }
-}
 exports.createBigQueryConnection = functions.tasks
     .taskQueue()
     .onDispatch(async (task) => {
@@ -120,8 +93,8 @@ exports.createBigQueryConnection = functions.tasks
                 friendlyName: "Reidentify Data",
             },
         });
-        functions.logger.info("Connection 1 => ", connection1);
-        functions.logger.info("Connection 2 => ", connection2);
+        functions.logger.info("Connection 1 created => ", connection1);
+        functions.logger.info("Connection 2 created => ", connection2);
         if (connection1 && connection2) {
             const query = `
         BEGIN
