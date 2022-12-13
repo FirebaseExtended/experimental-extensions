@@ -1,10 +1,17 @@
+import { UploadResponse } from "@google-cloud/storage";
 
 export type TranscodeAudioResult = TranscodeAudioSuccess | Failure;
 export type TranscribeAudioResult = TranscribeAudioSuccess | Failure;
+export type UploadAudioResult = UploadAudioSuccess | Failure;
 
 export enum Status {
   SUCCESS,
   FAILURE
+}
+
+export interface UploadAudioSuccess {
+  status: Status.SUCCESS,
+  uploadResponse: UploadResponse,
 }
 
 export interface TranscodeAudioSuccess {
@@ -36,6 +43,7 @@ export enum FailureType {
   FFMPEG_FAILURE = 4,
   NULL_TRANSCRIPTION = 5,
   TRANSCRIPTION_UPLOAD_FAILED = 6,
+  TRANSCODED_UPLOAD_FAILED = 7,
 }
 
 export const failureTypeToMessage: Record<FailureType, string> = {
@@ -46,7 +54,9 @@ export const failureTypeToMessage: Record<FailureType, string> = {
   [FailureType.FFMPEG_FAILURE]: "An ffmpeg error ocurred.",
   [FailureType.NULL_TRANSCRIPTION]: "Received a null transcription from API.",
   [FailureType.TRANSCRIPTION_UPLOAD_FAILED]:
-    "An error ocurred when uploading " + "the transcription.",
+    "An error ocurred when uploading the transcription.",
+  [FailureType.TRANSCODED_UPLOAD_FAILED]:
+    "An error ocurred when uploading the transcoded file.",
 };
 
 export enum WarningType {
