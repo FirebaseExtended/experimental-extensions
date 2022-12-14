@@ -13,8 +13,6 @@ const dlp = new DLP.DlpServiceClient();
 const bigqueryClient = new BigQuery();
 const bigqueryConnectionClient = new ConnectionServiceClient();
 
-interface CallerRow {}
-
 interface BQRequest {
   requestId: string;
   callecallerrIp: string;
@@ -34,7 +32,7 @@ interface BQResponse {
  *
  * @returns {string} The deidentified text.
  */
-async function deidentifyWithMask(rows: CallerRow[]) {
+async function deidentifyWithMask(rows:any) {
   const deidentifiedItems = [];
 
   const parent = `projects/${config.projectId}/locations/${config.location}`;
@@ -47,7 +45,6 @@ async function deidentifyWithMask(rows: CallerRow[]) {
             primitiveTransformation: {
               characterMaskConfig: {
                 maskingCharacter: "x",
-                numberToMask: 5,
               },
             },
           },
@@ -57,17 +54,19 @@ async function deidentifyWithMask(rows: CallerRow[]) {
   };
 
   for (const row of rows) {
-    for (const value in row) {
-      const request = {
-        ...deidentifyConfig,
-        item: { value: value },
-        parent: parent,
-      };
-      const [response] = await dlp.deidentifyContent(request);
-      deidentifiedItems.push(response.item?.value);
+    const  data = row[0] as string;
+    functions.logger.debug(data);
 
-      functions.logger.debug(response);
-    }
+    const request = {
+      ...deidentifyConfig,
+      item: { value: data },
+      parent: parent,
+    };
+
+    const [response] = await dlp.deidentifyContent(request);
+    deidentifiedItems.push(response.item?.value);
+
+    functions.logger.debug(response.item);
   }
 
   return deidentifiedItems;
@@ -75,9 +74,9 @@ async function deidentifyWithMask(rows: CallerRow[]) {
 
 exports.deidentifyData = functions.https.onRequest(
   async (request, response) => {
-    const { calls } = request.body as BQRequest;
+    const { calls } = request.body;
 
-    functions.logger.debug("Incoming request from BigQuery", request.body);
+    functions.logger.debug("Incoming request from BigQuery", calls);
 
     try {
       const bqResponse: BQResponse = {
@@ -109,7 +108,7 @@ exports.createBigQueryConnection = functions.tasks
         connection: {
           cloudResource: {
             serviceAccountId:
-              "ext-bigquery-dlp-function@extensions-testing.iam.gserviceaccount.com",
+            `ext-bigquery-dlp-function@${config.projectId}.iam.gserviceaccount.com`,
           },
           name: `${connectionIdPrefix}deidentify`,
           friendlyName: "Deidentify Data",
@@ -135,12 +134,12 @@ exports.createBigQueryConnection = functions.tasks
       if (connection1 && connection2) {
         const query = `
         BEGIN
-          CREATE FUNCTION \`${config.projectId}.${config.datasetId}\`.deindetify(data JSON) RETURNS JSON
+          CREATE FUNCTION \`${config.projectId}.${config.datasetId}\`.deidentify(data STRING) RETURNS STRING
           REMOTE WITH CONNECTION \`${config.projectId}.${config.location}.${connectionIdPrefix}deidentify\`
           OPTIONS (
             endpoint = 'https://${config.location}-${config.projectId}.cloudfunctions.net/ext-bigquery-dlp-function-deidentifyData'
           );
-          CREATE FUNCTION \`${config.projectId}.${config.datasetId}\`.reindetify(data JSON) RETURNS JSON
+          CREATE FUNCTION \`${config.projectId}.${config.datasetId}\`.reindetify(data STRING) RETURNS STRING
           REMOTE WITH CONNECTION \`${config.projectId}.${config.location}.${connectionIdPrefix}reidentify\`
           OPTIONS (
             endpoint = 'https://${config.location}-${config.projectId}.cloudfunctions.net/ext-bigquery-dlp-function-deidentifyData'

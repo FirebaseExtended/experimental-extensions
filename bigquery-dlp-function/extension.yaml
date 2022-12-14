@@ -34,6 +34,8 @@ roles:
     reason: Allows the extension to create BigQuery routines.
   - role: bigquery.connectionAdmin
     reason: Allows the extension to create a BigQuery connection.
+  - role: dlp.user
+    reason: Allows the extension to use DLP services.
 
 resources:
   - name: createBigQueryConnection
