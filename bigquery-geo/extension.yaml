@@ -45,7 +45,7 @@ resources:
       location: ${param:LOCATION}
       runtime: nodejs14
       taskQueueTrigger: {}
-  - name: getLatLongFromAdresses
+  - name: getLatLong
     type: firebaseextensions.v1beta.function
     description: TODO
     properties:
