@@ -57,7 +57,7 @@ async function getDriveTime(origin, destination) {
     });
     return JSON.stringify(result.data.rows[0].elements[0].duration.value);
 }
-exports.getLatLongFromAdresses = functions.https.onRequest(async (req, res) => {
+exports.getLatLong = functions.https.onRequest(async (req, res) => {
     const { calls } = req.body;
     functions.logger.info("BQ Calls ====>", calls);
     const replies = [];
@@ -122,7 +122,7 @@ exports.createBigQueryConnection = functions.tasks
           CREATE FUNCTION \`${config_1.default.projectId}.${config_1.default.datasetId}\`.geocode(call STRING) RETURNS STRING
           REMOTE WITH CONNECTION \`${config_1.default.projectId}.${config_1.default.location}.${connectionId}\`
           OPTIONS (
-            endpoint = 'https://${config_1.default.location}-${config_1.default.projectId}.cloudfunctions.net/ext-bigquery-geocode-getLatLongFromAdresses'
+            endpoint = 'https://${config_1.default.location}-${config_1.default.projectId}.cloudfunctions.net/ext-bigquery-geocode-getLatLong'
           );
           CREATE FUNCTION \`${config_1.default.projectId}.${config_1.default.datasetId}\`.drivingTime(call STRING) RETURNS STRING
           REMOTE WITH CONNECTION \`${config_1.default.projectId}.${config_1.default.location}.${connectionId}\`
