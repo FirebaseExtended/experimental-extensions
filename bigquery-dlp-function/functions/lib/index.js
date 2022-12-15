@@ -41,10 +41,16 @@ async function deidentifyWithMask(rows) {
     for (const row of rows) {
         const data = row[0];
         functions.logger.debug(data);
-        const request = Object.assign(Object.assign({}, deidentifyConfig), { item: { value: data }, parent: parent });
-        const [response] = await dlp.deidentifyContent(request);
-        deidentifiedItems.push((_a = response.item) === null || _a === void 0 ? void 0 : _a.value);
-        functions.logger.debug(response.item);
+        for (const key in data) {
+            if (data.hasOwnProperty(key)) {
+                const element = data[key];
+                const request = Object.assign(Object.assign({}, deidentifyConfig), { item: { value: element }, parent: parent });
+                const [response] = await dlp.deidentifyContent(request);
+                data[key] = (_a = response.item) === null || _a === void 0 ? void 0 : _a.value;
+            }
+        }
+        functions.logger.debug(data);
+        deidentifiedItems.push(data);
     }
     return deidentifiedItems;
 }
@@ -52,10 +58,7 @@ exports.deidentifyData = functions.https.onRequest(async (request, response) => 
     const { calls } = request.body;
     functions.logger.debug("Incoming request from BigQuery", calls);
     try {
-        const bqResponse = {
-            replies: await deidentifyWithMask(calls),
-        };
-        response.send(bqResponse);
+        response.send({ replies: await deidentifyWithMask(calls) });
     }
     catch (error) {
         functions.logger.error(error);
@@ -97,12 +100,12 @@ exports.createBigQueryConnection = functions.tasks
         if (connection1 && connection2) {
             const query = `
         BEGIN
-          CREATE FUNCTION \`${config_1.default.projectId}.${config_1.default.datasetId}\`.deidentify(data STRING) RETURNS STRING
+          CREATE FUNCTION \`${config_1.default.projectId}.${config_1.default.datasetId}\`.deidentify(data JSON) RETURNS JSON
           REMOTE WITH CONNECTION \`${config_1.default.projectId}.${config_1.default.location}.${connectionIdPrefix}deidentify\`
           OPTIONS (
             endpoint = 'https://${config_1.default.location}-${config_1.default.projectId}.cloudfunctions.net/ext-bigquery-dlp-function-deidentifyData'
           );
-          CREATE FUNCTION \`${config_1.default.projectId}.${config_1.default.datasetId}\`.reindetify(data STRING) RETURNS STRING
+          CREATE FUNCTION \`${config_1.default.projectId}.${config_1.default.datasetId}\`.reindetify(data JSON) RETURNS JSON
           REMOTE WITH CONNECTION \`${config_1.default.projectId}.${config_1.default.location}.${connectionIdPrefix}reidentify\`
           OPTIONS (
             endpoint = 'https://${config_1.default.location}-${config_1.default.projectId}.cloudfunctions.net/ext-bigquery-dlp-function-deidentifyData'
