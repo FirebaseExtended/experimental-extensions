@@ -102,14 +102,14 @@ exports.createBigQueryConnection = functions.tasks
     const runtime = (0, extensions_1.getExtensions)().runtime();
     console.log("Task received => ", task);
     const parent = `projects/${config_1.default.projectId}/locations/${config_1.default.location}`;
-    const connectionId = `ext-bigquery-geocode`;
+    const connectionId = `ext-bigquery-geo-functions`;
     try {
         const connection = await bigqueryConnectionClient.createConnection({
             parent: parent,
             connectionId: connectionId,
             connection: {
                 cloudResource: {
-                    serviceAccountId: `ext-bigquery-geo@${config_1.default.projectId}.iam.gserviceaccount.com`,
+                    serviceAccountId: `ext-bigquery-geo-functions@${config_1.default.projectId}.iam.gserviceaccount.com`,
                 },
                 name: connectionId,
                 friendlyName: "Geocode Addresses",
@@ -119,15 +119,15 @@ exports.createBigQueryConnection = functions.tasks
         if (connection) {
             const query = `
         BEGIN
-          CREATE FUNCTION \`${config_1.default.projectId}.${config_1.default.datasetId}\`.geocode(call STRING) RETURNS STRING
+          CREATE FUNCTION \`${config_1.default.projectId}.${config_1.default.datasetId}\`.latLong(call STRING) RETURNS STRING
           REMOTE WITH CONNECTION \`${config_1.default.projectId}.${config_1.default.location}.${connectionId}\`
           OPTIONS (
-            endpoint = 'https://${config_1.default.location}-${config_1.default.projectId}.cloudfunctions.net/ext-bigquery-geocode-getLatLong'
+            endpoint = 'https://${config_1.default.location}-${config_1.default.projectId}.cloudfunctions.net/ext-bigquery-geo-functions-getLatLong'
           );
-          CREATE FUNCTION \`${config_1.default.projectId}.${config_1.default.datasetId}\`.drivingTime(call STRING) RETURNS STRING
+          CREATE FUNCTION \`${config_1.default.projectId}.${config_1.default.datasetId}\`.drivingTime(origin STRING, destination STRING) RETURNS STRING
           REMOTE WITH CONNECTION \`${config_1.default.projectId}.${config_1.default.location}.${connectionId}\`
           OPTIONS (
-            endpoint = 'https://${config_1.default.location}-${config_1.default.projectId}.cloudfunctions.net/ext-bigquery-geocode-getDrivingTime'
+            endpoint = 'https://${config_1.default.location}-${config_1.default.projectId}.cloudfunctions.net/ext-bigquery-geo-functions-getDrivingTime'
           );
         END;
          `;

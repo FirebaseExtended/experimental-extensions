@@ -1,7 +1,7 @@
 # Learn detailed information about the fields of an extension.yaml file in the docs:
 # https://firebase.google.com/docs/extensions/alpha/ref-extension-yaml
 
-name: bigquery-geo # Identifier for your extension
+name: bigquery-geo-functions # Identifier for your extension
 version: 0.0.1 # Follow semver versioning
 specVersion: v1beta # Version of the Firebase Extensions specification
 
@@ -9,7 +9,7 @@ author:
   authorName: Firebase
   url: https://firebase.google.com
 
-displayName: BigQuery Geo
+displayName: BigQuery Geo [عىؤفهخىس]
 
 description: TODO
 
@@ -67,6 +67,7 @@ params:
       The ID of the dataset where the extension will create a connection.
     type: string
     required: true
+    immutable: true
   - param: MAPS_API_KEY
     label: Maps API key
     description: >-

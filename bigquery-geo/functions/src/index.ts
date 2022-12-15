@@ -121,7 +121,7 @@ exports.createBigQueryConnection = functions.tasks
     console.log("Task received => ", task);
 
     const parent = `projects/${config.projectId}/locations/${config.location}`;
-    const connectionId = `ext-bigquery-geocode`;
+    const connectionId = `ext-bigquery-geo-functions`;
 
     try {
       const connection = await bigqueryConnectionClient.createConnection({
@@ -129,8 +129,7 @@ exports.createBigQueryConnection = functions.tasks
         connectionId: connectionId,
         connection: {
           cloudResource: {
-            serviceAccountId:
-              `ext-bigquery-geo@${config.projectId}.iam.gserviceaccount.com`,
+            serviceAccountId: `ext-bigquery-geo-functions@${config.projectId}.iam.gserviceaccount.com`,
           },
           name: connectionId,
           friendlyName: "Geocode Addresses",
@@ -142,15 +141,15 @@ exports.createBigQueryConnection = functions.tasks
       if (connection) {
         const query = `
         BEGIN
-          CREATE FUNCTION \`${config.projectId}.${config.datasetId}\`.geocode(call STRING) RETURNS STRING
+          CREATE FUNCTION \`${config.projectId}.${config.datasetId}\`.latLong(call STRING) RETURNS STRING
           REMOTE WITH CONNECTION \`${config.projectId}.${config.location}.${connectionId}\`
           OPTIONS (
-            endpoint = 'https://${config.location}-${config.projectId}.cloudfunctions.net/ext-bigquery-geocode-getLatLong'
+            endpoint = 'https://${config.location}-${config.projectId}.cloudfunctions.net/ext-bigquery-geo-functions-getLatLong'
           );
-          CREATE FUNCTION \`${config.projectId}.${config.datasetId}\`.drivingTime(call STRING) RETURNS STRING
+          CREATE FUNCTION \`${config.projectId}.${config.datasetId}\`.drivingTime(origin STRING, destination STRING) RETURNS STRING
           REMOTE WITH CONNECTION \`${config.projectId}.${config.location}.${connectionId}\`
           OPTIONS (
-            endpoint = 'https://${config.location}-${config.projectId}.cloudfunctions.net/ext-bigquery-geocode-getDrivingTime'
+            endpoint = 'https://${config.location}-${config.projectId}.cloudfunctions.net/ext-bigquery-geo-functions-getDrivingTime'
           );
         END;
          `;
