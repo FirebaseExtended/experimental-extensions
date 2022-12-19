@@ -54,6 +54,17 @@ resources:
       httpsTrigger: {}
 
 params:
+  - param: TRANSFORMATION_METHOD
+    label: DLP Transformation Method
+    description: >-
+      The method used by Data Loss Prevention API to deidentify and/or encrypt sensitive information in the data.
+    type: select
+    options:
+      - label: Info Type Transformations
+        value: INFO_TYPE
+      - label: Record Type Transformations
+        value: RECORD
+    required: true
   - param: DATASET_ID
     label: BigQuery Dataset ID
     description: >-
@@ -61,6 +72,7 @@ params:
     type: string
     default: deidentified_data
     required: true
+    immutable: true
   - param: LOCATION
     label: Cloud Functions location
     description: >-
