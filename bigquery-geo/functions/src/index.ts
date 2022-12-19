@@ -121,10 +121,11 @@ exports.createBigQueryConnection = functions.tasks
     console.log("Task received => ", task);
 
     const parent = `projects/${config.projectId}/locations/${config.location}`;
-    const connectionId = `ext-bigquery-geo-functions`;
+    const connectionId = config.extInstanceId;
+    var connection;
 
     try {
-      const connection = await bigqueryConnectionClient.createConnection({
+      connection = await bigqueryConnectionClient.createConnection({
         parent: parent,
         connectionId: connectionId,
         connection: {
@@ -137,9 +138,24 @@ exports.createBigQueryConnection = functions.tasks
       });
 
       functions.logger.info("Connection created => ", connection);
+    } catch (error: any) {
+      if (error["code"] === 6) {
+        functions.logger.info(
+          "Connection already exists, will continue creating functions."
+        );
+      } else {
+        functions.logger.error(error);
+        await runtime.setProcessingState(
+          "PROCESSING_FAILED",
+          "Error creating connection. Check logs for more details."
+        );
 
-      if (connection) {
-        const query = `
+        return;
+      }
+    }
+
+    try {
+      const query = `
         BEGIN
           CREATE FUNCTION \`${config.projectId}.${config.datasetId}\`.latLong(call STRING) RETURNS STRING
           REMOTE WITH CONNECTION \`${config.projectId}.${config.location}.${connectionId}\`
@@ -154,25 +170,24 @@ exports.createBigQueryConnection = functions.tasks
         END;
          `;
 
-        const options = {
-          query: query,
-          location: config.location,
-        };
+      const options = {
+        query: query,
+        location: config.location,
+      };
 
-        // Run the query as a job
-        const [job] = await bigqueryClient.createQueryJob(options);
-        functions.logger.debug(`Job ${job.id} started.`);
+      // Run the query as a job
+      const [job] = await bigqueryClient.createQueryJob(options);
+      functions.logger.debug(`Job ${job.id} started.`);
 
-        // Wait for the query to finish
-        const [rows] = await job.getQueryResults();
+      // Wait for the query to finish
+      const [rows] = await job.getQueryResults();
 
-        functions.logger.debug("Rows: ", rows);
+      functions.logger.debug("Rows: ", rows);
 
-        await runtime.setProcessingState(
-          "PROCESSING_COMPLETE",
-          "Connections created successfully."
-        );
-      }
+      await runtime.setProcessingState(
+        "PROCESSING_COMPLETE",
+        "Connections created successfully."
+      );
     } catch (error) {
       functions.logger.error(error);
 

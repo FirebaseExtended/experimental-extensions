@@ -17,6 +17,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = {
     projectId: process.env.PROJECT_ID,
+    extInstanceId: process.env.EXT_INSTANCE_ID,
     datasetId: process.env.DATASET_ID,
     location: process.env.LOCATION,
     googleMapsApiKey: process.env.MAPS_API_KEY,

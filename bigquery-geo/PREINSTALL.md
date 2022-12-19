@@ -20,13 +20,18 @@ This extension:
       WITH result AS (
           SELECT 
               origin,
-              distination,
-              `extensions-sample.bq_dlp_testing`.drivingTime(origin, distination) AS driveTime 
+              distenation,
+              `extensions-sample.bq_dlp_testing`.drivingTime(origin, distenation) AS driveTime 
           FROM `extensions-sample.bq_dlp_testing.addresses`
       )
       SELECT 
           origin, 
-          distination, 
+          distenation, 
           driveTime
       FROM result 
      ```
+
+## Pre-requisites
+
+1. A BigQuery dataset to use with the extension. You can create a new dataset or use an existing one. You will need to provide the dataset ID when you install the extension.
+2. Enable the Google Maps API for your project and get an API key. You can find instructions on how to do this [here](https://developers.google.com/maps/get-started#api-key).
