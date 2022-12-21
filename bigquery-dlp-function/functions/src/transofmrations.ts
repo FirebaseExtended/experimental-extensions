@@ -48,7 +48,7 @@ export class MaskTransformation extends Transformation {
   }
 }
 
-export class RadactTransformation extends Transformation {
+export class RedactTransformation extends Transformation {
   /**
    * Redacts a value by removing it.
    */

@@ -20,4 +20,5 @@ export default {
   datasetId: process.env.DATASET_ID,
   location: process.env.LOCATION,
   method: process.env.TRANSFORMATION_METHOD,
+  technique: process.env.TRANSFORMATION_TECHNIQUE,
 };

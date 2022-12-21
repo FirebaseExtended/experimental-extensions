@@ -1,7 +1,7 @@
 import * as functions from "firebase-functions";
 import { DlpServiceClient } from "@google-cloud/dlp";
 
-import { MaskTransformation, RadactTransformation } from "./transofmrations";
+import { MaskTransformation, RedactTransformation } from "./transofmrations";
 
 // The maximum number of days to shift a date backward
 const lowerBoundDays = 1;
@@ -53,7 +53,7 @@ function rowsToTable(rows: []) {
 export async function deidentifyWithInfoTypeTransformations(
   rows: [],
   client: DlpServiceClient,
-  transformation: MaskTransformation | RadactTransformation
+  transformation: MaskTransformation | RedactTransformation
 ) {
   const deidentifiedItems = [];
 

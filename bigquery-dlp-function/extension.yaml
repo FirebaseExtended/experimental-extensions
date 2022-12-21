@@ -65,7 +65,17 @@ params:
       # TODO support record type transformations
       # - label: Record Type Transformations
       #   value: RECORD
-    required: true
+  - param: TRANSFORMATION_TECHNIQUE
+    label: DLP Transformation Technique
+    description: >-
+      The technique used by Data Loss Prevention API to deidentify and/or encrypt sensitive information in the data.
+    type: select
+    options:
+      - label: Replace with Masking Character
+        value: masking
+      - label: Redact a value (remove it from the data)
+        value: redact
+    default: masking
   - param: DATASET_ID
     label: BigQuery Dataset ID
     description: >-

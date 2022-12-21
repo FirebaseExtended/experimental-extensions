@@ -49,11 +49,11 @@ exports.deidentifyData = functions.https.onRequest(
 
 exports.createBigQueryConnection = functions.tasks
   .taskQueue()
-  .onDispatch(async (task) => {
+  .onDispatch(async () => {
     const runtime = getExtensions().runtime();
 
     const parent = `projects/${config.projectId}/locations/${config.location}`;
-    const connectionId = config.extInstanceId;
+    const connectionId = "ext-" + config.extInstanceId;
     var connection;
 
     try {
@@ -93,12 +93,13 @@ exports.createBigQueryConnection = functions.tasks
           REMOTE WITH CONNECTION \`${config.projectId}.${config.location}.${connectionId}\`
           OPTIONS (
             endpoint = 'https://${config.location}-${config.projectId}.cloudfunctions.net/ext-bigquery-dlp-function-deidentifyData',
-            user_defined_context = [("method", "${config.method}")]
+            user_defined_context = [("method", "${config.method}"), ("technique", "${config.technique}")]
           );
           CREATE FUNCTION \`${config.projectId}.${config.datasetId}\`.reindetify(data JSON) RETURNS JSON
           REMOTE WITH CONNECTION \`${config.projectId}.${config.location}.${connectionId}\`
           OPTIONS (
-            endpoint = 'https://${config.location}-${config.projectId}.cloudfunctions.net/ext-bigquery-dlp-function-deidentifyData'
+            endpoint = 'https://${config.location}-${config.projectId}.cloudfunctions.net/ext-bigquery-dlp-function-deidentifyData',
+            user_defined_context = [("method", "${config.method}"), ("technique", "${config.technique}")]
           );
         END;
          `;

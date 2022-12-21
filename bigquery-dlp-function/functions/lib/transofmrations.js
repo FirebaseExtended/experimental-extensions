@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.RadactTransformation = exports.MaskTransformation = void 0;
+exports.RedactTransformation = exports.MaskTransformation = void 0;
 const config_1 = require("./config");
 class Transformation {
     constructor() {
@@ -42,7 +42,7 @@ class MaskTransformation extends Transformation {
     }
 }
 exports.MaskTransformation = MaskTransformation;
-class RadactTransformation extends Transformation {
+class RedactTransformation extends Transformation {
     /**
      * Redacts a value by removing it.
      */
@@ -69,5 +69,5 @@ class RadactTransformation extends Transformation {
         };
     }
 }
-exports.RadactTransformation = RadactTransformation;
+exports.RedactTransformation = RedactTransformation;
 //# sourceMappingURL=transofmrations.js.map
