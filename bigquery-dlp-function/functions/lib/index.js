@@ -41,22 +41,34 @@ exports.createBigQueryConnection = functions.tasks
     const runtime = (0, extensions_1.getExtensions)().runtime();
     console.log("Task received => ", task);
     const parent = `projects/${config_1.default.projectId}/locations/${config_1.default.location}`;
-    const connectionId = `ext-bigquery-dlp-function`;
+    const connectionId = config_1.default.extInstanceId;
+    var connection;
     try {
-        const connection = await bigqueryConnectionClient.createConnection({
+        connection = await bigqueryConnectionClient.createConnection({
             parent: parent,
             connectionId: connectionId,
             connection: {
                 cloudResource: {
-                    serviceAccountId: `ext-bigquery-dlp-function@${config_1.default.projectId}.iam.gserviceaccount.com`,
+                    serviceAccountId: `${connectionId}@${config_1.default.projectId}.iam.gserviceaccount.com`,
                 },
                 name: connectionId,
-                friendlyName: "Deidentify Data",
+                friendlyName: "DLP Extension",
             },
         });
-        functions.logger.info("Connection 1 created => ", connection);
-        if (connection) {
-            const query = `
+        functions.logger.info("Connection successfully created 🎉", connection);
+    }
+    catch (error) {
+        if (error["code"] === 6) {
+            functions.logger.info(`Connection ${connectionId} already exists, will continue creating functions`);
+        }
+        else {
+            functions.logger.error(error);
+            await runtime.setProcessingState("PROCESSING_FAILED", "Error creating connection. Check logs for more details.");
+            return;
+        }
+    }
+    try {
+        const query = `
         BEGIN
           CREATE FUNCTION \`${config_1.default.projectId}.${config_1.default.datasetId}\`.deidentify(data JSON) RETURNS JSON
           REMOTE WITH CONNECTION \`${config_1.default.projectId}.${config_1.default.location}.${connectionId}\`
@@ -71,18 +83,16 @@ exports.createBigQueryConnection = functions.tasks
           );
         END;
          `;
-            const options = {
-                query: query,
-                location: config_1.default.location,
-            };
-            // Run the query as a job
-            const [job] = await bigqueryClient.createQueryJob(options);
-            functions.logger.debug(`Job ${job.id} started.`);
-            // Wait for the query to finish
-            const [rows] = await job.getQueryResults();
-            functions.logger.debug("Rows: ", rows);
-            await runtime.setProcessingState("PROCESSING_COMPLETE", "Connections created successfully.");
-        }
+        const options = {
+            query: query,
+            location: config_1.default.location,
+        };
+        // Run the query as a job
+        const [job] = await bigqueryClient.createQueryJob(options);
+        functions.logger.debug(`Job ${job.id} started.`);
+        // Wait for the query to finish
+        await job.getQueryResults();
+        await runtime.setProcessingState("PROCESSING_COMPLETE", "Connections created successfully.");
     }
     catch (error) {
         functions.logger.error(error);
