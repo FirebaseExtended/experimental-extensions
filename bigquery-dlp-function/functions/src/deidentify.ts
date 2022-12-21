@@ -1,9 +1,7 @@
 import * as functions from "firebase-functions";
-import { DlpServiceClient, protos } from "@google-cloud/dlp";
+import { DlpServiceClient } from "@google-cloud/dlp";
 
-import config from "./config";
-
-type DeidentifyRequest = protos.google.privacy.dlp.v2.IDeidentifyContentRequest;
+import { MaskTransformation, RadactTransformation } from "./transofmrations";
 
 // The maximum number of days to shift a date backward
 const lowerBoundDays = 1;
@@ -53,31 +51,11 @@ function rowsToTable(rows: []) {
  * @returns {string} The deidentified text.
  */
 export async function deidentifyWithInfoTypeTransformations(
-  rows: any,
+  rows: [],
   client: DlpServiceClient,
-  mask?: string,
-  numberToMask?: number
+  transformation: MaskTransformation | RadactTransformation
 ) {
   const deidentifiedItems = [];
-
-  const parent = `projects/${config.projectId}/locations/${config.location}`;
-  const deidentifyConfig: DeidentifyRequest = {
-    parent: parent,
-    deidentifyConfig: {
-      infoTypeTransformations: {
-        transformations: [
-          {
-            primitiveTransformation: {
-              characterMaskConfig: {
-                maskingCharacter: mask ?? "x",
-                numberToMask: numberToMask ?? 5,
-              },
-            },
-          },
-        ],
-      },
-    },
-  };
 
   for (const row of rows) {
     const data = row[0] as Record<string, any>;
@@ -87,9 +65,8 @@ export async function deidentifyWithInfoTypeTransformations(
       if (data.hasOwnProperty(key)) {
         const element = data[key];
         const request = {
-          ...deidentifyConfig,
+          ...transformation.config,
           item: { value: element },
-          parent: parent,
         };
 
         const [response] = await client.deidentifyContent(request);
@@ -114,46 +91,46 @@ export async function deidentifyWithInfoTypeTransformations(
  *
  * @returns {string} The deidentified text.
  */
-export async function deidentifyWithRecordTransformations(
-  rows: any,
-  client: DlpServiceClient,
-  mask?: string,
-  numberToMask?: number
-) {
-  const parent = `projects/${config.projectId}/locations/${config.location}`;
+// export async function deidentifyWithRecordTransformations(
+//   rows: any,
+//   client: DlpServiceClient,
+//   mask?: string,
+//   numberToMask?: number
+// ) {
+//   const parent = `projects/${config.projectId}/locations/${config.location}`;
 
-  // Construct DateShiftConfig
-  const dateShiftConfig = {
-    lowerBoundDays: lowerBoundDays,
-    upperBoundDays: upperBoundDays,
-  };
+//   // Construct DateShiftConfig
+//   const dateShiftConfig = {
+//     lowerBoundDays: lowerBoundDays,
+//     upperBoundDays: upperBoundDays,
+//   };
 
-  // Construct de-identification request
-  const request: DeidentifyRequest = {
-    parent: parent,
-    deidentifyConfig: {
-      recordTransformations: {
-        fieldTransformations: [
-          {
-            primitiveTransformation: {
-              dateShiftConfig: dateShiftConfig,
-              characterMaskConfig: {
-                maskingCharacter: mask ?? "x",
-                numberToMask: numberToMask ?? 5,
-              },
-            },
-          },
-        ],
-      },
-    },
-    item: {
-      table: rowsToTable(rows),
-    },
-  };
+//   // Construct de-identification request
+//   const request: DeidentifyRequest = {
+//     parent: parent,
+//     deidentifyConfig: {
+//       recordTransformations: {
+//         fieldTransformations: [
+//           {
+//             primitiveTransformation: {
+//               dateShiftConfig: dateShiftConfig,
+//               characterMaskConfig: {
+//                 maskingCharacter: mask ?? "x",
+//                 numberToMask: numberToMask ?? 5,
+//               },
+//             },
+//           },
+//         ],
+//       },
+//     },
+//     item: {
+//       table: rowsToTable(rows),
+//     },
+//   };
 
-  // Run deidentification request
-  const [response] = await client.deidentifyContent(request);
-  const tableRows = response.item?.table?.rows;
+//   // Run deidentification request
+//   const [response] = await client.deidentifyContent(request);
+//   const tableRows = response.item?.table?.rows;
 
-  return tableRows;
-}
+//   return tableRows;
+// }

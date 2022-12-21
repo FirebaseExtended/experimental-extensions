@@ -8,6 +8,7 @@ const bigquery_1 = require("@google-cloud/bigquery");
 const extensions_1 = require("firebase-admin/extensions");
 const config_1 = require("./config");
 const deidentify_1 = require("./deidentify");
+const transofmrations_1 = require("./transofmrations");
 admin.initializeApp();
 const dlp = new dlp_1.default.DlpServiceClient();
 const bigqueryClient = new bigquery_1.BigQuery();
@@ -18,14 +19,14 @@ exports.deidentifyData = functions.https.onRequest(async (request, response) => 
     try {
         if (userDefinedContext.method === "INFO_TYPE") {
             response.send({
-                replies: await (0, deidentify_1.deidentifyWithInfoTypeTransformations)(calls, dlp),
+                replies: await (0, deidentify_1.deidentifyWithInfoTypeTransformations)(calls, dlp, new transofmrations_1.MaskTransformation()),
             });
         }
-        else if (userDefinedContext.method === "RECORD") {
-            response.send({
-                replies: await (0, deidentify_1.deidentifyWithRecordTransformations)(calls, dlp),
-            });
-        }
+        // else if (userDefinedContext.method === "RECORD") {
+        //   response.send({
+        //     replies: await deidentifyWithRecordTransformations(calls, dlp),
+        //   });
+        // }
         else {
             response.status(400).send("Invalid method");
         }

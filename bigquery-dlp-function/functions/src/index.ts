@@ -6,10 +6,8 @@ import { BigQuery } from "@google-cloud/bigquery";
 import { getExtensions } from "firebase-admin/extensions";
 
 import config from "./config";
-import {
-  deidentifyWithInfoTypeTransformations,
-  deidentifyWithRecordTransformations,
-} from "./deidentify";
+import { deidentifyWithInfoTypeTransformations } from "./deidentify";
+import { MaskTransformation } from "./transofmrations";
 
 admin.initializeApp();
 
@@ -26,13 +24,19 @@ exports.deidentifyData = functions.https.onRequest(
     try {
       if (userDefinedContext.method === "INFO_TYPE") {
         response.send({
-          replies: await deidentifyWithInfoTypeTransformations(calls, dlp),
+          replies: await deidentifyWithInfoTypeTransformations(
+            calls,
+            dlp,
+            new MaskTransformation()
+          ),
         });
-      } else if (userDefinedContext.method === "RECORD") {
-        response.send({
-          replies: await deidentifyWithRecordTransformations(calls, dlp),
-        });
-      } else {
+      }
+      // else if (userDefinedContext.method === "RECORD") {
+      //   response.send({
+      //     replies: await deidentifyWithRecordTransformations(calls, dlp),
+      //   });
+      // }
+      else {
         response.status(400).send("Invalid method");
       }
     } catch (error) {

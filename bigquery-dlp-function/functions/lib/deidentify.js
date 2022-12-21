@@ -1,8 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deidentifyWithRecordTransformations = exports.deidentifyWithInfoTypeTransformations = void 0;
+exports.deidentifyWithInfoTypeTransformations = void 0;
 const functions = require("firebase-functions");
-const config_1 = require("./config");
 // The maximum number of days to shift a date backward
 const lowerBoundDays = 1;
 // The maximum number of days to shift a date forward
@@ -46,34 +45,16 @@ function rowsToTable(rows) {
  *
  * @returns {string} The deidentified text.
  */
-async function deidentifyWithInfoTypeTransformations(rows, client, mask, numberToMask) {
+async function deidentifyWithInfoTypeTransformations(rows, client, transformation) {
     var _a;
     const deidentifiedItems = [];
-    const parent = `projects/${config_1.default.projectId}/locations/${config_1.default.location}`;
-    const deidentifyConfig = {
-        parent: parent,
-        deidentifyConfig: {
-            infoTypeTransformations: {
-                transformations: [
-                    {
-                        primitiveTransformation: {
-                            characterMaskConfig: {
-                                maskingCharacter: mask !== null && mask !== void 0 ? mask : "x",
-                                numberToMask: numberToMask !== null && numberToMask !== void 0 ? numberToMask : 5,
-                            },
-                        },
-                    },
-                ],
-            },
-        },
-    };
     for (const row of rows) {
         const data = row[0];
         functions.logger.debug(data);
         for (const key in data) {
             if (data.hasOwnProperty(key)) {
                 const element = data[key];
-                const request = Object.assign(Object.assign({}, deidentifyConfig), { item: { value: element }, parent: parent });
+                const request = Object.assign(Object.assign({}, transformation.config), { item: { value: element } });
                 const [response] = await client.deidentifyContent(request);
                 data[key] = (_a = response.item) === null || _a === void 0 ? void 0 : _a.value;
             }
@@ -94,40 +75,43 @@ exports.deidentifyWithInfoTypeTransformations = deidentifyWithInfoTypeTransforma
  *
  * @returns {string} The deidentified text.
  */
-async function deidentifyWithRecordTransformations(rows, client, mask, numberToMask) {
-    var _a, _b;
-    const parent = `projects/${config_1.default.projectId}/locations/${config_1.default.location}`;
-    // Construct DateShiftConfig
-    const dateShiftConfig = {
-        lowerBoundDays: lowerBoundDays,
-        upperBoundDays: upperBoundDays,
-    };
-    // Construct de-identification request
-    const request = {
-        parent: parent,
-        deidentifyConfig: {
-            recordTransformations: {
-                fieldTransformations: [
-                    {
-                        primitiveTransformation: {
-                            dateShiftConfig: dateShiftConfig,
-                            characterMaskConfig: {
-                                maskingCharacter: mask !== null && mask !== void 0 ? mask : "x",
-                                numberToMask: numberToMask !== null && numberToMask !== void 0 ? numberToMask : 5,
-                            },
-                        },
-                    },
-                ],
-            },
-        },
-        item: {
-            table: rowsToTable(rows),
-        },
-    };
-    // Run deidentification request
-    const [response] = await client.deidentifyContent(request);
-    const tableRows = (_b = (_a = response.item) === null || _a === void 0 ? void 0 : _a.table) === null || _b === void 0 ? void 0 : _b.rows;
-    return tableRows;
-}
-exports.deidentifyWithRecordTransformations = deidentifyWithRecordTransformations;
+// export async function deidentifyWithRecordTransformations(
+//   rows: any,
+//   client: DlpServiceClient,
+//   mask?: string,
+//   numberToMask?: number
+// ) {
+//   const parent = `projects/${config.projectId}/locations/${config.location}`;
+//   // Construct DateShiftConfig
+//   const dateShiftConfig = {
+//     lowerBoundDays: lowerBoundDays,
+//     upperBoundDays: upperBoundDays,
+//   };
+//   // Construct de-identification request
+//   const request: DeidentifyRequest = {
+//     parent: parent,
+//     deidentifyConfig: {
+//       recordTransformations: {
+//         fieldTransformations: [
+//           {
+//             primitiveTransformation: {
+//               dateShiftConfig: dateShiftConfig,
+//               characterMaskConfig: {
+//                 maskingCharacter: mask ?? "x",
+//                 numberToMask: numberToMask ?? 5,
+//               },
+//             },
+//           },
+//         ],
+//       },
+//     },
+//     item: {
+//       table: rowsToTable(rows),
+//     },
+//   };
+//   // Run deidentification request
+//   const [response] = await client.deidentifyContent(request);
+//   const tableRows = response.item?.table?.rows;
+//   return tableRows;
+// }
 //# sourceMappingURL=deidentify.js.map
