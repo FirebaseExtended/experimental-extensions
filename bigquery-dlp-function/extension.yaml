@@ -62,8 +62,9 @@ params:
     options:
       - label: Info Type Transformations
         value: INFO_TYPE
-      - label: Record Type Transformations
-        value: RECORD
+      # TODO support record type transformations
+      # - label: Record Type Transformations
+      #   value: RECORD
     required: true
   - param: DATASET_ID
     label: BigQuery Dataset ID

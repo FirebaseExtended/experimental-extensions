@@ -7,58 +7,28 @@ const bigquery_connection_1 = require("@google-cloud/bigquery-connection");
 const bigquery_1 = require("@google-cloud/bigquery");
 const extensions_1 = require("firebase-admin/extensions");
 const config_1 = require("./config");
+const deidentify_1 = require("./deidentify");
 admin.initializeApp();
 const dlp = new dlp_1.default.DlpServiceClient();
 const bigqueryClient = new bigquery_1.BigQuery();
 const bigqueryConnectionClient = new bigquery_connection_1.ConnectionServiceClient();
-/**
- * Deidentify sensitive data in a string using the Data Loss Prevention API.
- *
- * @param {string} text The text to deidentify.
- *
- * @returns {string} The deidentified text.
- */
-async function deidentifyWithMask(rows) {
-    var _a;
-    const deidentifiedItems = [];
-    const parent = `projects/${config_1.default.projectId}/locations/${config_1.default.location}`;
-    const deidentifyConfig = {
-        parent: parent,
-        deidentifyConfig: {
-            infoTypeTransformations: {
-                transformations: [
-                    {
-                        primitiveTransformation: {
-                            characterMaskConfig: {
-                                maskingCharacter: "x",
-                            },
-                        },
-                    },
-                ],
-            },
-        },
-    };
-    for (const row of rows) {
-        const data = row[0];
-        functions.logger.debug(data);
-        for (const key in data) {
-            if (data.hasOwnProperty(key)) {
-                const element = data[key];
-                const request = Object.assign(Object.assign({}, deidentifyConfig), { item: { value: element }, parent: parent });
-                const [response] = await dlp.deidentifyContent(request);
-                data[key] = (_a = response.item) === null || _a === void 0 ? void 0 : _a.value;
-            }
-        }
-        functions.logger.debug(data);
-        deidentifiedItems.push(data);
-    }
-    return deidentifiedItems;
-}
 exports.deidentifyData = functions.https.onRequest(async (request, response) => {
-    const { calls } = request.body;
+    const { calls, userDefinedContext } = request.body;
     functions.logger.debug("Incoming request from BigQuery", calls);
     try {
-        response.send({ replies: await deidentifyWithMask(calls) });
+        if (userDefinedContext.method === "INFO_TYPE") {
+            response.send({
+                replies: await (0, deidentify_1.deidentifyWithInfoTypeTransformations)(calls, dlp),
+            });
+        }
+        else if (userDefinedContext.method === "RECORD") {
+            response.send({
+                replies: await (0, deidentify_1.deidentifyWithRecordTransformations)(calls, dlp),
+            });
+        }
+        else {
+            response.status(400).send("Invalid method");
+        }
     }
     catch (error) {
         functions.logger.error(error);
@@ -71,42 +41,31 @@ exports.createBigQueryConnection = functions.tasks
     const runtime = (0, extensions_1.getExtensions)().runtime();
     console.log("Task received => ", task);
     const parent = `projects/${config_1.default.projectId}/locations/${config_1.default.location}`;
-    const connectionIdPrefix = `ext-bq-dlp-`;
+    const connectionId = `ext-bigquery-dlp-function`;
     try {
-        const connection1 = await bigqueryConnectionClient.createConnection({
+        const connection = await bigqueryConnectionClient.createConnection({
             parent: parent,
-            connectionId: `${connectionIdPrefix}deidentify`,
+            connectionId: connectionId,
             connection: {
                 cloudResource: {
                     serviceAccountId: `ext-bigquery-dlp-function@${config_1.default.projectId}.iam.gserviceaccount.com`,
                 },
-                name: `${connectionIdPrefix}deidentify`,
+                name: connectionId,
                 friendlyName: "Deidentify Data",
             },
         });
-        const connection2 = await bigqueryConnectionClient.createConnection({
-            parent: parent,
-            connectionId: `${connectionIdPrefix}reidentify`,
-            connection: {
-                cloudResource: {
-                    serviceAccountId: "ext-bigquery-dlp-function@extensions-testing.iam.gserviceaccount.com",
-                },
-                name: `${connectionIdPrefix}reidentify`,
-                friendlyName: "Reidentify Data",
-            },
-        });
-        functions.logger.info("Connection 1 created => ", connection1);
-        functions.logger.info("Connection 2 created => ", connection2);
-        if (connection1 && connection2) {
+        functions.logger.info("Connection 1 created => ", connection);
+        if (connection) {
             const query = `
         BEGIN
           CREATE FUNCTION \`${config_1.default.projectId}.${config_1.default.datasetId}\`.deidentify(data JSON) RETURNS JSON
-          REMOTE WITH CONNECTION \`${config_1.default.projectId}.${config_1.default.location}.${connectionIdPrefix}deidentify\`
+          REMOTE WITH CONNECTION \`${config_1.default.projectId}.${config_1.default.location}.${connectionId}\`
           OPTIONS (
-            endpoint = 'https://${config_1.default.location}-${config_1.default.projectId}.cloudfunctions.net/ext-bigquery-dlp-function-deidentifyData'
+            endpoint = 'https://${config_1.default.location}-${config_1.default.projectId}.cloudfunctions.net/ext-bigquery-dlp-function-deidentifyData',
+            user_defined_context = [("method", "${config_1.default.method}")]
           );
           CREATE FUNCTION \`${config_1.default.projectId}.${config_1.default.datasetId}\`.reindetify(data JSON) RETURNS JSON
-          REMOTE WITH CONNECTION \`${config_1.default.projectId}.${config_1.default.location}.${connectionIdPrefix}reidentify\`
+          REMOTE WITH CONNECTION \`${config_1.default.projectId}.${config_1.default.location}.${connectionId}\`
           OPTIONS (
             endpoint = 'https://${config_1.default.location}-${config_1.default.projectId}.cloudfunctions.net/ext-bigquery-dlp-function-deidentifyData'
           );

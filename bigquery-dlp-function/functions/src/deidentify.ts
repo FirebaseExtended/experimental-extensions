@@ -4,8 +4,10 @@ import { DlpServiceClient, protos } from "@google-cloud/dlp";
 import config from "./config";
 
 type DeidentifyRequest = protos.google.privacy.dlp.v2.IDeidentifyContentRequest;
+
 // The maximum number of days to shift a date backward
 const lowerBoundDays = 1;
+
 // The maximum number of days to shift a date forward
 const upperBoundDays = 1;
 

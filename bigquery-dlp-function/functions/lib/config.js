@@ -19,5 +19,6 @@ exports.default = {
     projectId: process.env.PROJECT_ID,
     datasetId: process.env.DATASET_ID,
     location: process.env.LOCATION,
+    method: process.env.TRANSFORMATION_METHOD,
 };
 //# sourceMappingURL=config.js.map
