@@ -39,7 +39,6 @@ exports.createBigQueryConnection = functions.tasks
     .taskQueue()
     .onDispatch(async (task) => {
     const runtime = (0, extensions_1.getExtensions)().runtime();
-    console.log("Task received => ", task);
     const parent = `projects/${config_1.default.projectId}/locations/${config_1.default.location}`;
     const connectionId = config_1.default.extInstanceId;
     var connection;
