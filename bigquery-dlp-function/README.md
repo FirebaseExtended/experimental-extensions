@@ -8,6 +8,8 @@
 
 - DLP Transformation Method: The method used by Data Loss Prevention API to deidentify and/or encrypt sensitive information in the data.
 
+- DLP Transformation Technique: The technique used by Data Loss Prevention API to deidentify and/or encrypt sensitive information in the data.
+
 - BigQuery Dataset ID: The ID of the dataset where the extension will create a connection.
 
 - Cloud Functions location: Where do you want to deploy the functions created for this extension? You usually want a location close to your database. For help selecting a location, refer to the [location selection guide](https://firebase.google.com/docs/functions/locations).

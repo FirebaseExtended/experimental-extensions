@@ -65,7 +65,7 @@ export async function deidentifyWithInfoTypeTransformations(
       if (data.hasOwnProperty(key)) {
         const element = data[key];
         const request = {
-          ...transformation.config,
+          ...transformation.deidentifyConfig,
           item: { value: element },
         };
 

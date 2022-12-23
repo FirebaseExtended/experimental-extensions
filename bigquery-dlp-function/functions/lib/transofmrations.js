@@ -4,7 +4,8 @@ exports.RedactTransformation = exports.MaskTransformation = void 0;
 const config_1 = require("./config");
 class Transformation {
     constructor() {
-        this.config = {};
+        this.deidentifyConfig = {};
+        this.reidentifyConfig = {};
         this.parent = `projects/${config_1.default.projectId}/locations/${config_1.default.location}`;
     }
 }
@@ -18,9 +19,6 @@ class MaskTransformation extends Transformation {
     constructor(mask, numberToMask) {
         super();
         const maskingConfig = {
-            transformationErrorHandling: {
-                throwError: true,
-            },
             infoTypeTransformations: {
                 transformations: [
                     {
@@ -34,9 +32,8 @@ class MaskTransformation extends Transformation {
                 ],
             },
         };
-        this.config = {
+        this.deidentifyConfig = {
             parent: this.parent,
-            reidentifyConfig: maskingConfig,
             deidentifyConfig: maskingConfig,
         };
     }
@@ -49,9 +46,6 @@ class RedactTransformation extends Transformation {
     constructor() {
         super();
         const maskingConfig = {
-            transformationErrorHandling: {
-                throwError: true,
-            },
             infoTypeTransformations: {
                 transformations: [
                     {
@@ -62,9 +56,8 @@ class RedactTransformation extends Transformation {
                 ],
             },
         };
-        this.config = {
+        this.deidentifyConfig = {
             parent: this.parent,
-            reidentifyConfig: maskingConfig,
             deidentifyConfig: maskingConfig,
         };
     }

@@ -52,6 +52,13 @@ resources:
       location: ${param:LOCATION}
       runtime: nodejs14
       httpsTrigger: {}
+  - name: reidentifyData
+    type: firebaseextensions.v1beta.function
+    description: TODO
+    properties:
+      location: ${param:LOCATION}
+      runtime: nodejs14
+      httpsTrigger: {}
 
 params:
   - param: TRANSFORMATION_METHOD

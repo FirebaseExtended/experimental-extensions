@@ -9,6 +9,7 @@ const extensions_1 = require("firebase-admin/extensions");
 const config_1 = require("./config");
 const deidentify_1 = require("./deidentify");
 const transofmrations_1 = require("./transofmrations");
+const reidentify_1 = require("./reidentify");
 admin.initializeApp();
 const dlp = new dlp_1.default.DlpServiceClient();
 const bigqueryClient = new bigquery_1.BigQuery();
@@ -18,8 +19,45 @@ exports.deidentifyData = functions.https.onRequest(async (request, response) => 
     functions.logger.debug("Incoming request from BigQuery", calls);
     try {
         if (userDefinedContext.method === "INFO_TYPE") {
+            var transformation;
+            switch (config_1.default.technique) {
+                case "redact":
+                    transformation = new transofmrations_1.RedactTransformation();
+                    break;
+                default:
+                    transformation = new transofmrations_1.MaskTransformation();
+            }
             response.send({
-                replies: await (0, deidentify_1.deidentifyWithInfoTypeTransformations)(calls, dlp, new transofmrations_1.MaskTransformation()),
+                replies: await (0, deidentify_1.deidentifyWithInfoTypeTransformations)(calls, dlp, transformation),
+            });
+        }
+        // else if (userDefinedContext.method === "RECORD") {
+        //   response.send({
+        //     replies: await deidentifyWithRecordTransformations(calls, dlp),
+        //   });
+        // }
+        else {
+            response.status(400).send("Invalid method");
+        }
+    }
+    catch (error) {
+        functions.logger.error(error);
+        response.status(500).send(`errorMessage: ${error}`);
+    }
+});
+exports.reidentifyData = functions.https.onRequest(async (request, response) => {
+    const { calls, userDefinedContext } = request.body;
+    functions.logger.debug("Incoming request from BigQuery", calls);
+    try {
+        if (userDefinedContext.method === "INFO_TYPE") {
+            var transformation;
+            switch (config_1.default.technique) {
+                default:
+                    response.status(400).send("Invalid or irreversable technique");
+                    return;
+            }
+            response.send({
+                replies: await (0, reidentify_1.reidentifyWithInfoTypeTransformations)(calls, dlp, transformation),
             });
         }
         // else if (userDefinedContext.method === "RECORD") {
@@ -79,7 +117,7 @@ exports.createBigQueryConnection = functions.tasks
           CREATE FUNCTION \`${config_1.default.projectId}.${config_1.default.datasetId}\`.reindetify(data JSON) RETURNS JSON
           REMOTE WITH CONNECTION \`${config_1.default.projectId}.${config_1.default.location}.${connectionId}\`
           OPTIONS (
-            endpoint = 'https://${config_1.default.location}-${config_1.default.projectId}.cloudfunctions.net/ext-bigquery-dlp-function-deidentifyData',
+            endpoint = 'https://${config_1.default.location}-${config_1.default.projectId}.cloudfunctions.net/ext-bigquery-dlp-function-reidentifyData',
             user_defined_context = [("method", "${config_1.default.method}"), ("technique", "${config_1.default.technique}")]
           );
         END;

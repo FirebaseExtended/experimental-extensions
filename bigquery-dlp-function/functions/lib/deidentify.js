@@ -54,7 +54,7 @@ async function deidentifyWithInfoTypeTransformations(rows, client, transformatio
         for (const key in data) {
             if (data.hasOwnProperty(key)) {
                 const element = data[key];
-                const request = Object.assign(Object.assign({}, transformation.config), { item: { value: element } });
+                const request = Object.assign(Object.assign({}, transformation.deidentifyConfig), { item: { value: element } });
                 const [response] = await client.deidentifyContent(request);
                 data[key] = (_a = response.item) === null || _a === void 0 ? void 0 : _a.value;
             }

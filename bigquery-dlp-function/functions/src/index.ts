@@ -7,7 +7,8 @@ import { getExtensions } from "firebase-admin/extensions";
 
 import config from "./config";
 import { deidentifyWithInfoTypeTransformations } from "./deidentify";
-import { MaskTransformation } from "./transofmrations";
+import { MaskTransformation, RedactTransformation } from "./transofmrations";
+import { reidentifyWithInfoTypeTransformations } from "./reidentify";
 
 admin.initializeApp();
 
@@ -23,11 +24,61 @@ exports.deidentifyData = functions.https.onRequest(
 
     try {
       if (userDefinedContext.method === "INFO_TYPE") {
+        var transformation;
+
+        switch (config.technique) {
+          case "redact":
+            transformation = new RedactTransformation();
+            break;
+
+          default:
+            transformation = new MaskTransformation();
+        }
         response.send({
           replies: await deidentifyWithInfoTypeTransformations(
             calls,
             dlp,
-            new MaskTransformation()
+            transformation
+          ),
+        });
+      }
+      // else if (userDefinedContext.method === "RECORD") {
+      //   response.send({
+      //     replies: await deidentifyWithRecordTransformations(calls, dlp),
+      //   });
+      // }
+      else {
+        response.status(400).send("Invalid method");
+      }
+    } catch (error) {
+      functions.logger.error(error);
+
+      response.status(500).send(`errorMessage: ${error}`);
+    }
+  }
+);
+
+exports.reidentifyData = functions.https.onRequest(
+  async (request, response) => {
+    const { calls, userDefinedContext } = request.body;
+
+    functions.logger.debug("Incoming request from BigQuery", calls);
+
+    try {
+      if (userDefinedContext.method === "INFO_TYPE") {
+        var transformation;
+
+        switch (config.technique) {
+          default:
+            response.status(400).send("Invalid or irreversable technique");
+            return;
+        }
+
+        response.send({
+          replies: await reidentifyWithInfoTypeTransformations(
+            calls,
+            dlp,
+            transformation
           ),
         });
       }
@@ -95,10 +146,10 @@ exports.createBigQueryConnection = functions.tasks
             endpoint = 'https://${config.location}-${config.projectId}.cloudfunctions.net/ext-bigquery-dlp-function-deidentifyData',
             user_defined_context = [("method", "${config.method}"), ("technique", "${config.technique}")]
           );
-          CREATE FUNCTION \`${config.projectId}.${config.datasetId}\`.reindetify(data JSON) RETURNS JSON
+          CREATE FUNCTION \`${config.projectId}.${config.datasetId}\`.reidentify(data JSON) RETURNS JSON
           REMOTE WITH CONNECTION \`${config.projectId}.${config.location}.${connectionId}\`
           OPTIONS (
-            endpoint = 'https://${config.location}-${config.projectId}.cloudfunctions.net/ext-bigquery-dlp-function-deidentifyData',
+            endpoint = 'https://${config.location}-${config.projectId}.cloudfunctions.net/ext-bigquery-dlp-function-reidentifyData',
             user_defined_context = [("method", "${config.method}"), ("technique", "${config.technique}")]
           );
         END;

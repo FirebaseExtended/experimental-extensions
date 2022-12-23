@@ -6,7 +6,8 @@ type DeidentifyRequest = protos.google.privacy.dlp.v2.IDeidentifyContentRequest;
 
 class Transformation {
   parent: string;
-  config: DeidentifyRequest | ReidentifyRequest = {};
+  deidentifyConfig: DeidentifyRequest = {};
+  reidentifyConfig: ReidentifyRequest = {};
 
   constructor() {
     this.parent = `projects/${config.projectId}/locations/${config.location}`;
@@ -23,9 +24,6 @@ export class MaskTransformation extends Transformation {
   constructor(mask?: string, numberToMask?: number) {
     super();
     const maskingConfig = {
-      transformationErrorHandling: {
-        throwError: true,
-      },
       infoTypeTransformations: {
         transformations: [
           {
@@ -40,9 +38,8 @@ export class MaskTransformation extends Transformation {
       },
     };
 
-    this.config = {
+    this.deidentifyConfig = {
       parent: this.parent,
-      reidentifyConfig: maskingConfig,
       deidentifyConfig: maskingConfig,
     };
   }
@@ -55,9 +52,6 @@ export class RedactTransformation extends Transformation {
   constructor() {
     super();
     const maskingConfig = {
-      transformationErrorHandling: {
-        throwError: true,
-      },
       infoTypeTransformations: {
         transformations: [
           {
@@ -69,9 +63,8 @@ export class RedactTransformation extends Transformation {
       },
     };
 
-    this.config = {
+    this.deidentifyConfig = {
       parent: this.parent,
-      reidentifyConfig: maskingConfig,
       deidentifyConfig: maskingConfig,
     };
   }
