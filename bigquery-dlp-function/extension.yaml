@@ -72,7 +72,7 @@ params:
       # TODO support record type transformations
       # - label: Record Type Transformations
       #   value: RECORD
-      default: INFO_TYPE
+        default: INFO_TYPE
   - param: TRANSFORMATION_TECHNIQUE
     label: DLP Transformation Technique
     description: >-
