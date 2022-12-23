@@ -104,18 +104,18 @@ exports.createBigQueryConnection = functions.tasks
     const runtime = getExtensions().runtime();
 
     const parent = `projects/${config.projectId}/locations/${config.location}`;
-    const connectionId = "ext-" + config.extInstanceId;
+    const instanceId = "ext-" + config.extInstanceId;
     var connection;
 
     try {
       connection = await bigqueryConnectionClient.createConnection({
         parent: parent,
-        connectionId: connectionId,
+        connectionId: instanceId,
         connection: {
           cloudResource: {
-            serviceAccountId: `${connectionId}@${config.projectId}.iam.gserviceaccount.com`,
+            serviceAccountId: `${instanceId}@${config.projectId}.iam.gserviceaccount.com`,
           },
-          name: connectionId,
+          name: instanceId,
           friendlyName: "DLP Extension",
         },
       });
@@ -124,7 +124,7 @@ exports.createBigQueryConnection = functions.tasks
     } catch (error: any) {
       if (error["code"] === 6) {
         functions.logger.info(
-          `Connection ${connectionId} already exists, will continue creating functions`
+          `Connection ${instanceId} already exists, will continue creating functions`
         );
       } else {
         functions.logger.error(error);
@@ -141,15 +141,15 @@ exports.createBigQueryConnection = functions.tasks
       const query = `
         BEGIN
           CREATE FUNCTION \`${config.projectId}.${config.datasetId}\`.deidentify(data JSON) RETURNS JSON
-          REMOTE WITH CONNECTION \`${config.projectId}.${config.location}.${connectionId}\`
+          REMOTE WITH CONNECTION \`${config.projectId}.${config.location}.${instanceId}\`
           OPTIONS (
-            endpoint = 'https://${config.location}-${config.projectId}.cloudfunctions.net/ext-bigquery-dlp-functions-deidentifyData',
+            endpoint = 'https://${config.location}-${config.projectId}.cloudfunctions.net/${instanceId}-deidentifyData',
             user_defined_context = [("method", "${config.method}"), ("technique", "${config.technique}")]
           );
           CREATE FUNCTION \`${config.projectId}.${config.datasetId}\`.reidentify(data JSON) RETURNS JSON
-          REMOTE WITH CONNECTION \`${config.projectId}.${config.location}.${connectionId}\`
+          REMOTE WITH CONNECTION \`${config.projectId}.${config.location}.${instanceId}\`
           OPTIONS (
-            endpoint = 'https://${config.location}-${config.projectId}.cloudfunctions.net/ext-bigquery-dlp-functions-reidentifyData',
+            endpoint = 'https://${config.location}-${config.projectId}.cloudfunctions.net/${instanceId}-reidentifyData',
             user_defined_context = [("method", "${config.method}"), ("technique", "${config.technique}")]
           );
         END;
