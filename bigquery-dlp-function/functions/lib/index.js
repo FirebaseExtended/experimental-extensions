@@ -97,7 +97,7 @@ exports.createBigQueryConnection = functions.tasks
     }
     catch (error) {
         if (error["code"] === 6) {
-            functions.logger.info(`Connection ${instanceId} already exists, will continue creating functions`);
+            functions.logger.warn(`Connection ${instanceId} already exists, will continue creating functions`);
         }
         else {
             functions.logger.error(error);
@@ -134,8 +134,14 @@ exports.createBigQueryConnection = functions.tasks
         await runtime.setProcessingState("PROCESSING_COMPLETE", "Connections created successfully.");
     }
     catch (error) {
-        functions.logger.error(error);
-        await runtime.setProcessingState("PROCESSING_FAILED", "Connections were not created.");
+        if (error["code"] === 6) {
+            functions.logger.warn(`Functions already exists.`);
+        }
+        else {
+            functions.logger.error(error);
+            await runtime.setProcessingState("PROCESSING_FAILED", "Connections were not created, check logs for more details.");
+            return;
+        }
     }
 });
 //# sourceMappingURL=index.js.map
