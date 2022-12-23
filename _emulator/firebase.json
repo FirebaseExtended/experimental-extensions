@@ -2,7 +2,7 @@
   "extensions": {
     "firestore-record-user-acknowledgements": "../firestore-record-user-acknowledgements",
     "firestore-bundle-server": "../firestore-bundle-server",
-    "bigquery-dlp-function": "../bigquery-dlp-function"
+    "bigquery-dlp-functions": "../bigquery-dlp-functions"
   },
   "storage": {
     "rules": "storage.rules"
@@ -36,11 +36,7 @@
   },
   "hosting": {
     "public": "dist",
-    "ignore": [
-      "firebase.json",
-      "**/.*",
-      "**/node_modules/**"
-    ],
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
     "rewrites": [
       {
         "source": "/bundles/*",

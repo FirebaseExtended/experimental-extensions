@@ -1,7 +1,7 @@
 # Learn detailed information about the fields of an extension.yaml file in the docs:
 # https://firebase.google.com/docs/extensions/alpha/ref-extension-yaml
 
-name: bigquery-dlp-function # Identifier for your extension
+name: bigquery-dlp-functions # Identifier for your extension
 version: 0.0.1 # Follow semver versioning
 specVersion: v1beta # Version of the Firebase Extensions specification
 

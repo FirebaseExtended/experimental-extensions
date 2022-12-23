@@ -143,13 +143,13 @@ exports.createBigQueryConnection = functions.tasks
           CREATE FUNCTION \`${config.projectId}.${config.datasetId}\`.deidentify(data JSON) RETURNS JSON
           REMOTE WITH CONNECTION \`${config.projectId}.${config.location}.${connectionId}\`
           OPTIONS (
-            endpoint = 'https://${config.location}-${config.projectId}.cloudfunctions.net/ext-bigquery-dlp-function-deidentifyData',
+            endpoint = 'https://${config.location}-${config.projectId}.cloudfunctions.net/ext-bigquery-dlp-functions-deidentifyData',
             user_defined_context = [("method", "${config.method}"), ("technique", "${config.technique}")]
           );
           CREATE FUNCTION \`${config.projectId}.${config.datasetId}\`.reidentify(data JSON) RETURNS JSON
           REMOTE WITH CONNECTION \`${config.projectId}.${config.location}.${connectionId}\`
           OPTIONS (
-            endpoint = 'https://${config.location}-${config.projectId}.cloudfunctions.net/ext-bigquery-dlp-function-reidentifyData',
+            endpoint = 'https://${config.location}-${config.projectId}.cloudfunctions.net/ext-bigquery-dlp-functions-reidentifyData',
             user_defined_context = [("method", "${config.method}"), ("technique", "${config.technique}")]
           );
         END;

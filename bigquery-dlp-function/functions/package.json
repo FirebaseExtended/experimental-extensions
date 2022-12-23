@@ -9,7 +9,7 @@
     "start": "npm run shell",
     "deploy": "firebase deploy --only functions",
     "logs": "firebase functions:log",
-    "generate-readme": "node ../../generate-experimental-readme.js bigquery-dlp-function > ../README.md"
+    "generate-readme": "node ../../generate-experimental-readme.js bigquery-dlp-functions > ../README.md"
   },
   "main": "lib/index.js",
   "dependencies": {
