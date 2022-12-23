@@ -72,6 +72,7 @@ params:
       # TODO support record type transformations
       # - label: Record Type Transformations
       #   value: RECORD
+      default: INFO_TYPE
   - param: TRANSFORMATION_TECHNIQUE
     label: DLP Transformation Technique
     description: >-
@@ -88,7 +89,6 @@ params:
     description: >-
       The ID of the dataset where the extension will create a connection.
     type: string
-    default: deidentified_data
     required: true
     immutable: true
   - param: LOCATION
