@@ -17,61 +17,63 @@ const bigqueryConnectionClient = new bigquery_connection_1.ConnectionServiceClie
 exports.deidentifyData = functions.https.onRequest(async (request, response) => {
     const { calls, userDefinedContext } = request.body;
     functions.logger.debug("Incoming request from BigQuery", calls);
+    var transformation;
+    switch (config_1.default.technique) {
+        case "redact":
+            transformation = new transofmrations_1.RedactTransformation();
+            break;
+        default:
+            transformation = new transofmrations_1.MaskTransformation();
+    }
     try {
-        if (userDefinedContext.method === "INFO_TYPE") {
-            var transformation;
-            switch (config_1.default.technique) {
-                case "redact":
-                    transformation = new transofmrations_1.RedactTransformation();
-                    break;
-                default:
-                    transformation = new transofmrations_1.MaskTransformation();
-            }
-            response.send({
-                replies: await (0, deidentify_1.deidentifyWithInfoTypeTransformations)(calls, dlp, transformation),
-            });
-        }
-        // else if (userDefinedContext.method === "RECORD") {
-        //   response.send({
-        //     replies: await deidentifyWithRecordTransformations(calls, dlp),
-        //   });
-        // }
-        else {
-            response.status(400).send("Invalid method");
+        switch (userDefinedContext.method) {
+            case "INFO_TYPE":
+                response.send({
+                    replies: await (0, deidentify_1.deidentifyWithInfoTypeTransformations)(calls, dlp, transformation),
+                });
+                break;
+            case "RECORD":
+                response.send({
+                    replies: await (0, deidentify_1.deidentifyWithRecordTransformations)(calls, dlp, transformation),
+                });
+                break;
+            default:
+                response.status(400).send({ errorMessage: "Invalid method" });
+                break;
         }
     }
     catch (error) {
         functions.logger.error(error);
-        response.status(500).send(`errorMessage: ${error}`);
+        response.status(400).send({ errorMessage: error });
     }
 });
 exports.reidentifyData = functions.https.onRequest(async (request, response) => {
     const { calls, userDefinedContext } = request.body;
     functions.logger.debug("Incoming request from BigQuery", calls);
+    var transformation;
+    switch (config_1.default.technique) {
+        default:
+            response.status(400).send("Invalid or irreversable technique");
+            return;
+    }
     try {
         if (userDefinedContext.method === "INFO_TYPE") {
-            var transformation;
-            switch (config_1.default.technique) {
-                default:
-                    response.status(400).send("Invalid or irreversable technique");
-                    return;
-            }
             response.send({
                 replies: await (0, reidentify_1.reidentifyWithInfoTypeTransformations)(calls, dlp, transformation),
             });
         }
-        // else if (userDefinedContext.method === "RECORD") {
-        //   response.send({
-        //     replies: await deidentifyWithRecordTransformations(calls, dlp),
-        //   });
-        // }
+        else if (userDefinedContext.method === "RECORD") {
+            response.send({
+                replies: await (0, deidentify_1.deidentifyWithRecordTransformations)(calls, dlp, transformation),
+            });
+        }
         else {
             response.status(400).send("Invalid method");
         }
     }
     catch (error) {
         functions.logger.error(error);
-        response.status(500).send(`errorMessage: ${error}`);
+        response.status(400).send({ errorMessage: error });
     }
 });
 exports.createBigQueryConnection = functions.tasks

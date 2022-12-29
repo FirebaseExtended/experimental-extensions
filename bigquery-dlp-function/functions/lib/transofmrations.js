@@ -1,7 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.RedactTransformation = exports.MaskTransformation = void 0;
+exports.tableToReplies = exports.getFieldIds = exports.rowsToTable = exports.RedactTransformation = exports.MaskTransformation = void 0;
 const config_1 = require("./config");
+const dlp_1 = require("@google-cloud/dlp");
 class Transformation {
     constructor() {
         this.deidentifyConfig = {};
@@ -18,7 +19,7 @@ class MaskTransformation extends Transformation {
      */
     constructor(mask, numberToMask) {
         super();
-        const maskingConfig = {
+        const maskingConfig = Object.assign(Object.assign({}, (config_1.default.method == "INFO_TYPE" && {
             infoTypeTransformations: {
                 transformations: [
                     {
@@ -31,7 +32,21 @@ class MaskTransformation extends Transformation {
                     },
                 ],
             },
-        };
+        })), (config_1.default.method == "RECORD" && {
+            recordTransformations: {
+                fieldTransformations: [
+                    {
+                        fields: getFieldIds(),
+                        primitiveTransformation: {
+                            characterMaskConfig: {
+                                maskingCharacter: mask !== null && mask !== void 0 ? mask : "x",
+                                numberToMask: numberToMask !== null && numberToMask !== void 0 ? numberToMask : 5,
+                            },
+                        },
+                    },
+                ],
+            },
+        }));
         this.deidentifyConfig = {
             parent: this.parent,
             deidentifyConfig: maskingConfig,
@@ -45,7 +60,7 @@ class RedactTransformation extends Transformation {
      */
     constructor() {
         super();
-        const maskingConfig = {
+        const redactConfig = Object.assign(Object.assign({}, (config_1.default.method == "INFO_TYPE" && {
             infoTypeTransformations: {
                 transformations: [
                     {
@@ -55,12 +70,80 @@ class RedactTransformation extends Transformation {
                     },
                 ],
             },
-        };
+        })), (config_1.default.method == "RECORD" && {
+            recordTransformations: {
+                fieldTransformations: [
+                    {
+                        fields: getFieldIds(),
+                        primitiveTransformation: {
+                            redactConfig: {},
+                        },
+                    },
+                ],
+            },
+        }));
         this.deidentifyConfig = {
             parent: this.parent,
-            deidentifyConfig: maskingConfig,
+            deidentifyConfig: redactConfig,
         };
     }
 }
 exports.RedactTransformation = RedactTransformation;
+function rowsToTable(rows) {
+    let table = {
+        headers: [],
+        rows: [],
+    };
+    for (const row of rows) {
+        const data = row[0];
+        const keys = Object.keys(data);
+        const values = Object.values(data);
+        if (table.headers.length === 0) {
+            // Add headers only once
+            table.headers = keys.map((key) => {
+                const field = dlp_1.protos.google.privacy.dlp.v2.FieldId.create({
+                    name: key,
+                });
+                return field;
+            });
+        }
+        const tableRow = dlp_1.protos.google.privacy.dlp.v2.Table.Row.create({
+            values: values.map((v) => {
+                const field = dlp_1.protos.google.privacy.dlp.v2.Value.create({
+                    stringValue: v,
+                });
+                return field;
+            }),
+        });
+        table.rows.push(tableRow);
+    }
+    return table;
+}
+exports.rowsToTable = rowsToTable;
+function getFieldIds() {
+    var _a;
+    const fields = (_a = config_1.default.fields) === null || _a === void 0 ? void 0 : _a.split(",");
+    const fieldIds = fields === null || fields === void 0 ? void 0 : fields.map((field) => {
+        return { name: field };
+    });
+    return fieldIds;
+}
+exports.getFieldIds = getFieldIds;
+function tableToReplies(table) {
+    var _a;
+    const replies = [];
+    const rows = (_a = table === null || table === void 0 ? void 0 : table.rows) === null || _a === void 0 ? void 0 : _a.map((row) => { var _a; return (_a = row.values) === null || _a === void 0 ? void 0 : _a.map((value) => value.stringValue); });
+    if (!rows || !table || !table.headers)
+        return [];
+    for (const row of rows) {
+        const reply = {};
+        for (let i = 0; i < table.headers.length; i++) {
+            const header = table.headers[i].name;
+            reply[header] = row[i];
+        }
+        replies.push(reply);
+    }
+    return replies;
+}
+exports.tableToReplies = tableToReplies;
 //# sourceMappingURL=transofmrations.js.map

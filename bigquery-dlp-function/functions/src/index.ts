@@ -6,7 +6,10 @@ import { BigQuery } from "@google-cloud/bigquery";
 import { getExtensions } from "firebase-admin/extensions";
 
 import config from "./config";
-import { deidentifyWithInfoTypeTransformations } from "./deidentify";
+import {
+  deidentifyWithInfoTypeTransformations,
+  deidentifyWithRecordTransformations,
+} from "./deidentify";
 import { MaskTransformation, RedactTransformation } from "./transofmrations";
 import { reidentifyWithInfoTypeTransformations } from "./reidentify";
 
@@ -21,39 +24,45 @@ exports.deidentifyData = functions.https.onRequest(
     const { calls, userDefinedContext } = request.body;
 
     functions.logger.debug("Incoming request from BigQuery", calls);
+    var transformation;
+
+    switch (config.technique) {
+      case "redact":
+        transformation = new RedactTransformation();
+        break;
+
+      default:
+        transformation = new MaskTransformation();
+    }
 
     try {
-      if (userDefinedContext.method === "INFO_TYPE") {
-        var transformation;
-
-        switch (config.technique) {
-          case "redact":
-            transformation = new RedactTransformation();
-            break;
-
-          default:
-            transformation = new MaskTransformation();
-        }
-        response.send({
-          replies: await deidentifyWithInfoTypeTransformations(
-            calls,
-            dlp,
-            transformation
-          ),
-        });
-      }
-      // else if (userDefinedContext.method === "RECORD") {
-      //   response.send({
-      //     replies: await deidentifyWithRecordTransformations(calls, dlp),
-      //   });
-      // }
-      else {
-        response.status(400).send("Invalid method");
+      switch (userDefinedContext.method) {
+        case "INFO_TYPE":
+          response.send({
+            replies: await deidentifyWithInfoTypeTransformations(
+              calls,
+              dlp,
+              transformation
+            ),
+          });
+          break;
+        case "RECORD":
+          response.send({
+            replies: await deidentifyWithRecordTransformations(
+              calls,
+              dlp,
+              transformation
+            ),
+          });
+          break;
+        default:
+          response.status(400).send({ errorMessage: "Invalid method" });
+          break;
       }
     } catch (error) {
       functions.logger.error(error);
 
-      response.status(500).send(`errorMessage: ${error}`);
+      response.status(400).send({ errorMessage: error });
     }
   }
 );
@@ -64,16 +73,16 @@ exports.reidentifyData = functions.https.onRequest(
 
     functions.logger.debug("Incoming request from BigQuery", calls);
 
+    var transformation;
+
+    switch (config.technique) {
+      default:
+        response.status(400).send("Invalid or irreversable technique");
+        return;
+    }
+
     try {
       if (userDefinedContext.method === "INFO_TYPE") {
-        var transformation;
-
-        switch (config.technique) {
-          default:
-            response.status(400).send("Invalid or irreversable technique");
-            return;
-        }
-
         response.send({
           replies: await reidentifyWithInfoTypeTransformations(
             calls,
@@ -81,19 +90,20 @@ exports.reidentifyData = functions.https.onRequest(
             transformation
           ),
         });
-      }
-      // else if (userDefinedContext.method === "RECORD") {
-      //   response.send({
-      //     replies: await deidentifyWithRecordTransformations(calls, dlp),
-      //   });
-      // }
-      else {
+      } else if (userDefinedContext.method === "RECORD") {
+        response.send({
+          replies: await deidentifyWithRecordTransformations(
+            calls,
+            dlp,
+            transformation
+          ),
+        });
+      } else {
         response.status(400).send("Invalid method");
       }
     } catch (error) {
       functions.logger.error(error);
-
-      response.status(500).send(`errorMessage: ${error}`);
+      response.status(400).send({ errorMessage: error });
     }
   }
 );

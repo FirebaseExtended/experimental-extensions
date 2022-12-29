@@ -70,8 +70,8 @@ params:
       - label: Info Type Transformations
         value: INFO_TYPE
       # TODO support record type transformations
-      # - label: Record Type Transformations
-      #   value: RECORD
+      - label: Record Type Transformations
+        value: RECORD
     default: INFO_TYPE
   - param: TRANSFORMATION_TECHNIQUE
     label: DLP Transformation Technique
@@ -84,6 +84,11 @@ params:
       - label: Redact a value (remove it from the data)
         value: redact
     default: masking
+  - param: FIELDS_TO_TRANSFORM
+    label: List of fields to transform using record transformation (comma separated)
+    description: >-
+      The list of fields to transform using record transformation. This is only used when the transformation method is set to `RECORD`.
+    type: string
   - param: DATASET_ID
     label: BigQuery Dataset ID
     description: >-

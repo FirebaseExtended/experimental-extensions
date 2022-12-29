@@ -22,5 +22,6 @@ exports.default = {
     location: process.env.LOCATION,
     method: process.env.TRANSFORMATION_METHOD,
     technique: process.env.TRANSFORMATION_TECHNIQUE,
+    fields: process.env.FIELDS_TO_TRANSFORM,
 };
 //# sourceMappingURL=config.js.map
