@@ -89,7 +89,7 @@ exports.writeBestDrivingTime = functions.firestore
           status: "ERROR",
           error: error,
         },
-        bestDriveTime: FieldValue.delete(),
+        bestDrivingTime: FieldValue.delete(),
       });
     }
   });
