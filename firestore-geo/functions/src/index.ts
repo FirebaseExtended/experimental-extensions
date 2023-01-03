@@ -25,10 +25,10 @@ const gMapsClient = new GMaps.Client();
 
 admin.initializeApp();
 
-type GeoError = {
-  status: string;
-  message?: string;
-};
+// type GeoError = {
+//   status: string;
+//   message?: string;
+// };
 
 exports.writeLatLong = functions.firestore
   .document(`${config.collectionId}/{docId}`)

@@ -22,6 +22,10 @@ const GMaps = require("@googlemaps/google-maps-services-js");
 const config_1 = require("./config");
 const gMapsClient = new GMaps.Client();
 admin.initializeApp();
+// type GeoError = {
+//   status: string;
+//   message?: string;
+// };
 exports.writeLatLong = functions.firestore
     .document(`${config_1.default.collectionId}/{docId}`)
     .onWrite(async (snap, ctx) => {
