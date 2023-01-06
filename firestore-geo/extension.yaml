@@ -2,7 +2,7 @@
 # https://firebase.google.com/docs/extensions/alpha/ref-extension-yaml
 
 name: firestore-geo-functions
-version: 0.0.1 
+version: 0.0.2 
 specVersion: v1beta 
 
 author:
@@ -38,7 +38,7 @@ resources:
       the latitude and longitude of that address to the same collection.
     properties:
       location: ${LOCATION}
-      runtime: nodejs12
+      runtime: nodejs14
       eventTrigger:
         eventType: providers/cloud.firestore/eventTypes/document.write
         resource: projects/${PROJECT_ID}/databases/(default)/documents/${COLLECTION_ID}/{docId}
@@ -49,7 +49,7 @@ resources:
       the best driving time in seconds.
     properties:
       location: ${LOCATION}
-      runtime: nodejs12
+      runtime: nodejs14
       eventTrigger:
         eventType: providers/cloud.firestore/eventTypes/document.write
         resource: projects/${PROJECT_ID}/databases/(default)/documents/${COLLECTION_ID}/{docId}
