@@ -41,9 +41,17 @@ export const changeUpdate = () => {
   logger.log(messages.changeUpdate());
 };
 
-// export const documentCreatedNoInput = () => {
-//   logger.log(messages.documentCreatedNoInput());
-// };
+export const complete = () => {
+  logger.log(messages.complete());
+};
+
+export const error = (err: Error) => {
+  logger.error(...messages.error(err));
+};
+
+export const documentUpdateNoScoreChange = () => {
+  logger.log(messages.documentUpdateNoScoreChange());
+};
 
 // export const documentCreatedWithInput = () => {
 //   logger.log(messages.documentCreatedWithInput());
@@ -69,9 +77,7 @@ export const changeUpdate = () => {
 //   logger.log(messages.documentUpdatedUnchangedInput());
 // };
 
-// export const error = (err: Error) => {
-//   logger.error(...messages.error(err));
-// };
+
 
 // export const fieldNamesNotDifferent = () => {
 //   logger.error(messages.fieldNamesNotDifferent());

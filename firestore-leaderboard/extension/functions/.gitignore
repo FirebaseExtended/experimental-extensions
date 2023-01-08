@@ -4,3 +4,5 @@ typings/
 node_modules/
 
 lib/
+
+__snapshots__/

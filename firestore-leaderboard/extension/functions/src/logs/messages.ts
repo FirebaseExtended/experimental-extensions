@@ -12,8 +12,11 @@ export const messages = {
   changeCreate: () => "changeCreate",
   changeDelete: () => "changeDelete",
   changeUpdate: () => "changeUpdate",
-  // documentCreatedNoInput: () =>
-  //   "Document was created without an input string, no processing is required",
+
+  complete: () => "onScoreUpdate Complete",
+  error: (err: Error) => ["Failed execution of extension", err],
+  documentUpdateNoScoreChange: () =>
+    "Document was changed but no score update, no processing is required",
   // documentCreatedWithInput: () => "Document was created with an input string",
   // documentDeleted: () => "Document was deleted, no processing is required",
   // documentUpdatedChangedInput: () =>
@@ -24,7 +27,7 @@ export const messages = {
   //   "Document was updated, no input string exists, no processing is required",
   // documentUpdatedUnchangedInput: () =>
   //   "Document was updated, input string has not changed, no processing is required",
-  // error: (err: Error) => ["Failed execution of extension", err],
+
   // fieldNamesNotDifferent: () =>
   //   "The `Input` and `Output` field names must be different for this extension to function correctly",
   // inputFieldNameIsOutputPath: () =>

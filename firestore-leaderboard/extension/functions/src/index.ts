@@ -18,6 +18,7 @@ import * as admin from "firebase-admin";
 import * as functions from "firebase-functions";
 
 import { FieldValue } from 'firebase-admin/firestore'
+import { getEventarc } from "firebase-admin/eventarc";
 
 import config from "./config";
 import * as logs from "./logs";
@@ -36,6 +37,13 @@ const db = admin.firestore();
 
 logs.init(config);
 
+/** Setup EventArc Channels */
+const eventChannel =
+  process.env.EVENTARC_CHANNEL &&
+  getEventarc().channel(process.env.EVENTARC_CHANNEL, {
+    allowedEventTypes: process.env.EXT_SELECTED_EVENTS,
+  });
+
 const getChangeType = (
   change: functions.Change<admin.firestore.DocumentSnapshot>
 ): ChangeType => {
@@ -46,6 +54,19 @@ const getChangeType = (
     return ChangeType.CREATE;
   }
   return ChangeType.UPDATE;
+};
+
+const publishEvent = async (
+  leaderboardPath: string
+) => {
+  if (eventChannel) {
+    await eventChannel.publish({
+      type: `firebase.extensions.firestore-leaderboard.v1.updated`,
+      data: {
+        documentPaths: leaderboardPath,
+      },
+    });
+  }
 };
 
 const createLeaderboardDocument = async (
@@ -64,21 +85,20 @@ const createLeaderboardDocument = async (
       scoreCollectionRef.orderBy(config.scoreFieldName, "desc").get().then(querySnapshot => {
         console.log(`querySnapshot size is ${querySnapshot.size}`);
         querySnapshot.forEach(documentSnapshot => {
-          console.log(`Found document at ${documentSnapshot.ref.path}, score: ${documentSnapshot.data()[config.scoreFieldName]}`);
+          console.log(`Found document at ${documentSnapshot.ref.path}, score: ${documentSnapshot.get(config.scoreFieldName)}`);
           const entryData = {
-            score: documentSnapshot.data()[config.scoreFieldName],
-            user_name : documentSnapshot.data()[config.userNameFieldName],
+            score: documentSnapshot.get(config.scoreFieldName),
+            user_name : documentSnapshot.get(config.userNameFieldName),
           };
           leaderboardCollectionRef.update(
             documentSnapshot.ref.id , entryData
           )
         });
       });
-      
+      console.log(`End createLeaderboardDocument()`);
     
       return Promise.resolve();
     });
-    console.log(`End createLeaderboardDocument()`);
 };
 
 const addEntryLeaderboardDocument = async (
@@ -86,18 +106,19 @@ const addEntryLeaderboardDocument = async (
 ):Promise<void> => {
   console.log(`Start addEntryLeaderboardDocument()`);
 
-  const leaderboardDocRef = db.collection(config.leaderboardCollectionPath).doc(config.leaderboardName);
+  const leaderboardCollectionRef = db.collection(config.leaderboardCollectionPath).doc(config.leaderboardName);
 
   await db.runTransaction(async (transaction) => {
     const user_id = change.after.ref.id;
     const entryData = {
-      [config.scoreFieldName]: change.after.data()[config.scoreFieldName],
-      [config.userNameFieldName] : change.after.data()[config.userNameFieldName],
+      [config.scoreFieldName]: change.after.get(config.scoreFieldName),
+      [config.userNameFieldName] : change.after.get(config.userNameFieldName),
     };
-    transaction.set(leaderboardDocRef,  {[user_id]: entryData}, {merge: true});
+    transaction.set(leaderboardCollectionRef,  {[user_id]: entryData}, {merge: true});
+    publishEvent(leaderboardCollectionRef.path);
+    console.log(`End addEntryLeaderboardDocument()`);
     return Promise.resolve();
   });
-  console.log(`End addEntryLeaderboardDocument()`);
 };
 
 const deleteEntryLeaderboardDocument = async (
@@ -112,21 +133,21 @@ const deleteEntryLeaderboardDocument = async (
 
   await db.runTransaction((transaction) => {
     leaderboardCollectionRef.update(change.before.ref.id, FieldValue.delete());
- 
+    publishEvent(leaderboardCollectionRef.path);
+    console.log(`End deleteEntryLeaderboardDocument()`);
     return Promise.resolve();
   });
-  console.log(`End deleteEntryLeaderboardDocument()`);
 };
 
 const updateLeaderboardDocument = async (
   change: functions.Change<admin.firestore.DocumentSnapshot>
 ):Promise<void> => {
   console.log(`Start updateLeaderboardDocument()`);
-  const scoreBefore = change.before.data()[config.scoreFieldName];
-  const scoreAfter = change.after.data()[config.scoreFieldName]
+  const scoreBefore = change.before.get(config.scoreFieldName);
+  const scoreAfter = change.after.get(config.scoreFieldName);
   if (scoreBefore == scoreAfter) {
-    console.log(`Score is same, early out.`);
-    return;
+    logs.documentUpdateNoScoreChange();
+    return Promise.resolve();
   }
 
   const leaderboardCollectionRef = db.collection(config.leaderboardCollectionPath).doc(config.leaderboardName);
@@ -137,16 +158,16 @@ const updateLeaderboardDocument = async (
     }
     
     const entryData = {
-      score: change.after.data()[config.scoreFieldName],
-      user_name : change.after.data()[config.userNameFieldName],
+      score: change.after.get(config.scoreFieldName),
+      user_name : change.after.get(config.userNameFieldName),
     };
     leaderboardCollectionRef.update(
       change.after.ref.id , entryData
     )
-  
+    publishEvent(leaderboardCollectionRef.path);
+    console.log(`End updateLeaderboardDocument()`);
     return Promise.resolve();
   });
-  console.log(`End updateLeaderboardDocument()`);
 };
 
 export const onScoreUpdate = functions.firestore.document(config.scoreCollectionPath).onWrite(
@@ -171,9 +192,9 @@ export const onScoreUpdate = functions.firestore.document(config.scoreCollection
           break;
       }
 
-      //logs.complete();
+      logs.complete();
     } catch (err) {
-      //logs.error(err);
+      logs.error(err);
     }
   }
 );
