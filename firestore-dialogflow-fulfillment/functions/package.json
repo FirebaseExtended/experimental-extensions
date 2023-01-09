@@ -17,7 +17,8 @@
     "dialogflow-fulfillment-helper": "^0.7.1",
     "firebase-admin": "^11.0.1",
     "firebase-functions": "^3.24.1",
-    "googleapis": "^105.0.0"
+    "googleapis": "^105.0.0",
+    "@types/express-serve-static-core": "^4.0.50"
   },
   "devDependencies": {
     "@types/node": "^18.11.9",
