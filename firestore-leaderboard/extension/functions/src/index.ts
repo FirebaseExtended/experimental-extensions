@@ -29,8 +29,6 @@ enum ChangeType {
   UPDATE,
 }
 
-process.env.GCLOUD_PROJECT = process.env.GCP_PROJECT;
-
 // Initialize the Firebase Admin SDK
 admin.initializeApp();
 const db = admin.firestore();
@@ -67,38 +65,6 @@ const publishEvent = async (
       },
     });
   }
-};
-
-const createLeaderboardDocument = async (
-    change: functions.Change<admin.firestore.DocumentSnapshot>
-  ):Promise<void> => {
-    // Read all docs under config.scoreCollectionPath
-    console.log(`Start createLeaderboardDocument()`);
-
-    const leaderboardCollectionRef = db.collection(config.leaderboardCollectionPath).doc(config.leaderboardName);
-
-    await db.runTransaction((transaction) => {
-      if (leaderboardCollectionRef == null) {
-        transaction.create(leaderboardCollectionRef, {});
-      }
-      const scoreCollectionRef = db.collection(config.scoreCollectionPath);
-      scoreCollectionRef.orderBy(config.scoreFieldName, "desc").get().then(querySnapshot => {
-        console.log(`querySnapshot size is ${querySnapshot.size}`);
-        querySnapshot.forEach(documentSnapshot => {
-          console.log(`Found document at ${documentSnapshot.ref.path}, score: ${documentSnapshot.get(config.scoreFieldName)}`);
-          const entryData = {
-            score: documentSnapshot.get(config.scoreFieldName),
-            user_name : documentSnapshot.get(config.userNameFieldName),
-          };
-          leaderboardCollectionRef.update(
-            documentSnapshot.ref.id , entryData
-          )
-        });
-      });
-      console.log(`End createLeaderboardDocument()`);
-    
-      return Promise.resolve();
-    });
 };
 
 const addEntryLeaderboardDocument = async (
@@ -170,7 +136,7 @@ const updateLeaderboardDocument = async (
   });
 };
 
-export const onScoreUpdate = functions.firestore.document(config.scoreCollectionPath).onWrite(
+export const onScoreUpdate = functions.handler.firestore.document.onWrite(
   async (change): Promise<void> => {
     logs.start(config);
 
