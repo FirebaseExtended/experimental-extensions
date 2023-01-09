@@ -14,5 +14,4 @@ declare namespace NodeJS {
     mockUpdateClassMethod: jest.MockedFunction<any>;
     clearMocks: () => void;
   }
-  
 }

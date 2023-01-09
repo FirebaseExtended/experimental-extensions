@@ -25,7 +25,6 @@ const {
   clearMocks,
 } = global;
 
-
 let functionsTest = functionsTestInit();
 let restoreEnv;
 
@@ -91,13 +90,9 @@ describe("extension", () => {
         changed: 123,
       });
 
-      documentChange = functionsTest.makeChange(
-        beforeSnapshot, 
-        afterSnapshot,
-      );
+      documentChange = functionsTest.makeChange(beforeSnapshot, afterSnapshot);
       const callResult = await mockUpdateClassMethod(documentChange);
       expect(callResult).toBeUndefined();
     });
-
   });
 });

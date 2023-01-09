@@ -17,7 +17,7 @@
 import * as admin from "firebase-admin";
 import * as functions from "firebase-functions";
 
-import { FieldValue } from 'firebase-admin/firestore'
+import { FieldValue } from "firebase-admin/firestore";
 import { getEventarc } from "firebase-admin/eventarc";
 
 import config from "./config";
@@ -54,9 +54,7 @@ const getChangeType = (
   return ChangeType.UPDATE;
 };
 
-const publishEvent = async (
-  leaderboardPath: string
-) => {
+const publishEvent = async (leaderboardPath: string) => {
   if (eventChannel) {
     await eventChannel.publish({
       type: `firebase.extensions.firestore-leaderboard.v1.updated`,
@@ -69,18 +67,24 @@ const publishEvent = async (
 
 const addEntryLeaderboardDocument = async (
   change: functions.Change<admin.firestore.DocumentSnapshot>
-):Promise<void> => {
+): Promise<void> => {
   console.log(`Start addEntryLeaderboardDocument()`);
 
-  const leaderboardCollectionRef = db.collection(config.leaderboardCollectionPath).doc(config.leaderboardName);
+  const leaderboardCollectionRef = db
+    .collection(config.leaderboardCollectionPath)
+    .doc(config.leaderboardName);
 
   await db.runTransaction(async (transaction) => {
     const user_id = change.after.ref.id;
     const entryData = {
       [config.scoreFieldName]: change.after.get(config.scoreFieldName),
-      [config.userNameFieldName] : change.after.get(config.userNameFieldName),
+      [config.userNameFieldName]: change.after.get(config.userNameFieldName),
     };
-    transaction.set(leaderboardCollectionRef,  {[user_id]: entryData}, {merge: true});
+    transaction.set(
+      leaderboardCollectionRef,
+      { [user_id]: entryData },
+      { merge: true }
+    );
     publishEvent(leaderboardCollectionRef.path);
     console.log(`End addEntryLeaderboardDocument()`);
     return Promise.resolve();
@@ -89,10 +93,12 @@ const addEntryLeaderboardDocument = async (
 
 const deleteEntryLeaderboardDocument = async (
   change: functions.Change<admin.firestore.DocumentSnapshot>
-):Promise<void> => {
+): Promise<void> => {
   console.log(`Start deleteEntryLeaderboardDocument()`);
 
-  const leaderboardCollectionRef = db.collection(config.leaderboardCollectionPath).doc(config.leaderboardName);
+  const leaderboardCollectionRef = db
+    .collection(config.leaderboardCollectionPath)
+    .doc(config.leaderboardName);
   if (leaderboardCollectionRef == null) {
     console.log(`Leaderboard document empty, early out.`);
   }
@@ -107,7 +113,7 @@ const deleteEntryLeaderboardDocument = async (
 
 const updateLeaderboardDocument = async (
   change: functions.Change<admin.firestore.DocumentSnapshot>
-):Promise<void> => {
+): Promise<void> => {
   console.log(`Start updateLeaderboardDocument()`);
   const scoreBefore = change.before.get(config.scoreFieldName);
   const scoreAfter = change.after.get(config.scoreFieldName);
@@ -116,20 +122,20 @@ const updateLeaderboardDocument = async (
     return Promise.resolve();
   }
 
-  const leaderboardCollectionRef = db.collection(config.leaderboardCollectionPath).doc(config.leaderboardName);
+  const leaderboardCollectionRef = db
+    .collection(config.leaderboardCollectionPath)
+    .doc(config.leaderboardName);
 
   await db.runTransaction((transaction) => {
     if (leaderboardCollectionRef == null) {
       transaction.create(leaderboardCollectionRef, {});
     }
-    
+
     const entryData = {
       score: change.after.get(config.scoreFieldName),
-      user_name : change.after.get(config.userNameFieldName),
+      user_name: change.after.get(config.userNameFieldName),
     };
-    leaderboardCollectionRef.update(
-      change.after.ref.id , entryData
-    )
+    leaderboardCollectionRef.update(change.after.ref.id, entryData);
     publishEvent(leaderboardCollectionRef.path);
     console.log(`End updateLeaderboardDocument()`);
     return Promise.resolve();

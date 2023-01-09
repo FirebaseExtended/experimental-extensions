@@ -4,10 +4,7 @@ import {
   mockFirestoreUpdate,
   mockFirestoreTransaction,
 } from "./mocks/firestore";
-import {
-  mockUpdateLeaderboard,
-  mockUpdateClassMethod,
-} from "./mocks/update";
+import { mockUpdateLeaderboard, mockUpdateClassMethod } from "./mocks/update";
 
 global.config = () => require("../src/config").default;
 

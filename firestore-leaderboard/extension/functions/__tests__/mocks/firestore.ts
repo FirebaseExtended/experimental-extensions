@@ -1,10 +1,8 @@
 import * as functionsTestInit from "firebase-functions-test";
 
 export const snapshot = (
-  data={ score: 100,
-    user_name: "mock User",
-  },
-  path="users/id1"
+  data = { score: 100, user_name: "mock User" },
+  path = "users/id1"
 ) => {
   let functionsTest = functionsTestInit();
   return functionsTest.firestore.makeDocumentSnapshot(data, path);
@@ -16,7 +14,7 @@ export const mockDocumentSnapshotFactory = (documentSnapshot) => {
       exists: true,
       get: documentSnapshot.get.bind(documentSnapshot),
       ref: { path: documentSnapshot.ref.path },
-      data: { documentSnapshot},
+      data: { documentSnapshot },
     };
   })();
 };
