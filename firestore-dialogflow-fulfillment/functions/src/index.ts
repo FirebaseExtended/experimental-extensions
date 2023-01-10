@@ -281,26 +281,31 @@ exports.dialogflowFulfillment = functions.https.onRequest(
       agent.add("fallback response...");
     });
 
-    intents.set("intent.calendar", async (agent: any) => {
-      const { parameters } = agent;
+    intents.set(
+      `ext-${config.instanceId}.intent.calendar`,
+      async (agent: any) => {
+        const { parameters } = agent;
 
-      if (parameters?.DATE && parameters?.TIME) {
-        const dateTime = extratDate(parameters.DATE, parameters.TIME);
-        const dateTimeFormatted = getDateTimeFormatted(dateTime);
-        try {
-          await createCalendarEvent(dateTime);
-          agent.add(`You are all set for ${dateTimeFormatted}. See you then!`);
-        } catch (error) {
-          if (error instanceof HttpsError && error.code === "not-found") {
-            agent.add(`Sorry, I couldn't find your calendar.`);
-          } else {
+        if (parameters?.DATE && parameters?.TIME) {
+          const dateTime = extratDate(parameters.DATE, parameters.TIME);
+          const dateTimeFormatted = getDateTimeFormatted(dateTime);
+          try {
+            await createCalendarEvent(dateTime);
             agent.add(
-              `I'm sorry, there are no slots available for ${dateTimeFormatted}.`
+              `You are all set for ${dateTimeFormatted}. See you then!`
             );
+          } catch (error) {
+            if (error instanceof HttpsError && error.code === "not-found") {
+              agent.add(`Sorry, I couldn't find your calendar.`);
+            } else {
+              agent.add(
+                `I'm sorry, there are no slots available for ${dateTimeFormatted}.`
+              );
+            }
           }
         }
       }
-    });
+    );
 
     return agent.handleRequest(intents);
   }
