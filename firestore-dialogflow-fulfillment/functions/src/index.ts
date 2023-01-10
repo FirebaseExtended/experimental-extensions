@@ -343,7 +343,7 @@ exports.createDialogflowAgent = functions.tasks
       await intentsClient.createIntent({
         parent: agentPath,
         intent: {
-          displayName: `${config.instanceId}.intent.calendar`,
+          displayName: `ext-${config.instanceId}.intent.calendar`,
           messages: [
             {
               text: {
