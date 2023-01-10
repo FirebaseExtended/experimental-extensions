@@ -6,7 +6,17 @@ Next, go to the DialogFlow console [here](https://dialogflow.cloud.google.com/#/
 
 ## Give the extension access to your calendar
 
-To allow the extension to create events, you need to give it access to the calendar `${param:CALENDAR_ID}`. To do this, copy the extension service account principal email address from the [Service Accounts page](https://console.cloud.google.com/iam-admin/serviceaccounts) in the Google Cloud Console, which starts with `ext-${param:EXT_INSTANCE_ID}`. Then, go to your calendar Sharing settings, and add the email with **Make changes to events** permission.
+To allow the extension to create events, you need to give it access to the calendar `${param:CALENDAR_ID}`.
+
+To do this, copy the extension service account principal email address:
+
+```
+ext-${param:EXT_INSTANCE_ID}@extensions-sample.iam.gserviceaccount.com
+```
+
+which can be found in the [Service Accounts page](https://console.cloud.google.com/iam-admin/serviceaccounts) in the Google Cloud Console.
+
+Next, go to [your calendar](https://calendar.google.com/calendar/u/0/r/settings) Sharing settings, and share it with the service account email, make sure to give it **Make changes to events** permission.
 
 ## Using the extension
 
