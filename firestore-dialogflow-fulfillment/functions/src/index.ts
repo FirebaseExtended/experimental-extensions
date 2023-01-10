@@ -22,6 +22,7 @@ import { HttpsError } from "firebase-functions/v1/auth";
 import DialogFlow from "@google-cloud/dialogflow";
 import { calendar_v3, google } from "googleapis";
 import { GaxiosError } from "gaxios";
+import { getExtensions } from "firebase-admin/extensions";
 
 import config from "./config";
 import Status from "./types/status";
@@ -29,8 +30,6 @@ import Conversation from "./types/conversation";
 import { extratDate, getDateTimeFormatted } from "./util";
 
 admin.initializeApp();
-
-// var fs = require("fs");
 
 const dialogflow = DialogFlow.v2beta1;
 
@@ -307,122 +306,125 @@ exports.dialogflowFulfillment = functions.https.onRequest(
   }
 );
 
-exports.createDialogflowAgent = functions.https.onCall(async (_, ctx) => {
-  // const runtime = getExtensions().runtime();
-  const auth = new google.auth.GoogleAuth({
-    projectId: config.projectId,
-    scopes: "https://www.googleapis.com/auth/dialogflow",
-  });
-
-  const agent = new dialogflow.AgentsClient({
-    auth: auth,
-  });
-
-  const intentsClient = new dialogflow.IntentsClient({
-    auth: auth,
-  });
-
-  try {
-    functions.logger.info(`Creating Dialogflow agent ${config.agentName}...`);
-
-    await agent.setAgent({
-      agent: {
-        parent: `projects/${config.projectId}/locations/global`,
-        displayName: config.agentName,
-        timeZone: config.timeZone,
-        supportedLanguageCodes: [config.langugageCode],
-      },
+exports.createDialogflowAgent = functions.tasks
+  .taskQueue()
+  .onDispatch(async () => {
+    const runtime = getExtensions().runtime();
+    const auth = new google.auth.GoogleAuth({
+      projectId: config.projectId,
+      scopes: "https://www.googleapis.com/auth/dialogflow",
     });
-  } catch (error) {
-    functions.logger.error(error);
-  }
 
-  try {
-    const agentPath = intentsClient.projectAgentPath(config.projectId);
-    await intentsClient.createIntent({
-      parent: agentPath,
-      intent: {
-        displayName: "intent.calendar",
-        messages: [
-          {
-            text: {
-              text: ["You are all set for $date at $time. See you then!"],
+    const agent = new dialogflow.AgentsClient({
+      auth: auth,
+    });
+
+    const intentsClient = new dialogflow.IntentsClient({
+      auth: auth,
+    });
+
+    try {
+      functions.logger.info(`Creating Dialogflow agent ${config.agentName}...`);
+
+      await agent.setAgent({
+        agent: {
+          parent: `projects/${config.projectId}/locations/global`,
+          displayName: config.agentName,
+          timeZone: config.timeZone,
+          supportedLanguageCodes: [config.langugageCode],
+        },
+      });
+    } catch (error) {
+      functions.logger.error(error);
+    }
+
+    try {
+      const agentPath = intentsClient.projectAgentPath(config.projectId);
+      await intentsClient.createIntent({
+        parent: agentPath,
+        intent: {
+          displayName: `${config.instanceId}.intent.calendar`,
+          messages: [
+            {
+              text: {
+                text: ["You are all set for $date at $time. See you then!"],
+              },
             },
-          },
-        ],
-        parameters: [
-          {
-            displayName: "DATE",
-            entityTypeDisplayName: "@sys.date",
-            mandatory: true,
-            value: "$date",
-            prompts: ["What date would you like to schedule the appointment?"],
-          },
-          {
-            displayName: "TIME",
-            entityTypeDisplayName: "@sys.time",
-            mandatory: true,
-            value: "$time",
-            prompts: ["What time would you like to schedule the appointment?"],
-          },
-        ],
-        webhookState: "WEBHOOK_STATE_ENABLED",
-        trainingPhrases: [
-          {
-            type: "EXAMPLE",
-            parts: [
-              {
-                text: "Set an appointment on ",
-              },
-              {
-                text: "Wednesday",
-                entityType: "@sys.date",
-              },
-              {
-                text: " at ",
-              },
-              {
-                text: "2 PM",
-                entityType: "@sys.time",
-              },
-            ],
-          },
-          {
-            type: "EXAMPLE",
-            parts: [
-              {
-                text: "I have a meeting ",
-              },
-              {
-                text: "tomorrow",
-                entityType: "@sys.date",
-              },
-              {
-                text: " at ",
-              },
-              {
-                text: "9 PM",
-                entityType: "@sys.time",
-              },
-            ],
-          },
-        ],
-      },
-    });
+          ],
+          parameters: [
+            {
+              displayName: "DATE",
+              entityTypeDisplayName: "@sys.date",
+              mandatory: true,
+              value: "$date",
+              prompts: [
+                "What date would you like to schedule the appointment?",
+              ],
+            },
+            {
+              displayName: "TIME",
+              entityTypeDisplayName: "@sys.time",
+              mandatory: true,
+              value: "$time",
+              prompts: [
+                "What time would you like to schedule the appointment?",
+              ],
+            },
+          ],
+          webhookState: "WEBHOOK_STATE_ENABLED",
+          trainingPhrases: [
+            {
+              type: "EXAMPLE",
+              parts: [
+                {
+                  text: "Set an appointment on ",
+                },
+                {
+                  text: "Wednesday",
+                  entityType: "@sys.date",
+                },
+                {
+                  text: " at ",
+                },
+                {
+                  text: "2 PM",
+                  entityType: "@sys.time",
+                },
+              ],
+            },
+            {
+              type: "EXAMPLE",
+              parts: [
+                {
+                  text: "I have a meeting ",
+                },
+                {
+                  text: "tomorrow",
+                  entityType: "@sys.date",
+                },
+                {
+                  text: " at ",
+                },
+                {
+                  text: "9 PM",
+                  entityType: "@sys.time",
+                },
+              ],
+            },
+          ],
+        },
+      });
 
-    return "Successfully created Dialogflow agent.";
+      await runtime.setProcessingState(
+        "PROCESSING_COMPLETE",
+        `Successfully creeated a new agent named ${config.agentName}.`
+      );
+    } catch (error) {
+      functions.logger.error(error);
 
-    // await runtime.setProcessingState(
-    //   "PROCESSING_COMPLETE",
-    //   `Successfully creeated a new agent named ${config.agentName}.`
-    // );
-  } catch (error) {
-    functions.logger.error(error);
-
-    throw new HttpsError("internal", `Couldn't create agent`, error);
-    // await runtime.setProcessingState(
-    //   "PROCESSING_FAILED",
-    //   `Agent ${config.agentName} wasn't created.`
-    // );
-  }
-});
+      await runtime.setProcessingState(
+        "PROCESSING_FAILED",
+        `Agent ${config.agentName} wasn't created.`
+      );
+    }
+  });
