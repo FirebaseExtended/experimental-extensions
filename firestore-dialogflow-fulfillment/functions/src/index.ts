@@ -416,6 +416,25 @@ exports.createDialogflowAgent = functions.tasks
                 },
               ],
             },
+            {
+              type: "EXAMPLE",
+              parts: [
+                {
+                  text: "I have a meeting ",
+                },
+                {
+                  text: "today",
+                  entityType: "@sys.date",
+                },
+                {
+                  text: " at ",
+                },
+                {
+                  text: "9 PM",
+                  entityType: "@sys.time",
+                },
+              ],
+            },
           ],
         },
       });
