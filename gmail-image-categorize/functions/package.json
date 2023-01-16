@@ -14,7 +14,7 @@
   "dependencies": {
     "@google-cloud/express-oauth2-handlers": "^0.1.2",
     "@google-cloud/pubsub": "^3.2.1",
-    "firebase-admin": "^10.3.0",
+    "firebase-admin": "^11.3.0",
     "firebase-functions": "^3.18.0",
     "googleapis": "^110.0.0"
   },

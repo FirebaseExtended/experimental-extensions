@@ -14,6 +14,8 @@ const pubSubClient = new PubSub({
 
 async function setSubscriptionPolicy() {
   try {
+    await pubSubClient.topic(config.pubsubTopic).create();
+
     // The new IAM policy
     const newPolicy: Policy = {
       bindings: [
@@ -50,7 +52,9 @@ export const initializeAuth = functions.https.onRequest(async (req, res) => {
     functions.logger.error(error);
   }
 });
+
 export const callback = functions.https.onRequest(authCallback);
+
 export const setIamPolicy = functions.tasks
   .taskQueue()
   .onDispatch(async (data) => {

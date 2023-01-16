@@ -68,4 +68,4 @@ const onFailure = (err: any, req: any, res: any) => {
 };
 
 export const authInit = authGmail.routes.init;
-export const authCallback = authInit.cb(onSuccess, onFailure);
+export const authCallback = authGmail.routes.cb(onSuccess, onFailure);

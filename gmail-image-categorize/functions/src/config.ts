@@ -15,7 +15,8 @@
  */
 
 // Set the callback URL.
-process.env.GOOGLE_CALLBACK_URL = `https://${process.env.LOCATION}-${process.env.PROJECT_ID}.cloudfunctions.net/callback`;
+process.env.GOOGLE_CALLBACK_URL = `https://${process.env.LOCATION}-${process.env.PROJECT_ID}.cloudfunctions.net/ext-${process.env.EXT_INSTANCE_ID}-callback`;
+process.env.GCP_PROJECT = process.env.PROJECT_ID;
 
 export default {
   gcpProject: process.env.PROJECT_ID!,
