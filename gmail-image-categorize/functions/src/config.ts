@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 
+// Set the callback URL.
+process.env.GOOGLE_CALLBACK_URL = `https://${process.env.LOCATION}-${process.env.PROJECT_ID}.cloudfunctions.net/callback`;
+
 export default {
   gcpProject: process.env.PROJECT_ID!,
   pubsubTopic: process.env.PUBSUB_TOPIC!,
   location: process.env.LOCATION!,
   clientId: process.env.CLIENT_ID!,
   clientSecret: process.env.CLIENT_SECRET!,
-  authCallbackUrl: `https://${process.env.LOCATION}-${process.env.PROJECT_ID}.cloudfunctions.net/callback`,
+  authCallbackUrl: process.env.GOOGLE_CALLBACK_URL,
 };

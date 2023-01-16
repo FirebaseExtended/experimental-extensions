@@ -123,3 +123,7 @@ params:
     required: true
     immutable: true
 
+lifecycleEvents:
+  onInstall:
+    function: setIamPolicy
+    processingMessage: "Setting IAM policy for the extension's PubSub topic ${PUBSUB_TOPIC}"

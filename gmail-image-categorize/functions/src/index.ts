@@ -8,9 +8,6 @@ import config from "./config";
 
 admin.initializeApp();
 
-// Set the callback URL.
-process.env.GOOGLE_CALLBACK_URL = config.authCallbackUrl;
-
 const pubSubClient = new PubSub({
   scopes: ["https://www.googleapis.com/auth/pubsub"],
 });
@@ -41,7 +38,18 @@ async function setSubscriptionPolicy() {
   }
 }
 
-export const initializeAuth = functions.https.onRequest(authInit);
+export const initializeAuth = functions.https.onRequest(async (req, res) => {
+  try {
+    functions.logger.debug(config.authCallbackUrl);
+    functions.logger.debug(process.env.GCP_PROJECT);
+
+    functions.logger.debug("Auth initialized.");
+
+    await authInit(req, res);
+  } catch (error) {
+    functions.logger.error(error);
+  }
+});
 export const callback = functions.https.onRequest(authCallback);
 export const setIamPolicy = functions.tasks
   .taskQueue()
