@@ -1,0 +1,125 @@
+name: gmail-image-categorize
+version: 0.0.1
+specVersion: v1beta
+
+displayName: Gmail Images Categorizer
+description: Extract images from a Gmail inbox into a Google Sheet using Google Vision API.
+
+license: Apache-2.0 # The license you want for the extension
+sourceUrl: TODO
+
+author:
+  authorName: Firebase
+  url: https://firebase.google.com
+
+billingRequired: true
+
+apis:
+  - apiName: pubsub.googleapis.com
+    reason: Powers all PubSub tasks performed by the extension.
+  - apiName: vision.googleapis.com
+    reason: Powers all Vision tasks performed by the extension.
+  - apiName: gmail.googleapis.com
+    reason: Powers all Gmail tasks performed by the extension.
+  - apiName: sheets.googleapis.com
+    reason: Powers all Sheets tasks performed by the extension.
+
+roles:
+  - role: datastore.user
+    reason: Allows the extension to read input data from Cloud Firestore and write the NLP data to Cloud Firestore.
+
+resources:
+  - name: setIamPolicy
+    type: firebaseextensions.v1beta.function
+    description:
+      >-
+      Sets the IAM policy for the extension's PubSub topic. This is used to
+      allow the extension to publish messages to the topic.
+    properties:
+      location: ${param:LOCATION}
+      runtime: nodejs14
+      taskQueueTrigger: {}
+  - name: initializeAuth
+    type: firebaseextensions.v1beta.function
+    description:
+      >-
+      Initializes the extension's OAuth consent screen. This is used to
+      authenticate the extension to your Gmail account.
+    properties:
+      location: ${LOCATION}
+      runtime: nodejs14
+      httpsTrigger: {}
+  - name: callback
+    type: firebaseextensions.v1beta.function
+    description:
+      >-
+      Callback function for the extension's OAuth consent screen. This is used to
+      authenticate the extension to your Gmail account.
+    properties:
+      location: ${LOCATION}
+      runtime: nodejs14
+      httpsTrigger: {}
+
+params:
+  - param: GOOGLE_CLIENT_ID
+    label: Google Client ID
+    description: >-
+      The Google Client ID for your OAuth consent screen. This is used to
+      authenticate the extension to your Gmail account.
+    type: string
+    required: true
+    immutable: true
+  - param: GOOGLE_CLIENT_SECRET
+    label: Google Client Secret
+    description: >-
+      The Google Client Secret for your OAuth consent screen. This is used to
+      authenticate the extension to your Gmail account.
+    type: string
+    required: true
+    immutable: true
+  - param: PUBSUB_TOPIC
+    label: PubSub Topic
+    description: >-
+      The PubSub topic to use for the extension. This is used to trigger the
+      extension when a new email is received from Gmail.
+    type: string
+    required: true
+    immutable: true
+  - param: SHEET_ID
+    label: Google Sheet ID
+    description: >-
+      The ID of the Google Sheet to use for the extension. This is used to store
+      the extracted images from Gmail.
+    type: string
+    required: true
+    immutable: true
+  - param: LOCATION
+    label: Cloud Functions location
+    description: >-
+      Where do you want to deploy the functions created for this extension?
+      You usually want a location close to your database. Realtime Database
+      instances are located in `us-central1`. For help selecting a
+      location, refer to the [location selection
+      guide](https://firebase.google.com/docs/functions/locations).
+    type: select
+    options:
+      - label: Iowa (us-central1)
+        value: us-central1
+      - label: South Carolina (us-east1)
+        value: us-east1
+      - label: Northern Virginia (us-east4)
+        value: us-east4
+      - label: Belgium (europe-west1)
+        value: europe-west1
+      - label: London (europe-west2)
+        value: europe-west2
+      - label: Frankfurt (europe-west3)
+        value: europe-west3
+      - label: Hong Kong (asia-east2)
+        value: asia-east2
+      - label: Tokyo (asia-northeast1)
+        value: asia-northeast1
+    default: us-central1
+    required: true
+    immutable: true
+
