@@ -38,8 +38,12 @@ async function onSuccess(req: any, res: any) {
 
   try {
     // Set up the googleapis library to use the returned tokens.
-    email = await auth.auth.authedUser.getUserId(req, res);
-    const OAuth2Client = await auth.auth.authedUser.getClient(req, res, email);
+    email = await authGmail.auth.authedUser.getUserId(req, res);
+    const OAuth2Client = await authGmail.auth.authedUser.getClient(
+      req,
+      res,
+      email
+    );
     google.options({ auth: OAuth2Client });
   } catch (err) {
     console.log(err);

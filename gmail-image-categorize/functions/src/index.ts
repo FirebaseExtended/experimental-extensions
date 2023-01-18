@@ -14,7 +14,13 @@ const pubSubClient = new PubSub({
 
 async function setSubscriptionPolicy() {
   try {
-    await pubSubClient.topic(config.pubsubTopic).create();
+    /** Create topic */
+    try {
+      const [topic] = await pubSubClient.createTopic(config.pubsubTopic);
+      console.log("Created topic ", topic);
+    } catch (ex) {
+      console.warn("create topic wanring");
+    }
 
     // The new IAM policy
     const newPolicy: Policy = {
@@ -26,15 +32,31 @@ async function setSubscriptionPolicy() {
       ],
     };
 
-    // Updates the IAM policy for the subscription
-    const [updatedPolicy] = await pubSubClient
-      .subscription(config.pubsubTopic)
-      .iam.setPolicy(newPolicy);
+    try {
+      /** Create subscription */
+      await pubSubClient.createSubscription(
+        config.pubsubTopic,
+        config.pubsubTopic
+      );
 
-    functions.logger.debug(
-      "Updated policy for subscription: %j",
-      updatedPolicy.bindings
-    );
+      console.log(`Subscription ${config.pubsubTopic} created.`);
+    } catch (ex) {
+      console.warn("subscription warning:");
+    }
+
+    // Updates the IAM policy for the subscription
+    try {
+      const [updatedPolicy] = await pubSubClient
+        .subscription(config.pubsubTopic)
+        .iam.setPolicy(newPolicy);
+
+      functions.logger.debug(
+        "Updated policy for subscription: %j",
+        updatedPolicy.bindings
+      );
+    } catch (ex) {
+      console.warn("updated policy warning:");
+    }
   } catch (error) {
     functions.logger.error(error);
   }
@@ -53,7 +75,18 @@ export const initializeAuth = functions.https.onRequest(async (req, res) => {
   }
 });
 
-export const callback = functions.https.onRequest(authCallback);
+export const callback = functions.https.onRequest(async (req, res) => {
+  try {
+    functions.logger.debug(config.authCallbackUrl);
+    functions.logger.debug(process.env.GCP_PROJECT);
+
+    functions.logger.debug("callback initialized.");
+
+    await authCallback(req, res);
+  } catch (error) {
+    functions.logger.error(error);
+  }
+});
 
 export const setIamPolicy = functions.tasks
   .taskQueue()
