@@ -1,13 +1,10 @@
 import { google } from "googleapis";
+import { gmail } from "./clients";
 import config from "./config";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const auth = require("@google-cloud/express-oauth2-handlers");
-const gmail = google.gmail("v1");
 
-// Specify the access scopes required. If authorized, Google will grant your
-// registered OAuth client access to your profile, email address, and data in
-// your Gmail and Google Sheets.
 const requiredScopes = [
   "profile",
   "email",
@@ -15,16 +12,16 @@ const requiredScopes = [
   "https://www.googleapis.com/auth/spreadsheets",
 ];
 
-const authGmail = auth("datastore", requiredScopes, "email", true);
+export const authGmail = auth("datastore", requiredScopes, "email", true);
 
 /**
+ * Sets up Gmail push notifications watcher for a given email and PubSub topic.
  *
- * @param {string} email
- * @param {string} pubsubTopic
- * @return {undefined}
+ * @param {string} email The email address of the user.
+ * @param {string} pubsubTopic The name of the PubSub topic.
  */
-function setUpGmailPushNotifications(email: string, pubsubTopic: string) {
-  gmail.users.watch({
+async function setUpGmailPushNotifications(email: string, pubsubTopic: string) {
+  await gmail.users.watch({
     userId: email,
     requestBody: {
       labelIds: ["INBOX"],
@@ -60,6 +57,8 @@ async function onSuccess(req: any, res: any) {
     ) {
       throw err;
     }
+
+    console.log(err);
   }
 
   res.send(`Successfully set up Gmail push notifications.`);
@@ -73,3 +72,4 @@ const onFailure = (err: any, req: any, res: any) => {
 
 export const authInit = authGmail.routes.init;
 export const authCallback = authGmail.routes.cb(onSuccess, onFailure);
+export const authedUser = authGmail.auth.authedUser;

@@ -27,6 +27,8 @@ apis:
 roles:
   - role: datastore.user
     reason: Allows the extension to read input data from Cloud Firestore and write the NLP data to Cloud Firestore.
+  - role: pubsub.admin
+    reason: Allows the extension to publish and subscribe to PubSub events.
 
 resources:
   - name: setIamPolicy
@@ -59,6 +61,17 @@ resources:
       location: ${LOCATION}
       runtime: nodejs14
       httpsTrigger: {}
+  - name: watchGmailMessages
+    type: firebaseextensions.v1beta.function
+    description:
+      >-
+      Watches for new messages in your Gmail inbox. This is used to trigger the
+      extension when a new email is received from Gmail.
+    properties:
+      location: ${LOCATION}
+      eventTrigger:
+        eventType: google.pubsub.topic.publish
+        resource: projects/${PROJECT_ID}/topics/${PUBSUB_TOPIC}
 
 params:
   - param: GOOGLE_CLIENT_ID
@@ -77,19 +90,13 @@ params:
     type: string
     required: true
     immutable: true
+    # TODO make this param a secret
+    # secret: true
   - param: PUBSUB_TOPIC
     label: PubSub Topic
     description: >-
       The PubSub topic to use for the extension. This is used to trigger the
       extension when a new email is received from Gmail.
-    type: string
-    required: true
-    immutable: true
-  - param: SHEET_ID
-    label: Google Sheet ID
-    description: >-
-      The ID of the Google Sheet to use for the extension. This is used to store
-      the extracted images from Gmail.
     type: string
     required: true
     immutable: true

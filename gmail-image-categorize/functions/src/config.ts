@@ -25,4 +25,5 @@ export default {
   clientId: process.env.CLIENT_ID!,
   clientSecret: process.env.CLIENT_SECRET!,
   authCallbackUrl: process.env.GOOGLE_CALLBACK_URL,
+  sheetId: process.env.EXT_INSTANCE_ID!,
 };

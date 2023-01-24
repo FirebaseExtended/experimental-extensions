@@ -1,5 +1,38 @@
 {
   "projects": {
     "default": "demo-experimental"
+  },
+  "targets": {},
+  "etags": {
+    "dev-extensions-testing": {
+      "extensionInstances": {
+        "firestore-bigquery-export-pfj5": "5e18cef05a85cda727191d30a44f288bd4a3c0b409a83935ce4b5496a32a3fb5",
+        "firestore-geo-functions": "113f8c97da1aacbad0bf9642706d765e4472e463bad84a9d35f278bd3eaaaf2e",
+        "storage-resize-images": "fc21e06fa3e16cec1fa4464cc2538df80c0210cd162c743678a2675b3295b044",
+        "firestore-bundle-builder": "d6031ba8376ed3cab276a4c56f54ce72ff1571936d3f7cbd79554822c780c7e6",
+        "firestore-bigquery-export-9g3p": "ac1864bd3bd2d3eedee4106e871f0918a5e413c150acec479c1b8bd687c4e2e2",
+        "firestore-counter": "7f9e17f0c02d978d2198cb8496a1e59a97eef8d7997587f2c78db9727f566739",
+        "gmail-image-categorize": "9c01bddce6241595a96b8170b92bea5150bbae3572330adcea1e17c847c9180e",
+        "firestore-bigquery-export-iqvs": "73e2f47e540daecca7b7b89f42e7abf289ec20aebb6827f485e53a7e413bb186",
+        "firestore-elastic-app-search": "a4120f9b5dc52f0331d3b96bc2722868fc457b36d32444fc64f580ad618f413c",
+        "firestore-meilisearch": "03cb6b0e621e291269dbb66c14b16a22dbcb79d20e3947a9f1c628536ec2862c",
+        "storage-resize-images-pexx": "ff3f5650a61060aca805ccf474d4dbb3bfbe12cb74ccef4293a7fc46086caf9c",
+        "record-user-acknowledgements": "12f925b6c109a7f4630011bc9649d3a63bcc0009e2a4e69432b6c15a23e95070",
+        "bigquery-dlp-functions": "688f0c966be437048f4bc6d435f201231ca920543b3257fbf54604090b1f3ff0",
+        "bigquery-geo-functions": "2840c8f7c67ac98942b3e7cccf136d7e4c82b6f4446edc351d78aca6a9657e26",
+        "puchasely-firebase-extension": "3b657014b57ec8b8e5977ca7854b3afe5d52ac23f0a374bf6f2b5bd8b2816fa1",
+        "firestore-bigquery-export-mhij": "d87c9406431bca5a1c46b57dcae4a3a38a81fd4db8536c85f12e0b59cc52a873",
+        "firestore-bundle-server": "2e66ebb5590eeb0f1fb666e837f704d5bb520743508739f5e961f2c578e37f3f",
+        "firestore-algolia-search": "1a86c380ed65df472ef4bed172d305ce8cada22bc510e990897e1562e5f62009"
+      }
+    },
+    "extensions-sample": {
+      "extensionInstances": {
+        "firestore-dialogflow-fulfillment": "7a577f3391db7a866a7323bbbe2ab272ef1003b584fc1de1dad7d161e32de922",
+        "gmail-image-categorize": "e9ae556a02cc6b947d93b3a2aca0a365f92fdc13b6e7149cfba86dfb6af8c4ab",
+        "bigquery-geo": "c4f628168fd50d2833c18317beb27ecba636613907a18d475fdcb01c5c19107d",
+        "bigquery-dlp-function": "bac34f4f3866fe6d49f8a59b67925d8962824daebe673e1de71f687e8330cc2d"
+      }
+    }
   }
 }
