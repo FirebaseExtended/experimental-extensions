@@ -1,18 +1,17 @@
 import { google } from "googleapis";
-import { gmail } from "./clients";
+import { Request, Response } from "express";
+
+import { gmail, oAuth2Client } from "./clients";
+import { saveSheetToDatastore } from "./datastore";
 import config from "./config";
+import { createAndAccessSecret } from "./secrets";
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const auth = require("@google-cloud/express-oauth2-handlers");
-
-const requiredScopes = [
+export const requiredScopes = [
   "profile",
   "email",
   "https://www.googleapis.com/auth/gmail.modify",
   "https://www.googleapis.com/auth/spreadsheets",
 ];
-
-export const authGmail = auth("datastore", requiredScopes, "email", true);
 
 /**
  * Sets up Gmail push notifications watcher for a given email and PubSub topic.
@@ -30,46 +29,75 @@ async function setUpGmailPushNotifications(email: string, pubsubTopic: string) {
   });
 }
 
-async function onSuccess(req: any, res: any) {
-  let email;
+export function authInit(_: Request, res: Response) {
+  // Generate the url that will be used for the consent dialog.
+  const authorizeUrl = oAuth2Client.generateAuthUrl({
+    access_type: "offline",
+    scope: requiredScopes,
+    prompt: "consent",
+  });
 
-  try {
-    // Set up the googleapis library to use the returned tokens.
-    email = await authGmail.auth.authedUser.getUserId(req, res);
-    const OAuth2Client = await authGmail.auth.authedUser.getClient(
-      req,
-      res,
-      email
-    );
-    google.options({ auth: OAuth2Client });
-  } catch (err) {
-    console.log(err);
-    throw err;
-  }
-
-  try {
-    await setUpGmailPushNotifications(email, config.pubsubTopic);
-  } catch (err: any) {
-    if (
-      !err
-        .toString()
-        .includes("one user push notification client allowed per developer")
-    ) {
-      throw err;
-    }
-
-    console.log(err);
-  }
-
-  res.send(`Successfully set up Gmail push notifications.`);
+  res.redirect(authorizeUrl);
 }
 
-// If the authorization process fails, return an error message.
-const onFailure = (err: any, req: any, res: any) => {
-  console.log(err);
-  res.send(`An error has occurred in the authorization process.`);
-};
+export async function authCallback(req: Request, res: Response) {
+  // Receive the callback from Google's OAuth 2.0 server.
+  if (req.query.code) {
+    // Handle the OAuth 2.0 server response
+    const code = req.query.code as string;
 
-export const authInit = authGmail.routes.init;
-export const authCallback = authGmail.routes.cb(onSuccess, onFailure);
-export const authedUser = authGmail.auth.authedUser;
+    // Get access and refresh tokens (if access_type is offline)
+    let { tokens } = await oAuth2Client.getToken(code);
+
+    oAuth2Client.setCredentials(tokens);
+    google.options({ auth: oAuth2Client });
+
+    if (tokens.access_token) {
+      const email = await getEmail(tokens.id_token!);
+      await setUpGmailPushNotifications(email!, config.pubsubTopic);
+      await createAndAccessSecret(tokens.refresh_token!);
+
+      try {
+        // Create a spreadsheet for the user.
+        const sheet = await google
+          .sheets({ version: "v4", auth: oAuth2Client })
+          .spreadsheets.create({
+            requestBody: { properties: { title: "Gmail Image Categorize" } },
+          });
+        // Save it to Datastore, in order to be able to access it later.
+        await saveSheetToDatastore(
+          sheet.data.spreadsheetUrl!,
+          sheet.data.spreadsheetId!,
+          email!
+        );
+      } catch (error) {
+        res
+          .status(500)
+          .send("Authentication successful, creating a sheet failed.");
+
+        throw error;
+      }
+
+      res.status(200).send("Successfully authenticated.");
+    } else {
+      res.status(500).send("Authentication failed.");
+    }
+  }
+}
+
+async function getEmail(idToken?: string) {
+  if (!idToken) throw new Error("No token provided");
+
+  const ticket = await oAuth2Client.verifyIdToken({
+    idToken: idToken,
+    audience: config.clientId,
+  });
+  const payload = ticket.getPayload();
+  console.log(payload);
+  if (payload) {
+    const userid = payload["email"];
+    return userid;
+  } else {
+    throw new Error("No payload");
+  }
+}

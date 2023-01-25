@@ -32,6 +32,7 @@
     "*.{js,md,yml,ts,json,yaml}": "prettier --write"
   },
   "dependencies": {
+    "@google-cloud/datastore": "^7.1.0",
     "google-auth-library": "^8.7.0"
   }
 }

@@ -7,7 +7,7 @@ export const pubSubClient = new PubSub({
   scopes: ["https://www.googleapis.com/auth/pubsub"],
 });
 
-export async function setSubscriptionPolicy() {
+export async function setTopicPolicy() {
   try {
     await pubSubClient.topic(config.pubsubTopic).create();
 

@@ -1,23 +1,24 @@
-import { datastore, gmail, googleSheets, vision } from "./clients";
+import { datastore, vision } from "./clients";
 import { Message } from "./types/message";
-import config from "./config";
-
-const SHEET_RANGE = "Sheet1!A1:F1";
+import { gmail_v1 } from "googleapis";
+import { emailNotificationKind } from "./datastore";
 
 export async function checkForDuplicateNotifications(messageId: string) {
   const transaction = datastore.transaction();
   await transaction.run();
 
-  const messageKey = datastore.key(["emailNotifications", messageId]);
+  const messageKey = datastore.key([emailNotificationKind, messageId]);
   const [message] = await transaction.get(messageKey);
 
+  console.log("Message to store", message);
+
   if (!message) {
+    console.log("Saving message...", message);
+
     await transaction.save({
       key: messageKey,
       data: {},
     });
-
-    return;
   }
 
   await transaction.commit();
@@ -37,10 +38,11 @@ export async function checkForDuplicateNotifications(messageId: string) {
  */
 export async function getMostRecentMessageWithTag(
   email: string,
-  historyId: string
+  historyId: string,
+  client: gmail_v1.Gmail
 ) {
   // Look up the most recent message.
-  const listMessagesRes = await gmail.users.messages.list({
+  const listMessagesRes = await client.users.messages.list({
     userId: email,
     maxResults: 1,
   });
@@ -54,7 +56,7 @@ export async function getMostRecentMessageWithTag(
 
   // Get the message using the message ID.
   if (messageId) {
-    const message = await gmail.users.messages.get({
+    const message = await client.users.messages.get({
       userId: email,
       id: messageId,
     });
@@ -118,9 +120,10 @@ export function extractInfoFromMessage(message: Message) {
 export async function extractAttachmentFromMessage(
   email: string,
   messageId: string,
-  attachmentId: string
+  attachmentId: string,
+  client: gmail_v1.Gmail
 ) {
-  return gmail.users.messages.attachments.get({
+  return client.users.messages.attachments.get({
     id: attachmentId,
     messageId: messageId,
     userId: email,
@@ -152,28 +155,4 @@ export async function analyzeAttachment(data: string, filename: string) {
   }
 
   return topLabels;
-}
-
-/**
- * Write sender, attachment filename, and download link to a Google Sheet.
- *
- * @param {string} from
- * @param {string} filename
- * @param {string[]} topLabels
- */
-export async function updateReferenceSheet(
-  from: string,
-  filename: string,
-  topLabels: Array<string>
-) {
-  await googleSheets.spreadsheets.values.append({
-    spreadsheetId: config.sheetId,
-    range: SHEET_RANGE,
-    valueInputOption: "USER_ENTERED",
-    requestBody: {
-      range: SHEET_RANGE,
-      majorDimension: "ROWS",
-      values: [[from, filename].concat(topLabels)],
-    },
-  });
 }

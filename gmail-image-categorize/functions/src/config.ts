@@ -22,8 +22,8 @@ export default {
   gcpProject: process.env.PROJECT_ID!,
   pubsubTopic: process.env.PUBSUB_TOPIC!,
   location: process.env.LOCATION!,
-  clientId: process.env.CLIENT_ID!,
-  clientSecret: process.env.CLIENT_SECRET!,
+  clientId: process.env.GOOGLE_CLIENT_ID!,
+  clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
   authCallbackUrl: process.env.GOOGLE_CALLBACK_URL,
-  sheetId: process.env.EXT_INSTANCE_ID!,
+  extId: process.env.EXT_INSTANCE_ID!,
 };

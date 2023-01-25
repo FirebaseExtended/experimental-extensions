@@ -2,30 +2,24 @@ import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
 
 import { getExtensions } from "firebase-admin/extensions";
-import { setSubscriptionPolicy } from "./pubsub";
-import { google } from "googleapis";
+import { setTopicPolicy as setTopicPolicy } from "./pubsub";
+import { google, sheets_v4 } from "googleapis";
+import { auth } from "google-auth-library";
 
-import { authInit, authCallback, authGmail, authedUser } from "./auth";
+import { authInit, authCallback, requiredScopes } from "./auth";
 import {
   analyzeAttachment,
   extractAttachmentFromMessage,
   extractInfoFromMessage,
   getMostRecentMessageWithTag,
-  updateReferenceSheet,
 } from "./gmail";
-import { Message } from "./types/message";
 
 import config from "./config";
+import { getSheetFromDatastore } from "./datastore";
+import { getTokenId } from "./secrets";
+import { oAuth2Client } from "./clients";
 
 admin.initializeApp();
-
-// In older versions of the functions runtime, the `FUNCTION_TRIGGER_TYPE`
-// were set, but not `FUNCTION_SIGNATURE_TYPE`. In newer versions,
-// only `FUNCTION_SIGNATURE_TYPE` is set.
-// Both declare the type of the trigger, but the `express-oauth2-handler` library
-// uses `FUNCTION_TRIGGER_TYPE`, so we're setting it explicitly.
-const triggerType = process.env.FUNCTION_SIGNATURE_TYPE;
-process.env.FUNCTION_TRIGGER_TYPE = triggerType;
 
 export const initializeAuth = functions.https.onRequest(async (req, res) => {
   try {
@@ -47,33 +41,44 @@ export const callback = functions.https.onRequest(async (req, res) => {
 export const watchGmailMessages = functions.pubsub
   .topic(config.pubsubTopic)
   .onPublish(async (message) => {
-    functions.logger.info(process.env.FUNCTION_TRIGGER_TYPE);
-    functions.logger.info(process.env.FUNCTION_SIGNATURE_TYPE);
-
     // Decode the incoming Gmail push notification.
     const data = Buffer.from(message.data, "base64").toString();
     const newMessageNotification = JSON.parse(data);
     const email = newMessageNotification.emailAddress;
     const historyId = newMessageNotification.historyId;
+    let token;
 
-    // Ensure the user is authenticated.
     try {
-      await authGmail.auth.requireAuth(null, null, email);
+      token = await getTokenId(email);
+      var OAuth2 = google.auth.OAuth2;
+      var oauth2Client = new OAuth2();
+      oauth2Client.setCredentials({
+        access_token: token!["access_token"],
+        scope: requiredScopes.join(" "),
+      });
+      functions.logger.info("🔑 Id Token fetched.", oauth2Client);
     } catch (err) {
       functions.logger.error("An error has occurred in the auth process.", err);
-      throw err;
+      return;
     }
 
-    const authClient = await authedUser.getClient();
-    google.options({ auth: authClient });
+    const gmail = google.gmail({
+      version: "v1",
+      auth: oauth2Client,
+    });
 
     // Process the incoming message.
-    const messageData: Message | undefined = await getMostRecentMessageWithTag(
+    const messageData = await getMostRecentMessageWithTag(
       email,
-      historyId
+      historyId,
+      gmail
     );
+
+    functions.logger.info("📬 New message received.", messageData);
+
     if (messageData) {
       const messageInfo = extractInfoFromMessage(messageData);
+
       if (
         messageInfo &&
         messageInfo.attachmentId &&
@@ -82,17 +87,24 @@ export const watchGmailMessages = functions.pubsub
         const attachment = await extractAttachmentFromMessage(
           email,
           messageInfo.messageId!,
-          messageInfo.attachmentId
+          messageInfo.attachmentId,
+          gmail
         );
+
         const topLabels = await analyzeAttachment(
           attachment.data.data!,
           messageInfo.attachmentFilename
         );
+
         if (topLabels !== null && topLabels.length > 0) {
+          const sheet = await getSheetFromDatastore(email);
+
           await updateReferenceSheet(
             messageInfo.from!,
             messageInfo.attachmentFilename,
-            topLabels
+            topLabels,
+            sheet.sheetId,
+            google.sheets({ version: "v4", auth: oAuth2Client })
           );
         }
       }
@@ -105,7 +117,8 @@ export const setIamPolicy = functions.tasks
     const runtime = getExtensions().runtime();
 
     try {
-      await setSubscriptionPolicy();
+      await setTopicPolicy();
+
       await runtime.setProcessingState(
         "PROCESSING_COMPLETE",
         `Completed setting IAM policy for topic ${config.pubsubTopic}.`
@@ -118,3 +131,30 @@ export const setIamPolicy = functions.tasks
       );
     }
   });
+
+/**
+ * Write sender, attachment filename, and download link to a Google Sheet.
+ *
+ * @param {string} from
+ * @param {string} filename
+ * @param {string[]} topLabels
+ */
+export async function updateReferenceSheet(
+  from: string,
+  filename: string,
+  topLabels: Array<string>,
+  sheetId: string,
+  client: sheets_v4.Sheets
+) {
+  const SHEET_RANGE = "Sheet1!A1:F1";
+  await client.spreadsheets.values.append({
+    spreadsheetId: sheetId,
+    range: SHEET_RANGE,
+    valueInputOption: "USER_ENTERED",
+    requestBody: {
+      range: SHEET_RANGE,
+      majorDimension: "ROWS",
+      values: [[from, filename].concat(topLabels)],
+    },
+  });
+}

@@ -29,7 +29,7 @@
     "extensions-sample": {
       "extensionInstances": {
         "firestore-dialogflow-fulfillment": "7a577f3391db7a866a7323bbbe2ab272ef1003b584fc1de1dad7d161e32de922",
-        "gmail-image-categorize": "e9ae556a02cc6b947d93b3a2aca0a365f92fdc13b6e7149cfba86dfb6af8c4ab",
+        "gmail-image-categorize": "42f72831498c9a63c4eefa833246c0c1138fb17ef9ac76c3ff81dd4528038361",
         "bigquery-geo": "c4f628168fd50d2833c18317beb27ecba636613907a18d475fdcb01c5c19107d",
         "bigquery-dlp-function": "bac34f4f3866fe6d49f8a59b67925d8962824daebe673e1de71f687e8330cc2d"
       }
