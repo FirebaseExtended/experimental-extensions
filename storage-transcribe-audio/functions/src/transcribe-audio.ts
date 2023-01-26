@@ -13,7 +13,7 @@ import {
 } from "./types";
 import * as logs from "./logs";
 import config from "./config";
-import { probePromise, separateByTags, isNullFreeList, getTaggedTranscriptionOrNull } from "./util";
+import { probePromise, getTranscriptionsByChannel } from "./util";
 
 const encoding = "LINEAR16";
 const TRANSCODE_TARGET_FILE_EXTENSION = ".wav";
@@ -74,9 +74,9 @@ export async function transcribeAndUpload({
   }
 
   // Intermediate step prior to proper simplification
-  const taggedTranscription: ([number, string]|null)[] = response.results.map(getTaggedTranscriptionOrNull)
+  const transcription: Record<number, string[]> | null = getTranscriptionsByChannel(response.results);
 
-  if (!isNullFreeList(taggedTranscription)) {
+  if (transcription == null) {
     return {
       status: Status.FAILURE,
       warnings,
@@ -84,17 +84,18 @@ export async function transcribeAndUpload({
     };
   }
 
-  // I simplify the transcription compared to the one that's usually given
+  // The `transcription` is simpler than the one that's usually given
   // by the cloud call because, for example, we don't give the option
   // to request many candidate transcriptions from speech to text.
   //
-  // However, the simplification doesn't happen for the file uploaded by the API
-  // Should I
-  // (a) just not simplify?
-  // (b) simplify after the upload has succeeded?
-  // (c) simplify, then upload (without harnessing the upload of the cloud API)?
-  // (d) simplify, keeping the mildly inconsistent behavior?
-  const transcription = separateByTags(taggedTranscription);
+  // However, the simplification doesn't happen for the file uploaded to storage
+  // by the cloud speech API. So the file uploaded to storage by the cloud speech
+  // API is more complicated than the file we could be uploading if we took charge
+  // of upload. There's a couple reasonable uptions here:
+  // (a) We could choose not to simplify, to harness the cloud speech API's upload
+  //     capabilities.
+  // (b) We could stop using the upload capabilities of the cloud speech API,
+  //     uploading a simplified file through the extension itself.
 
   logs.logResponseTranscription(transcription);
   return {

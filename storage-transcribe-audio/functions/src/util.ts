@@ -26,7 +26,17 @@ export function isNullFreeList<T>(list: (NonNullable<T> | null | undefined)[])
     return list.every((item) => item != null);
   }
 
-export function getTaggedTranscriptionOrNull(result: google.cloud.speech.v1.ISpeechRecognitionResult):
+export function getTranscriptionsByChannel(results: google.cloud.speech.v1.ISpeechRecognitionResult[]):
+  Record<number, string[]> | null {
+    const taggedTranscription: ([number, string]|null)[] = results.map(getTaggedTranscriptionOrNull);
+    if (!isNullFreeList(taggedTranscription)) {
+      return null;
+    }
+
+    return separateByTags(taggedTranscription);
+  }
+
+function getTaggedTranscriptionOrNull(result: google.cloud.speech.v1.ISpeechRecognitionResult):
   ([number, string] | null) {
     const channelTag = result?.channelTag;
 
@@ -42,7 +52,7 @@ export function getTaggedTranscriptionOrNull(result: google.cloud.speech.v1.ISpe
     return [channelTag, transcript];
   }
 
-export function separateByTags(
+function separateByTags(
   taggedStringList: [number, string][]
 ): Record<number, string[]> {
   return taggedStringList.reduce(
