@@ -4,9 +4,8 @@ import * as admin from "firebase-admin";
 import { getExtensions } from "firebase-admin/extensions";
 import { setTopicPolicy as setTopicPolicy } from "./pubsub";
 import { google, sheets_v4 } from "googleapis";
-import { auth } from "google-auth-library";
 
-import { authInit, authCallback, requiredScopes } from "./auth";
+import { authInit, authCallback } from "./auth";
 import {
   analyzeAttachment,
   extractAttachmentFromMessage,
@@ -14,10 +13,10 @@ import {
   getMostRecentMessageWithTag,
 } from "./gmail";
 
-import config from "./config";
-import { getSheetFromDatastore } from "./datastore";
+import { getSheetFromDatastore, getTokenFromDatastore } from "./datastore";
 import { getTokenId } from "./secrets";
 import { oAuth2Client } from "./clients";
+import config from "./config";
 
 admin.initializeApp();
 
@@ -46,17 +45,11 @@ export const watchGmailMessages = functions.pubsub
     const newMessageNotification = JSON.parse(data);
     const email = newMessageNotification.emailAddress;
     const historyId = newMessageNotification.historyId;
-    let token;
 
     try {
-      token = await getTokenId(email);
-      var OAuth2 = google.auth.OAuth2;
-      var oauth2Client = new OAuth2();
-      oauth2Client.setCredentials({
-        access_token: token!["access_token"],
-        scope: requiredScopes.join(" "),
-      });
-      functions.logger.info("🔑 Id Token fetched.", oauth2Client);
+      const tokens = await getTokenFromDatastore(email);
+      oAuth2Client.setCredentials(tokens!);
+      functions.logger.info("🔑 Tokens fetched.", oAuth2Client);
     } catch (err) {
       functions.logger.error("An error has occurred in the auth process.", err);
       return;
@@ -64,7 +57,7 @@ export const watchGmailMessages = functions.pubsub
 
     const gmail = google.gmail({
       version: "v1",
-      auth: oauth2Client,
+      auth: oAuth2Client,
     });
 
     // Process the incoming message.

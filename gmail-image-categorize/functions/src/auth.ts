@@ -2,9 +2,8 @@ import { google } from "googleapis";
 import { Request, Response } from "express";
 
 import { gmail, oAuth2Client } from "./clients";
-import { saveSheetToDatastore } from "./datastore";
+import { saveSheetToDatastore, saveTokenToDatastore } from "./datastore";
 import config from "./config";
-import { createAndAccessSecret } from "./secrets";
 
 export const requiredScopes = [
   "profile",
@@ -55,7 +54,7 @@ export async function authCallback(req: Request, res: Response) {
     if (tokens.access_token) {
       const email = await getEmail(tokens.id_token!);
       await setUpGmailPushNotifications(email!, config.pubsubTopic);
-      await createAndAccessSecret(tokens.refresh_token!);
+      await saveTokenToDatastore(tokens, email!);
 
       try {
         // Create a spreadsheet for the user.
