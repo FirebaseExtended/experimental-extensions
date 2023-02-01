@@ -107,6 +107,7 @@ params:
     label: Score field name
     description: >
       What is the name of the field used as sorting score?
+    type: string
     example: score
     default: score
     required: true
@@ -115,14 +116,18 @@ params:
     label: Collection path for user score document
     description: >
       What is the path of the collections to monitor score change?
+    type: string
     example: users
     default: users
+    validationRegex: "^[^/]+(/[^/]+/[^/]+)*$"
+    validationErrorMessage: Must be a valid Cloud Firestore Collection
     required: true
 
   - param: USER_NAME_FIELD_NAME
     label: User name field name
     description: >
       What is the name of the field for the user name to display in leaderboard?
+    type: string
     example: user_name
     default: user_name
     required: true
@@ -131,24 +136,33 @@ params:
     label: Collection to host all leaderboards document
     description: >
       What is the name of the collections to create leaderboard document?
+    type: string
     example: leaderboards
     default: leaderboards
+    validationRegex: "^[^/]+(/[^/]+/[^/]+)*$"
+    validationErrorMessage: Must be a valid Cloud Firestore Collection
     required: true
 
   - param: LEADER_BOARD_NAME
     label: Leaderboard Name
     description: >
       The name of the leaderboard document.
+    type: string
     example: global_leaderboard
     default: global_leaderboard
+    validationRegex: "^[a-z][A-Z][0-9]*$"
+    validationErrorMessage: Please enter a valid board name.
     required: true
 
   - param: LEADER_BOARD_SIZE
     label: Leaderboard Size
     description: >
       How many entries we would like to keep in the leaderboard.
+    type: integer
     example: 100
     default: 100
+    validationRegex: "^[1-9][0-9]*$"
+    validationErrorMessage: The number of the size must be an integer value greater than zero.
     required: true
 
 events:

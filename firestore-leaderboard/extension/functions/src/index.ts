@@ -24,7 +24,6 @@ import config from "./config";
 import * as logs from "./logs";
 
 enum ChangeType {
-  CREATE,
   DELETE,
   UPDATE,
 }
@@ -48,9 +47,6 @@ const getChangeType = (
   if (!change.after.exists) {
     return ChangeType.DELETE;
   }
-  if (!change.before.exists) {
-    return ChangeType.CREATE;
-  }
   return ChangeType.UPDATE;
 };
 
@@ -65,28 +61,38 @@ const publishEvent = async (leaderboardPath: string) => {
   }
 };
 
-const addEntryLeaderboardDocument = async (
+const updateLeaderboardDocument = async (
   change: functions.Change<admin.firestore.DocumentSnapshot>
 ): Promise<void> => {
-  console.log(`Start addEntryLeaderboardDocument()`);
+  if (change.before.exists) {
+    const scoreBefore = change.before.get(config.scoreFieldName);
+    const scoreAfter = change.after.get(config.scoreFieldName);
+    if (scoreBefore == scoreAfter) {
+      logs.documentUpdateNoScoreChange();
+      return Promise.resolve();
+    }
+  }
 
   const leaderboardCollectionRef = db
     .collection(config.leaderboardCollectionPath)
     .doc(config.leaderboardName);
+  logs.updateLeaderboard(leaderboardCollectionRef.path);
 
-  await db.runTransaction(async (transaction) => {
+  await db.runTransaction((transaction) => {
     const user_id = change.after.ref.id;
     const entryData = {
-      [config.scoreFieldName]: change.after.get(config.scoreFieldName),
-      [config.userNameFieldName]: change.after.get(config.userNameFieldName),
+      score: change.after.get(config.scoreFieldName),
+      user_name: change.after.get(config.userNameFieldName),
     };
+
     transaction.set(
       leaderboardCollectionRef,
       { [user_id]: entryData },
       { merge: true }
-    );
+    )
+
     publishEvent(leaderboardCollectionRef.path);
-    console.log(`End addEntryLeaderboardDocument()`);
+    logs.updateLeaderboardComplete(leaderboardCollectionRef.path);
     return Promise.resolve();
   });
 };
@@ -94,50 +100,18 @@ const addEntryLeaderboardDocument = async (
 const deleteEntryLeaderboardDocument = async (
   change: functions.Change<admin.firestore.DocumentSnapshot>
 ): Promise<void> => {
-  console.log(`Start deleteEntryLeaderboardDocument()`);
-
   const leaderboardCollectionRef = db
     .collection(config.leaderboardCollectionPath)
     .doc(config.leaderboardName);
   if (leaderboardCollectionRef == null) {
-    console.log(`Leaderboard document empty, early out.`);
+    logs.emptyLeaderboardDocumentEarlyOut("deleteEntryLeaderboardDocument");
   }
-
+  const user_id = change.after.ref.id;
+  logs.deleteEntryInLeaderboard(leaderboardCollectionRef.path, user_id);
   await db.runTransaction((transaction) => {
-    leaderboardCollectionRef.update(change.before.ref.id, FieldValue.delete());
+    leaderboardCollectionRef.update(user_id, FieldValue.delete());
     publishEvent(leaderboardCollectionRef.path);
-    console.log(`End deleteEntryLeaderboardDocument()`);
-    return Promise.resolve();
-  });
-};
-
-const updateLeaderboardDocument = async (
-  change: functions.Change<admin.firestore.DocumentSnapshot>
-): Promise<void> => {
-  console.log(`Start updateLeaderboardDocument()`);
-  const scoreBefore = change.before.get(config.scoreFieldName);
-  const scoreAfter = change.after.get(config.scoreFieldName);
-  if (scoreBefore == scoreAfter) {
-    logs.documentUpdateNoScoreChange();
-    return Promise.resolve();
-  }
-
-  const leaderboardCollectionRef = db
-    .collection(config.leaderboardCollectionPath)
-    .doc(config.leaderboardName);
-
-  await db.runTransaction((transaction) => {
-    if (leaderboardCollectionRef == null) {
-      transaction.create(leaderboardCollectionRef, {});
-    }
-
-    const entryData = {
-      score: change.after.get(config.scoreFieldName),
-      user_name: change.after.get(config.userNameFieldName),
-    };
-    leaderboardCollectionRef.update(change.after.ref.id, entryData);
-    publishEvent(leaderboardCollectionRef.path);
-    console.log(`End updateLeaderboardDocument()`);
+    logs.deleteEntryInLeaderboardComplete(leaderboardCollectionRef.path, user_id);
     return Promise.resolve();
   });
 };
@@ -145,22 +119,16 @@ const updateLeaderboardDocument = async (
 export const onScoreUpdate = functions.handler.firestore.document.onWrite(
   async (change): Promise<void> => {
     logs.start(config);
-
     const changeType = getChangeType(change);
-
     try {
       switch (changeType) {
-        case ChangeType.CREATE:
-          logs.changeCreate();
-          addEntryLeaderboardDocument(change);
+        case ChangeType.UPDATE:
+          logs.changeUpdate();
+          updateLeaderboardDocument(change);
           break;
         case ChangeType.DELETE:
           logs.changeDelete();
           deleteEntryLeaderboardDocument(change);
-          break;
-        case ChangeType.UPDATE:
-          logs.changeUpdate();
-          updateLeaderboardDocument(change);
           break;
       }
 

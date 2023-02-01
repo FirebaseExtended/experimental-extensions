@@ -29,10 +29,6 @@ export const scoreUpdate = () => {
   logger.log(messages.scoreUpdate());
 };
 
-export const changeCreate = () => {
-  logger.log(messages.changeCreate());
-};
-
 export const changeDelete = () => {
   logger.log(messages.changeDelete());
 };
@@ -51,4 +47,24 @@ export const error = (err: Error) => {
 
 export const documentUpdateNoScoreChange = () => {
   logger.log(messages.documentUpdateNoScoreChange());
+};
+
+export const emptyLeaderboardDocumentEarlyOut = (fuction_name: string) => {
+  logger.log(messages.emptyLeaderboardDocumentEarlyOut(fuction_name));
+};
+
+export const updateLeaderboard = (path: string) => {
+  logger.log(messages.updateLeaderboard(path));
+};
+
+export const updateLeaderboardComplete = (path: string) => {
+  logger.log(messages.updateLeaderboardComplete(path));
+};
+
+export const deleteEntryInLeaderboard = (path: string, entry_id: string) => {
+  logger.log(messages.deleteEntryInLeaderboard(path, entry_id));
+};
+
+export const deleteEntryInLeaderboardComplete = (path: string, entry_id: string) => {
+  logger.log(messages.deleteEntryInLeaderboardComplete(path, entry_id));
 };
