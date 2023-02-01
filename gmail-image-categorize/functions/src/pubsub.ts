@@ -13,6 +13,7 @@ export async function setTopicPolicy() {
 
     // The new IAM policy
     const newPolicy: Policy = {
+      // TODO - this doesn't seem to work
       bindings: [
         {
           role: "pubsub.publisher",

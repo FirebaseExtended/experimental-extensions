@@ -26,7 +26,7 @@ apis:
 
 roles:
   - role: datastore.user
-    reason: Allows the extension to read input data from Cloud Firestore and write the NLP data to Cloud Firestore.
+    reason: Allows the extension to store and read auth tokens, destination sheet ID, and incoming email notifications to avoid duplications.
   - role: pubsub.admin
     reason: Allows the extension to publish and subscribe to PubSub events.
 
