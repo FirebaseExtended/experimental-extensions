@@ -1,7 +1,7 @@
 import { firestore } from "firebase-admin";
 import * as functions from "firebase-functions";
 
-export function addressesEqual(a: Address, b: Address) {
+export function addressesChanged(a: Address, b: Address) {
   return (
     JSON.stringify({
       addressLines: a.addressLines,

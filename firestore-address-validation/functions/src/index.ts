@@ -2,7 +2,7 @@ import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
 import config from "./config";
 import axios, { AxiosError } from "axios";
-import { addressesEqual, checkDataValidity } from "./utils";
+import { addressesChanged, checkDataValidity } from "./utils";
 
 admin.initializeApp();
 
@@ -13,7 +13,7 @@ admin.initializeApp();
 export const validateAddress = functions.firestore
   .document(`${config.collectionId}/{docId}`)
   .onWrite(async (change, _) => {
-    const dataIsValid = checkDataValidity(change.after);
+    const dataIsValid = await checkDataValidity(change.after);
 
     if (!dataIsValid) {
       return;
@@ -27,8 +27,7 @@ export const validateAddress = functions.firestore
 
     // Checking if the address has changed,
     // terminate if address did not.
-    const addressChanged = addressesEqual(beforeAddress, afterAddress);
-    if (!addressChanged) {
+    if (!addressesChanged(beforeAddress, afterAddress)) {
       return;
     }
 
