@@ -42,7 +42,7 @@ apis:
 # In the `resources` field, list each of your extension's functions, including the trigger for each function.
 # Learn more in the docs: https://firebase.google.com/docs/extensions/alpha/ref-extension-yaml#resources-field
 resources:
-  - name: validateAddress
+  - name: validateAddressTrigger
     type: firebaseextensions.v1beta.function
     description:
       Processes document changes in the specified Cloud Firestore collection,
@@ -53,7 +53,14 @@ resources:
       eventTrigger:
         eventType: providers/cloud.firestore/eventTypes/document.write
         resource: projects/${param:PROJECT_ID}/databases/(default)/documents/${param:ADDRESS_COLLECTION}/{id}
-
+  - name: retryOnUnknownError
+    type: firebaseextensions.v1beta.function
+    description: >-
+      Handles tasks from unknown address validation responses.
+    properties:
+      location: ${LOCATION}
+      runtime: nodejs14
+      taskQueueTrigger: {}
 # In the `params` field, set up your extension's user-configured parameters.
 # Learn more in the docs: https://firebase.google.com/docs/extensions/alpha/ref-extension-yaml#params-field
 params:
