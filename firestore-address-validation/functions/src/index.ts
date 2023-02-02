@@ -1,97 +1,71 @@
 import * as functions from "firebase-functions";
+import * as admin from "firebase-admin";
 import config from "./config";
 import axios, { AxiosError } from "axios";
+import { addressesEqual, checkDataValidity } from "./utils";
 
-type SupportedRegions =
-  | "AU" // Australia
-  | "AT" // Austria
-  | "BE" // Belgium
-  | "BR" // Brazil
-  | "CA" // Canada
-  | "CL" // Chile
-  | "CO" // Colombia
-  | "DK" // Denmark
-  | "FI" // Finland
-  | "FR" // France
-  | "DE" // Germany
-  | "HU" // Hungary
-  | "IE" // Ireland
-  | "IT" // Italy
-  | "MY" // Malaysia
-  | "MX" // Mexico
-  | "NL" // Netherlands
-  | "NZ" // New Zealand
-  | "PL" // Poland
-  | "PR" // Puerto Rico
-  | "SG" // Singapore
-  | "SI" // Slovenia
-  | "ES" // Spain
-  | "SE" // Sweden
-  | "CH" // Switzerland
-  | "GB" // United Kingdom
-  | "US"; // United States
+admin.initializeApp();
 
-type Address = {
-  addressLines: [string];
-  locality?: string;
-  // Supported regions: https://developers.google.com/maps/documentation/address-validation/coverage
-  regionCode?: SupportedRegions;
-};
-
-function addressesEqual(a: Address, b: Address) {
-  return (
-    JSON.stringify({
-      addressLines: a.addressLines,
-      locality: a.locality,
-      regionCode: a.regionCode,
-    }) !==
-    JSON.stringify({
-      addressLines: b.addressLines,
-      locality: b.locality,
-      regionCode: b.regionCode,
-    })
-  );
-}
-
+/**
+ * Validates an address written to a Firestore collection
+ * using the Google Maps Address Validation API.
+ */
 export const validateAddress = functions.firestore
   .document(`${config.collectionId}/{docId}`)
   .onWrite(async (change, _) => {
-    const after = change.after.data()?.address as Address;
-    const before = change.before.data()?.address as Address;
+    const dataIsValid = checkDataValidity(change.after);
 
-    const addressChanged = addressesEqual(before, after);
-
-    if (!after || !addressChanged) {
+    if (!dataIsValid) {
       return;
     }
 
-    const address = after;
+    const after = change.after.data();
+    const before = change.before.data();
 
-    functions.logger.log(
-      "Validating address",
-      JSON.stringify({ address: address })
-    );
+    const afterAddress = after?.address as Address;
+    const beforeAddress = before?.address as Address;
+
+    // Checking if the address has changed,
+    // terminate if address did not.
+    const addressChanged = addressesEqual(beforeAddress, afterAddress);
+    if (!addressChanged) {
+      return;
+    }
+
+    functions.logger.info("Validating address started", afterAddress);
 
     try {
       const response = await axios({
         url: `https://addressvalidation.googleapis.com/v1:validateAddress?key=${config.apiKey}`,
         method: "POST",
-        data: { address },
+        data: { address: afterAddress },
         headers: {
           "Content-Type": "application/json",
         },
       });
 
-      functions.logger.log(response.data);
-
       const data = response.data;
 
       if (data) {
-        await change.after.ref.set({ addressValidity: data }, { merge: true });
+        // Merge the address validity data with the address document.
+        await change.after.ref.set(
+          {
+            addressValidity: data,
+            ...(change.after.data()?.error && {
+              error: admin.firestore.FieldValue.delete(),
+            }),
+          },
+          { merge: true }
+        );
         return;
       }
     } catch (error) {
-      functions.logger.error((error as AxiosError).message);
+      functions.logger.error((error as AxiosError).response?.data);
+      // Write the error back to the document.
+      await change.after.ref.set(
+        { error: (error as AxiosError).message },
+        { merge: true }
+      );
       return;
     }
   });
