@@ -9,6 +9,12 @@ import config from "./config";
 
 admin.initializeApp();
 
+enum Status {
+  PROCESSING = "PROCESSING",
+  SUCCESS = "SUCCESS",
+  FAILURE = "FAILURE",
+}
+
 /**
  * Validates an address using the Google Maps Address Validation API.
  *
@@ -25,7 +31,7 @@ admin.initializeApp();
  */
 async function validateAddress(address: Address) {
   return axios({
-    url: `https://addressvalidation.googleapis.com/v1:validateAddress?key=`,
+    url: `https://addressvalidation.googleapis.com/v1:validateAddress?key=${config.apiKey}`,
     method: "POST",
     data: { address: address },
     headers: {
@@ -37,7 +43,7 @@ async function validateAddress(address: Address) {
 async function enqueueTask(address: Address, docId: string) {
   // Retry the request if it fails.
   const queue = getFunctions().taskQueue(
-    `ext-${process.env.EXT_INSTANCE_ID}-backoff`
+    `ext-${process.env.EXT_INSTANCE_ID}-retryOnUnknownError`
   );
   await queue.enqueue(
     {
@@ -61,7 +67,7 @@ export const retryOnUnknownError = functions
       maxConcurrentDispatches: 6,
     },
   })
-  .onDispatch(async (data, context) => {
+  .onDispatch(async (data) => {
     const address = data.address as Address;
     const docId = data.docId as string;
 
@@ -75,13 +81,23 @@ export const retryOnUnknownError = functions
           .doc(docId)
           .update({
             addressValidity: data,
+            status: Status.SUCCESS,
             error: admin.firestore.FieldValue.delete(),
           });
 
         return;
       }
     } catch (error) {
-      functions.logger.error((error as AxiosError).response?.data);
+      if (error instanceof AxiosError) {
+        if (error.response) {
+          functions.logger.error(error.response.data);
+        } else {
+          functions.logger.error(error.response);
+        }
+      } else {
+        functions.logger.error(error);
+      }
+
       throw error;
     }
   });
@@ -107,39 +123,56 @@ export const validateAddressTrigger = functions.firestore
 
     // Checking if the address has changed,
     // terminate if address did not.
-    if (!addressesChanged(beforeAddress, afterAddress)) {
+    if (!addressesChanged(afterAddress, beforeAddress)) {
       return;
     }
 
     functions.logger.info("Validating address started", afterAddress);
 
     try {
-      const data = await validateAddress(afterAddress);
-      if (data) {
+      const res = await validateAddress(afterAddress);
+      if (res) {
         // Merge the address validity data with the address document.
-        await change.after.ref.set(
-          {
-            addressValidity: data,
-            ...(change.after.data()?.error && {
-              error: admin.firestore.FieldValue.delete(),
-            }),
-          },
-          { merge: true }
-        );
+        await change.after.ref.update({
+          addressValidity: res.data,
+          ...(change.after.data()?.error && {
+            error: admin.firestore.FieldValue.delete(),
+            status: Status.SUCCESS,
+          }),
+        });
         return;
       }
-    } catch (error) {
-      if ((error as AxiosError).code === "UNKNOWN") {
-        await enqueueTask(afterAddress, change.after.id);
-        return;
+    } catch (e) {
+      if (e instanceof AxiosError) {
+        if (e.response) {
+          const error = (e as AxiosError).response?.data as {
+            error?: { message: string; code: number; status: string };
+          };
+
+          functions.logger.error(error);
+
+          if (error.error?.status === "UNKNOWN") {
+            // ../firestore-address-validation
+            // Write the status back to the document.
+            await change.after.ref.update({
+              status: Status.PROCESSING,
+            });
+            await enqueueTask(afterAddress, change.after.id);
+            return;
+          }
+
+          // Write the error back to the document.
+          await change.after.ref.update({
+            error: error?.error,
+            status: Status.FAILURE,
+          });
+        } else {
+          functions.logger.error(e.response);
+        }
       } else {
-        functions.logger.error((error as AxiosError).response?.data);
-        // Write the error back to the document.
-        await change.after.ref.set(
-          { error: (error as AxiosError).response?.data },
-          { merge: true }
-        );
+        functions.logger.error(e);
+        await change.after.ref.update({ error: e, status: Status.FAILURE });
       }
-      return;
     }
+    return;
   });

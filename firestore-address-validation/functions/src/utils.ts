@@ -1,7 +1,7 @@
 import { firestore } from "firebase-admin";
 import * as functions from "firebase-functions";
 
-export function addressesChanged(a: Address, b: Address) {
+export function addressesChanged(a: Address, b?: Address) {
   return (
     JSON.stringify({
       addressLines: a.addressLines,
@@ -9,9 +9,9 @@ export function addressesChanged(a: Address, b: Address) {
       regionCode: a.regionCode,
     }) !==
     JSON.stringify({
-      addressLines: b.addressLines,
-      locality: b.locality,
-      regionCode: b.regionCode,
+      addressLines: b?.addressLines,
+      locality: b?.locality,
+      regionCode: b?.regionCode,
     })
   );
 }
