@@ -1,4 +1,4 @@
-// Copyright 2020 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,23 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace Firebase.Sample.Leaderboard {
-  using Firebase;
-  using Firebase.Extensions;
-  using Firebase.Auth;
-  using Firebase.Firestore;
+namespace Firebase.Sample.Leaderboard
+{
   using System;
   using System.Collections;
   using System.Collections.Generic;
   using System.Linq;
   using System.Threading.Tasks;
-  using UnityEngine;
 
+  using Firebase;
+  using Firebase.Auth;
+  using Firebase.Extensions;
+  using Firebase.Firestore;
+
+  using UnityEngine;
 
   // Handler for UI buttons on the scene.  Also performs some
   // necessary setup (initializing the firebase app, etc) on
   // startup.
-  public class UIHandler : MonoBehaviour {
+  public class UIHandler : MonoBehaviour
+  {
 
     public GUISkin fb_GUISkin;
     private Vector2 controlsScrollViewVector = Vector2.zero;
@@ -45,9 +48,9 @@ namespace Firebase.Sample.Leaderboard {
     protected string uid = "";
     protected string scoreString = "";
 
-     // Path to the collection to query on.
+    // Path to the collection to query on.
     protected string leaderboardCollectionPath = "leaderboards";
-    protected string leaderboardDocName = "globel_leaderboard";
+    protected string leaderboardDocName = "global_leaderboard";
 
     protected string userCollectionPath = "users";
     protected string userScoreFieldName = "score";
@@ -55,42 +58,53 @@ namespace Firebase.Sample.Leaderboard {
     // When the app starts, check to make sure that we have
     // the required dependencies to use Firebase, and if not,
     // add them if possible.
-    public virtual void Start() {
-      FirebaseApp.CheckAndFixDependenciesAsync().ContinueWithOnMainThread(task => {
+    public virtual void Start()
+    {
+      FirebaseApp.CheckAndFixDependenciesAsync().ContinueWithOnMainThread(task =>
+      {
         dependencyStatus = task.Result;
-        if (dependencyStatus == DependencyStatus.Available) {
+        if (dependencyStatus == DependencyStatus.Available)
+        {
           InitializeFirebase();
-        } else {
+        }
+        else
+        {
           Debug.LogError(
-            "Could not resolve all Firebase dependencies: " + dependencyStatus);
+                  "Could not resolve all Firebase dependencies: " + dependencyStatus);
         }
       });
     }
 
     // Exit if escape (or back, on mobile) is pressed.
-    public virtual void Update() {
-      if (Input.GetKeyDown(KeyCode.Escape)) {
+    public virtual void Update()
+    {
+      if (Input.GetKeyDown(KeyCode.Escape))
+      {
         Application.Quit();
       }
     }
 
     // Handle initialization of the necessary firebase modules:
-    void InitializeFirebase() {
+    void InitializeFirebase()
+    {
       DebugLog("Get Auth and Firestore.");
       auth = FirebaseAuth.DefaultInstance;
       firestore = FirebaseFirestore.DefaultInstance;
       firebaseInitialized = true;
     }
 
-    void OnDestroy() {
+    void OnDestroy()
+    {
       auth = null;
       firestore = null;
       firebaseInitialized = false;
     }
 
-    private string DisplayLeaderBoard(IDictionary<string, object> leaderboard) {
+    private string DisplayLeaderBoard(IDictionary<string, object> leaderboard)
+    {
       IDictionary<string, IDictionary> converted = new Dictionary<string, IDictionary>();
-      foreach(KeyValuePair<string, object> entry in leaderboard) {
+      foreach (KeyValuePair<string, object> entry in leaderboard)
+      {
         Dictionary<string, object> castedObject = (Dictionary<string, object>)(entry.Value);
         converted.Add(entry.Key, castedObject);
       }
@@ -104,7 +118,8 @@ namespace Firebase.Sample.Leaderboard {
     }
 
     // Fetch the leaderboard document and display.
-    public Task FetrchLeaderboardAsync() {
+    public Task FetchLeaderboardAsync()
+    {
       DebugLog("Attempting to fetch leaderboard...");
       DisableUI();
 
@@ -112,23 +127,28 @@ namespace Firebase.Sample.Leaderboard {
       // so that it can be passed to UpdateUserProfile().  displayName will be
       // reset by AuthStateChanged() when the new user is created and signed in.
       DocumentReference leaderboardDoc = firestore.Collection(leaderboardCollectionPath).Document(leaderboardDocName);
-      return leaderboardDoc.GetSnapshotAsync().ContinueWithOnMainThread(task => {
+      return leaderboardDoc.GetSnapshotAsync().ContinueWithOnMainThread(task =>
+      {
         EnableUI();
         DocumentSnapshot snap = task.Result;
         IDictionary<string, object> resultData = snap.ToDictionary();
-        if(resultData != null && resultData.Count > 0) {
-            DebugLog("INFO: Read leaderboard contents:");
-            DebugLog(DisplayLeaderBoard(resultData));
-          } else {
-            DebugLog("INFO: leaderboard was empty.");
-          }
+        if (resultData != null && resultData.Count > 0)
+        {
+          DebugLog("INFO: Read leaderboard contents:");
+          DebugLog(DisplayLeaderBoard(resultData));
+        }
+        else
+        {
+          DebugLog("INFO: leaderboard was empty.");
+        }
       });
     }
 
     // Update User Score by Uid.
-    public Task UpdateUserScoreAsync() {
-
-      if (auth.CurrentUser == null) {
+    public Task UpdateUserScoreAsync()
+    {
+      if (auth.CurrentUser == null)
+      {
         DebugLog("Sign-in before update score.");
         // Return a finished task.
         return Task.FromResult(0);
@@ -143,28 +163,39 @@ namespace Firebase.Sample.Leaderboard {
       DocumentReference leaderboardDoc = firestore.Collection(userCollectionPath).Document(auth.CurrentUser.UserId);
       int scoreNumber;
       Int32.TryParse(scoreString, out scoreNumber);
-      return leaderboardDoc.UpdateAsync(userScoreFieldName, scoreNumber).ContinueWithOnMainThread(task => {
+      return leaderboardDoc.UpdateAsync(userScoreFieldName, scoreNumber).ContinueWithOnMainThread(task =>
+      {
         EnableUI();
-        if (task.IsCanceled) {
+        if (task.IsCanceled)
+        {
           DebugLog("INFO: Update scoreString was cancelled.");
-        } else if (task.IsFaulted) {
+        }
+        else if (task.IsFaulted)
+        {
           DebugLog("ERROR: " + task.Exception.ToString());
-        } else {
+        }
+        else
+        {
           DebugLog("INFO: Document updated successfully.");
         }
       });
     }
 
     // Delete the currently logged in user.
-    protected Task DeleteUserAsync() {
-      if (auth.CurrentUser != null) {
+    protected Task DeleteUserAsync()
+    {
+      if (auth.CurrentUser != null)
+      {
         DebugLog(String.Format("Attempting to delete user {0}...", auth.CurrentUser.UserId));
         DisableUI();
-        return auth.CurrentUser.DeleteAsync().ContinueWithOnMainThread(task => {
+        return auth.CurrentUser.DeleteAsync().ContinueWithOnMainThread(task =>
+        {
           EnableUI();
           LogTaskCompletion(task, "Delete user");
         });
-      } else {
+      }
+      else
+      {
         DebugLog("Sign-in before deleting user.");
         // Return a finished task.
         return Task.FromResult(0);
@@ -172,15 +203,18 @@ namespace Firebase.Sample.Leaderboard {
     }
 
     // Called when a sign-in without fetching profile data completes.
-    void HandleSignInWithUser(Task<Firebase.Auth.FirebaseUser> task) {
+    void HandleSignInWithUser(Task<Firebase.Auth.FirebaseUser> task)
+    {
       EnableUI();
-      if (LogTaskCompletion(task, "Sign-in")) {
+      if (LogTaskCompletion(task, "Sign-in"))
+      {
         DebugLog(String.Format("{0} signed in", task.Result.DisplayName));
       }
     }
 
     // Attempt to sign in anonymously.
-    public Task SigninAnonymouslyAsync() {
+    public Task SigninAnonymouslyAsync()
+    {
       DebugLog("Attempting to sign anonymously...");
       DisableUI();
       return auth.SignInAnonymouslyAsync().ContinueWithOnMainThread(HandleSignInWithUser);
@@ -190,23 +224,31 @@ namespace Firebase.Sample.Leaderboard {
 
     // Log the result of the specified task, returning true if the task
     // completed successfully, false otherwise.
-    bool LogTaskCompletion(Task task, string operation) {
+    bool LogTaskCompletion(Task task, string operation)
+    {
       bool complete = false;
-      if (task.IsCanceled) {
+      if (task.IsCanceled)
+      {
         DebugLog(operation + " canceled.");
-      } else if (task.IsFaulted) {
+      }
+      else if (task.IsFaulted)
+      {
         DebugLog(operation + " encounted an error.");
-        foreach (Exception exception in task.Exception.Flatten().InnerExceptions) {
+        foreach (Exception exception in task.Exception.Flatten().InnerExceptions)
+        {
           string errorCode = "";
           FirebaseException firebaseException = exception as FirebaseException;
-          if (firebaseException != null) {
+          if (firebaseException != null)
+          {
             errorCode = String.Format("Error code={0}: ",
                 firebaseException.ErrorCode.ToString(),
                 firebaseException.Message);
           }
           DebugLog(errorCode + exception.ToString());
         }
-      } else if (task.IsCompleted) {
+      }
+      else if (task.IsCompleted)
+      {
         DebugLog(operation + " completed");
 
         complete = true;
@@ -215,11 +257,13 @@ namespace Firebase.Sample.Leaderboard {
     }
 
     // Output text to the debug log text field, as well as the console.
-    public void DebugLog(string s) {
+    public void DebugLog(string s)
+    {
       print(s);
       logText += s + "\n";
 
-      while (logText.Length > kMaxLogSize) {
+      while (logText.Length > kMaxLogSize)
+      {
         int index = logText.IndexOf("\n");
         logText = logText.Substring(index + 1);
       }
@@ -227,33 +271,39 @@ namespace Firebase.Sample.Leaderboard {
       scrollViewVector.y = int.MaxValue;
     }
 
-    void DisableUI() {
+    void DisableUI()
+    {
       UIEnabled = false;
     }
 
-    void EnableUI() {
+    void EnableUI()
+    {
       UIEnabled = true;
     }
 
     // Render the log output in a scroll view.
-    void GUIDisplayLog() {
+    void GUIDisplayLog()
+    {
       scrollViewVector = GUILayout.BeginScrollView(scrollViewVector);
       GUILayout.Label(logText);
       GUILayout.EndScrollView();
     }
 
     // Render the buttons and other controls.
-    void GUIDisplayControls() {
-      if (UIEnabled) {
+    void GUIDisplayControls()
+    {
+      if (UIEnabled)
+      {
         controlsScrollViewVector =
             GUILayout.BeginScrollView(controlsScrollViewVector);
 
         GUILayout.BeginVertical();
 
-        
 
-        if (GUILayout.Button("Get Leaderboard")) {
-          FetrchLeaderboardAsync();
+
+        if (GUILayout.Button("Get Leaderboard"))
+        {
+          FetchLeaderboardAsync();
         }
         GUILayout.Space(20);
 
@@ -262,12 +312,14 @@ namespace Firebase.Sample.Leaderboard {
         GUILayout.Label("Display Name:", GUILayout.Width(Screen.width * 0.20f));
         displayName = GUILayout.TextField(displayName);
         GUILayout.EndHorizontal();
-        if (GUILayout.Button("Add User")) {
+        if (GUILayout.Button("Add User"))
+        {
           SigninAnonymouslyAsync();
         }
-        
+
         // Delete User Section
-        if (GUILayout.Button("Delete User")) {
+        if (GUILayout.Button("Delete User"))
+        {
           DeleteUserAsync();
         }
 
@@ -276,7 +328,8 @@ namespace Firebase.Sample.Leaderboard {
         GUILayout.Label("Score:", GUILayout.Width(Screen.width * 0.20f));
         scoreString = GUILayout.TextField(scoreString);
         GUILayout.EndHorizontal();
-        if (GUILayout.Button("Update Score")) {
+        if (GUILayout.Button("Update Score"))
+        {
           UpdateUserScoreAsync();
         }
 
@@ -286,20 +339,25 @@ namespace Firebase.Sample.Leaderboard {
     }
 
     // Render the GUI:
-    void OnGUI() {
+    void OnGUI()
+    {
       GUI.skin = fb_GUISkin;
-      if (dependencyStatus != DependencyStatus.Available) {
+      if (dependencyStatus != DependencyStatus.Available)
+      {
         GUILayout.Label("One or more Firebase dependencies are not present.");
         GUILayout.Label("Current dependency status: " + dependencyStatus.ToString());
         return;
       }
       Rect logArea, controlArea;
 
-      if (Screen.width < Screen.height) {
+      if (Screen.width < Screen.height)
+      {
         // Portrait mode
         controlArea = new Rect(0.0f, 0.0f, Screen.width, Screen.height * 0.5f);
         logArea = new Rect(0.0f, Screen.height * 0.5f, Screen.width, Screen.height * 0.5f);
-      } else {
+      }
+      else
+      {
         // Landscape mode
         controlArea = new Rect(0.0f, 0.0f, Screen.width * 0.5f, Screen.height);
         logArea = new Rect(Screen.width * 0.5f, 0.0f, Screen.width * 0.5f, Screen.height);
