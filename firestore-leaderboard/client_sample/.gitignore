@@ -12,6 +12,7 @@ Logs/
 Packages/
 ProjectSettings/GvhProjectSettings.xml
 Temp/
+obj/
 
 Assembly-CSharp.csproj
 client_sample.sln

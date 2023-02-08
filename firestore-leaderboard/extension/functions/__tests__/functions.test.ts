@@ -81,7 +81,6 @@ describe("extension", () => {
     });
 
     test("function update leaderboard once scores are changed", async () => {
-      //leaderboardUpdate = mockUpdateLeaderboard();
       beforeSnapshot = snapshot();
 
       afterSnapshot = snapshot({

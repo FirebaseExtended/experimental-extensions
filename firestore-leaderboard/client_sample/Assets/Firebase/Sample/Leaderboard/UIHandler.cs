@@ -32,7 +32,6 @@ namespace Firebase.Sample.Leaderboard
   // startup.
   public class UIHandler : MonoBehaviour
   {
-
     public GUISkin fb_GUISkin;
     private Vector2 controlsScrollViewVector = Vector2.zero;
     private Vector2 scrollViewVector = Vector2.zero;
@@ -40,7 +39,6 @@ namespace Firebase.Sample.Leaderboard
     private string logText = "";
     const int kMaxLogSize = 16382;
     DependencyStatus dependencyStatus = DependencyStatus.UnavailableOther;
-    protected bool firebaseInitialized = false;
     protected FirebaseAuth auth = null;
     protected FirebaseFirestore firestore = null;
 
@@ -60,19 +58,20 @@ namespace Firebase.Sample.Leaderboard
     // add them if possible.
     public virtual void Start()
     {
-      FirebaseApp.CheckAndFixDependenciesAsync().ContinueWithOnMainThread(task =>
-      {
-        dependencyStatus = task.Result;
-        if (dependencyStatus == DependencyStatus.Available)
+      FirebaseApp
+        .CheckAndFixDependenciesAsync()
+        .ContinueWithOnMainThread(task =>
         {
-          InitializeFirebase();
-        }
-        else
-        {
-          Debug.LogError(
-                  "Could not resolve all Firebase dependencies: " + dependencyStatus);
-        }
-      });
+          dependencyStatus = task.Result;
+          if (dependencyStatus == DependencyStatus.Available)
+          {
+            InitializeFirebase();
+          }
+          else
+          {
+            Debug.LogError("Could not resolve all Firebase dependencies: " + dependencyStatus);
+          }
+        });
     }
 
     // Exit if escape (or back, on mobile) is pressed.
@@ -90,14 +89,27 @@ namespace Firebase.Sample.Leaderboard
       DebugLog("Get Auth and Firestore.");
       auth = FirebaseAuth.DefaultInstance;
       firestore = FirebaseFirestore.DefaultInstance;
-      firebaseInitialized = true;
     }
 
     void OnDestroy()
     {
       auth = null;
       firestore = null;
-      firebaseInitialized = false;
+    }
+
+    bool checkSDKs()
+    {
+      if (auth == null)
+      {
+        DebugLog("FirebaseAuth default instances is null, check initialization.");
+        return false;
+      }
+      if (firestore == null)
+      {
+        DebugLog("FirebaseFirestore default instances is null, check initialization.");
+        return false;
+      }
+      return true;
     }
 
     private string DisplayLeaderBoard(IDictionary<string, object> leaderboard)
@@ -105,48 +117,88 @@ namespace Firebase.Sample.Leaderboard
       IDictionary<string, IDictionary> converted = new Dictionary<string, IDictionary>();
       foreach (KeyValuePair<string, object> entry in leaderboard)
       {
+        // Cast the value of leaderboard entry into a dictionary to make it easy to sort by score.
         Dictionary<string, object> castedObject = (Dictionary<string, object>)(entry.Value);
         converted.Add(entry.Key, castedObject);
       }
       DebugLog(String.Format("Converted dict size {0}...", converted.Count));
 
-      var ordered = converted.OrderByDescending(x => x.Value["score"]).ToDictionary(x => x.Key, x => x.Value);
-      return "{ " + ordered
-          .Select(kv => "(Uid:" + kv.Key + ", UserName:" + kv.Value["user_name"] + ", Score:" + kv.Value["score"] + ")\n")
+      var ordered = converted
+        .OrderByDescending(x => x.Value["score"])
+        .ToDictionary(x => x.Key, x => x.Value);
+      return "{ "
+        + ordered
+          .Select(
+            kv =>
+              "(Uid:"
+              + kv.Key
+              + ", UserName:"
+              + kv.Value["user_name"]
+              + ", Score:"
+              + kv.Value["score"]
+              + ")\n"
+          )
           .Aggregate("", (current, next) => current + next + ", ")
-          + "}";
+        + "}";
     }
 
     // Fetch the leaderboard document and display.
     public Task FetchLeaderboardAsync()
     {
+      if (!checkSDKs())
+      {
+        return Task.FromResult(0);
+      }
       DebugLog("Attempting to fetch leaderboard...");
       DisableUI();
 
       // This passes the current displayName through to HandleCreateUserAsync
       // so that it can be passed to UpdateUserProfile().  displayName will be
       // reset by AuthStateChanged() when the new user is created and signed in.
-      DocumentReference leaderboardDoc = firestore.Collection(leaderboardCollectionPath).Document(leaderboardDocName);
-      return leaderboardDoc.GetSnapshotAsync().ContinueWithOnMainThread(task =>
-      {
-        EnableUI();
-        DocumentSnapshot snap = task.Result;
-        IDictionary<string, object> resultData = snap.ToDictionary();
-        if (resultData != null && resultData.Count > 0)
+      DocumentReference leaderboardDoc = firestore
+        .Collection(leaderboardCollectionPath)
+        .Document(leaderboardDocName);
+      return leaderboardDoc
+        .GetSnapshotAsync()
+        .ContinueWithOnMainThread(task =>
         {
-          DebugLog("INFO: Read leaderboard contents:");
-          DebugLog(DisplayLeaderBoard(resultData));
-        }
-        else
-        {
-          DebugLog("INFO: leaderboard was empty.");
-        }
-      });
+          EnableUI();
+          if (task.IsCanceled)
+          {
+            DebugLog("INFO: Fetch leaderboard was cancelled.");
+          }
+          else if (task.IsFaulted)
+          {
+            DebugLog("ERROR: " + task.Exception.ToString());
+          }
+          else if (task.Result == null)
+          {
+            DebugLog("ERROR: Invalid task result.");
+          }
+          else
+          {
+            DocumentSnapshot snap = task.Result;
+            IDictionary<string, object> resultData = snap.ToDictionary();
+            if (resultData != null && resultData.Count > 0)
+            {
+              DebugLog("INFO: Read leaderboard contents:");
+              DebugLog(DisplayLeaderBoard(resultData));
+            }
+            else
+            {
+              DebugLog("INFO: leaderboard was empty.");
+            }
+          }
+        });
     }
 
     // Update User Score by Uid.
     public Task UpdateUserScoreAsync()
     {
+      if (!checkSDKs())
+      {
+        return Task.FromResult(0);
+      }
       if (auth.CurrentUser == null)
       {
         DebugLog("Sign-in before update score.");
@@ -154,45 +206,66 @@ namespace Firebase.Sample.Leaderboard
         return Task.FromResult(0);
       }
 
-      DebugLog(String.Format("Attempting to Update User {0} with Score {1} ...", auth.CurrentUser.UserId, scoreString));
+      DebugLog(
+        String.Format(
+          "Attempting to Update User {0} with Score {1} ...",
+          auth.CurrentUser.UserId,
+          scoreString
+        )
+      );
       DisableUI();
 
       // This passes the current displayName through to HandleCreateUserAsync
       // so that it can be passed to UpdateUserProfile().  displayName will be
       // reset by AuthStateChanged() when the new user is created and signed in.
-      DocumentReference leaderboardDoc = firestore.Collection(userCollectionPath).Document(auth.CurrentUser.UserId);
+      DocumentReference leaderboardDoc = firestore
+        .Collection(userCollectionPath)
+        .Document(auth.CurrentUser.UserId);
       int scoreNumber;
-      Int32.TryParse(scoreString, out scoreNumber);
-      return leaderboardDoc.UpdateAsync(userScoreFieldName, scoreNumber).ContinueWithOnMainThread(task =>
+      if(!Int32.TryParse(scoreString, out scoreNumber))
       {
-        EnableUI();
-        if (task.IsCanceled)
+        DebugLog("Score string failed to parse {0} to int, early out.", scoreString);
+        // Return a finished task.
+        return Task.FromResult(0);
+      }
+      return leaderboardDoc
+        .UpdateAsync(userScoreFieldName, scoreNumber)
+        .ContinueWithOnMainThread(task =>
         {
-          DebugLog("INFO: Update scoreString was cancelled.");
-        }
-        else if (task.IsFaulted)
-        {
-          DebugLog("ERROR: " + task.Exception.ToString());
-        }
-        else
-        {
-          DebugLog("INFO: Document updated successfully.");
-        }
-      });
+          EnableUI();
+          if (task.IsCanceled)
+          {
+            DebugLog("INFO: Update scoreString was cancelled.");
+          }
+          else if (task.IsFaulted)
+          {
+            DebugLog("ERROR: " + task.Exception.ToString());
+          }
+          else
+          {
+            DebugLog("INFO: Document updated successfully.");
+          }
+        });
     }
 
     // Delete the currently logged in user.
     protected Task DeleteUserAsync()
     {
+      if (!checkSDKs())
+      {
+        return Task.FromResult(0);
+      }
       if (auth.CurrentUser != null)
       {
         DebugLog(String.Format("Attempting to delete user {0}...", auth.CurrentUser.UserId));
         DisableUI();
-        return auth.CurrentUser.DeleteAsync().ContinueWithOnMainThread(task =>
-        {
-          EnableUI();
-          LogTaskCompletion(task, "Delete user");
-        });
+        return auth.CurrentUser
+          .DeleteAsync()
+          .ContinueWithOnMainThread(task =>
+          {
+            EnableUI();
+            LogTaskCompletion(task, "Delete user");
+          });
       }
       else
       {
@@ -215,18 +288,19 @@ namespace Firebase.Sample.Leaderboard
     // Attempt to sign in anonymously.
     public Task SigninAnonymouslyAsync()
     {
+      if (!checkSDKs())
+      {
+        return Task.FromResult(0);
+      }
       DebugLog("Attempting to sign anonymously...");
       DisableUI();
       return auth.SignInAnonymouslyAsync().ContinueWithOnMainThread(HandleSignInWithUser);
     }
 
-
-
     // Log the result of the specified task, returning true if the task
     // completed successfully, false otherwise.
     bool LogTaskCompletion(Task task, string operation)
     {
-      bool complete = false;
       if (task.IsCanceled)
       {
         DebugLog(operation + " canceled.");
@@ -236,24 +310,24 @@ namespace Firebase.Sample.Leaderboard
         DebugLog(operation + " encounted an error.");
         foreach (Exception exception in task.Exception.Flatten().InnerExceptions)
         {
-          string errorCode = "";
+          string errorMessage = "";
           FirebaseException firebaseException = exception as FirebaseException;
           if (firebaseException != null)
           {
-            errorCode = String.Format("Error code={0}: ",
-                firebaseException.ErrorCode.ToString(),
-                firebaseException.Message);
+            errorMessage = String.Format(
+              "Error code={0}: ",
+              firebaseException.ErrorCode.ToString(),
+              firebaseException.Message
+            );
           }
-          DebugLog(errorCode + exception.ToString());
+          DebugLog(errorMessage + exception.ToString());
         }
       }
       else if (task.IsCompleted)
       {
         DebugLog(operation + " completed");
-
-        complete = true;
       }
-      return complete;
+      return false;
     }
 
     // Output text to the debug log text field, as well as the console.
@@ -294,12 +368,9 @@ namespace Firebase.Sample.Leaderboard
     {
       if (UIEnabled)
       {
-        controlsScrollViewVector =
-            GUILayout.BeginScrollView(controlsScrollViewVector);
+        controlsScrollViewVector = GUILayout.BeginScrollView(controlsScrollViewVector);
 
         GUILayout.BeginVertical();
-
-
 
         if (GUILayout.Button("Get Leaderboard"))
         {
@@ -348,7 +419,8 @@ namespace Firebase.Sample.Leaderboard
         GUILayout.Label("Current dependency status: " + dependencyStatus.ToString());
         return;
       }
-      Rect logArea, controlArea;
+      Rect logArea,
+        controlArea;
 
       if (Screen.width < Screen.height)
       {

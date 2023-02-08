@@ -15,7 +15,7 @@ You can test out this extension right away!
 
 ### Using the extension
 
-This extension creates and maintains a leaderboard document in Firestore database, the document will collect and monitor the user score updates in user documents under collection `${param:SCORE_COLLECTION_PATH}`. 
+This extension creates and maintains a leaderboard document in Firestore database. The document will collect and monitor the user score updates in user documents under collection `${param:SCORE_COLLECTION_PATH}`. 
 
 
 ### Monitoring
