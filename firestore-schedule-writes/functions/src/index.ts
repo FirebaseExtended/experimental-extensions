@@ -120,7 +120,8 @@ async function processWrite(
       await deliver(write);
       functions.logger.info(`Delivered write "${QUEUE_COLLECTION}/${ref.id}"`);
     }
-  } catch (e) {
+    // TODO: type error: https://www.typescriptlang.org/tsconfig#useUnknownInCatchVariables
+  } catch (e: any) {
     error = e;
     await ref.update({
       state: "FAILED",

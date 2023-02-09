@@ -66,7 +66,8 @@ async function getCurrentMetadata(
       gcsMetadata as functions.storage.ObjectMetadata,
       "google.storage.object.finalize"
     ) as ItemDocument;
-  } catch (e) {
+    // TODO: type error: https://www.typescriptlang.org/tsconfig#useUnknownInCatchVariables
+  } catch (e: any) {
     if (e.code === 404) {
       return undefined;
     } else {

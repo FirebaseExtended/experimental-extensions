@@ -106,7 +106,8 @@ async function fileCacheStream(
     }
     // keep gzip compression for over the wire
     return file.createReadStream({ decompress: !options.gzip });
-  } catch (e) {
+    // TODO: type error: https://www.typescriptlang.org/tsconfig#useUnknownInCatchVariables
+  } catch (e: any) {
     functions.logger.error("getMetadata error:", e.message, e.code);
     return null;
   }
@@ -206,7 +207,8 @@ export const serve = functions.handler.https.onRequest(
       }
 
       return stream.pipe(res);
-    } catch (e) {
+      // TODO: type error: https://www.typescriptlang.org/tsconfig#useUnknownInCatchVariables
+    } catch (e: any) {
       functions.logger.error(e);
       res.status(500).send(e.message);
     }
