@@ -65,11 +65,18 @@ export const deleteEntryInLeaderboard = (path: string, entry_id: string) => {
   logger.log(messages.deleteEntryInLeaderboard(path, entry_id));
 };
 
-export const deleteEntryInLeaderboardComplete = (path: string, entry_id: string) => {
+export const deleteEntryInLeaderboardComplete = (
+  path: string,
+  entry_id: string
+) => {
   logger.log(messages.deleteEntryInLeaderboardComplete(path, entry_id));
 };
 
-export const sameUserLowerScore = (user_id: string, old_score: string, new_score: string) => {
+export const sameUserLowerScore = (
+  user_id: string,
+  old_score: string,
+  new_score: string
+) => {
   logger.log(messages.sameUserLowerScore(user_id, old_score, new_score));
 };
 

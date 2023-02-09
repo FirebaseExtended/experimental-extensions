@@ -97,7 +97,7 @@ const updateLeaderboardDocument = async (
         leaderboardData[user_id][config.scoreFieldName],
         10
       );
-      
+
       if (existScore >= newScore) {
         // Same user has lower score than leaderboard record, no need to update leaderboard, early out.
         logs.sameUserLowerScore(
