@@ -32,17 +32,28 @@ export const messages = {
   complete: () => "onScoreUpdate Complete",
   error: (err: Error) => ["Failed execution of extension", err],
   documentUpdateNoScoreChange: () =>
-    "Document was changed but no score update, no processing is required",
-  
-  emptyLeaderboardDocumentEarlyOut: (function_name: string) =>
-    "Leaderboard document is empty, early out in function '${function_name}",
+    `Document was changed but no score update, no processing is required`,
 
-  updateLeaderboard: (path: string) =>
-    "Updating Cloud Firestore leaderboard document: '${path}'",
+  emptyLeaderboardDocumentEarlyOut: (function_name: string) =>
+    `Leaderboard document is empty, early out in function '${function_name}'`,
+
+  updateLeaderboard: (path: string, userId: string) =>
+    `Updating Cloud Firestore leaderboard document: '${path}' with userId: '${userId}'`,
   updateLeaderboardComplete: (path: string) =>
-    "Finished updating Cloud Firestore leaderboard document: '${path}'",
+    `Finished updating Cloud Firestore leaderboard document: '${path}'`,
   deleteEntryInLeaderboard: (path: string, entry_id: string) =>
-    "Delete entry '${entry_id}' in leaderboard document: '${path}'",
+    `Delete entry '${entry_id}' in leaderboard document: '${path}'`,
   deleteEntryInLeaderboardComplete: (path: string, entry_id: string) =>
-    "Finished delete entry '${entry_id}' in leaderboard document: '${path}'",
+    `Finished delete entry '${entry_id}' in leaderboard document: '${path}'`,
+
+  sameUserLowerScore: (user_id: string, old_score: string, new_score: string) =>
+    `User '${user_id}' already has score '${old_score}' higher than new score '${new_score}', no update`,
+  comparingLeaderboardSize: (size: number, configSize: number) =>
+    `Comparing Leaderboard current size '${size}' with config size '${configSize}'`,
+
+  newEntryScoreLower: (newScore: number, minScore: number) =>
+    `New entry's score '${newScore}' is lower than leaderboard's min score '${minScore}', do nothing.`,
+
+  findMinScoreEntryToDelete: (userId: string, minScore: number) =>
+    `Find user '${userId}' is the min score '${minScore}' in the leaderboard, should be deleted.`,
 };

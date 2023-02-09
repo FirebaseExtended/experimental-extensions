@@ -150,7 +150,7 @@ params:
     type: string
     example: global_leaderboard
     default: global_leaderboard
-    validationRegex: "^[a-z][A-Z][0-9]*$"
+    validationRegex: "^[^/]+(/[^/]+/[^/]+)*$"
     validationErrorMessage: Please enter a valid board name.
     required: true
 

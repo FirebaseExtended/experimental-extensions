@@ -64,32 +64,95 @@ const publishEvent = async (leaderboardPath: string) => {
 const updateLeaderboardDocument = async (
   change: functions.Change<admin.firestore.DocumentSnapshot>
 ): Promise<void> => {
+  // Check if the change from user doc is related to score update and if the new score is higher than the previous one.
   if (change.before.exists) {
     const scoreBefore = change.before.get(config.scoreFieldName);
     const scoreAfter = change.after.get(config.scoreFieldName);
-    if (scoreBefore == scoreAfter) {
+    if (scoreBefore >= scoreAfter) {
       logs.documentUpdateNoScoreChange();
       return Promise.resolve();
     }
   }
 
+  const user_id = change.after.ref.id;
+  const newEntryData = {
+    [config.scoreFieldName]: change.after.get(config.scoreFieldName),
+    [config.userNameFieldName]: change.after.get(config.userNameFieldName),
+  };
+  const newScore = parseInt(newEntryData[config.scoreFieldName], 10);
+
   const leaderboardCollectionRef = db
     .collection(config.leaderboardCollectionPath)
     .doc(config.leaderboardName);
-  logs.updateLeaderboard(leaderboardCollectionRef.path);
+
+  // Pre check multiple conditions before we decide to add the new entry.
+  const leaderboardSnap = await leaderboardCollectionRef.get();
+  const configLeaderboardSize = parseInt(config.leaderboardSize, 10);
+  var lowestScoreEntryUserId = "";
+  if (leaderboardSnap.exists) {
+    const leaderboardData = leaderboardSnap.data();
+    const existUserData = leaderboardData[user_id];
+    if (existUserData != null) {
+      var existScore = parseInt(
+        leaderboardData[user_id][config.scoreFieldName],
+        10
+      );
+      
+      if (existScore >= newScore) {
+        // Same user has lower score than leaderboard record, no need to update leaderboard, early out.
+        logs.sameUserLowerScore(
+          user_id,
+          leaderboardData[user_id][config.scoreFieldName],
+          newEntryData[config.scoreFieldName]
+        );
+        return Promise.resolve();
+      }
+    } else {
+      const leaderboardSize = Object.entries(leaderboardData).length;
+      logs.comparingLeaderboardSize(leaderboardSize, configLeaderboardSize);
+      if (leaderboardSize >= configLeaderboardSize) {
+        // leaderboard already reached the max size, need to check add this new entry or replace with the lowest score entry.
+
+        var minScore = Number.MAX_VALUE;
+        var minScoreUserId = "";
+
+        for (const [key, value] of Object.entries(leaderboardData)) {
+          var scoreToCheck = parseInt(value[config.scoreFieldName], 10);
+          if (scoreToCheck < minScore) {
+            minScore = scoreToCheck;
+            minScoreUserId = key;
+          }
+        }
+
+        if (minScore < newScore) {
+          logs.findMinScoreEntryToDelete(lowestScoreEntryUserId, minScore);
+          lowestScoreEntryUserId = minScoreUserId;
+        } else {
+          // new entry's score is lower than min score in the leaderboard, early out.
+          logs.newEntryScoreLower(newScore, minScore);
+          return Promise.resolve();
+        }
+      }
+    }
+  }
 
   await db.runTransaction((transaction) => {
-    const user_id = change.after.ref.id;
-    const entryData = {
-      score: change.after.get(config.scoreFieldName),
-      user_name: change.after.get(config.userNameFieldName),
-    };
-
+    if (lowestScoreEntryUserId != "") {
+      // Found the lowest score entry to delete from the leaderboard.
+      logs.deleteEntryInLeaderboard(
+        leaderboardCollectionRef.path,
+        lowestScoreEntryUserId
+      );
+      transaction.update(leaderboardCollectionRef, {
+        [lowestScoreEntryUserId]: FieldValue.delete(),
+      });
+    }
+    logs.updateLeaderboard(leaderboardCollectionRef.path, user_id);
     transaction.set(
       leaderboardCollectionRef,
-      { [user_id]: entryData },
+      { [user_id]: newEntryData },
       { merge: true }
-    )
+    );
 
     publishEvent(leaderboardCollectionRef.path);
     logs.updateLeaderboardComplete(leaderboardCollectionRef.path);
@@ -111,7 +174,10 @@ const deleteEntryLeaderboardDocument = async (
   await db.runTransaction((transaction) => {
     leaderboardCollectionRef.update(user_id, FieldValue.delete());
     publishEvent(leaderboardCollectionRef.path);
-    logs.deleteEntryInLeaderboardComplete(leaderboardCollectionRef.path, user_id);
+    logs.deleteEntryInLeaderboardComplete(
+      leaderboardCollectionRef.path,
+      user_id
+    );
     return Promise.resolve();
   });
 };
