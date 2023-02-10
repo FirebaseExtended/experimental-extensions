@@ -12,11 +12,9 @@ You can test out this extension right away!
 
 4. Make a change to the `${param:SCORE_FIELD_NAME}` field on any user document. In a few seconds, the leaderboard document will update with the new value.
 
-
 ### Using the extension
 
-This extension creates and maintains a leaderboard document in Firestore database. The document will collect and monitor the user score updates in user documents under collection `${param:SCORE_COLLECTION_PATH}`. 
-
+This extension creates and maintains a leaderboard document in Firestore database. The document will collect and monitor the user score updates in user documents under collection `${param:SCORE_COLLECTION_PATH}`.
 
 ### Monitoring
 

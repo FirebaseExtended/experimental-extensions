@@ -4,13 +4,11 @@
 
 **Description**: Use certain firestore attribute to create leaderboard for the game.
 
-
-
 **Details**: Use this extension to create leaderboards for your game in Cloud Firestore collection.
 
 ### How this extension works
 
-Use this extension to automatically generate a leaderboard from a Firestore scores collection containing score documents keyed by user ID. This extension will keep the leaderboard up to date as new scores come in, and when existing scores change. 
+Use this extension to automatically generate a leaderboard from a Firestore scores collection containing score documents keyed by user ID. This extension will keep the leaderboard up to date as new scores come in, and when existing scores change.
 
 You can use this extension to generate global leaderboards, or segmented leaderboards. For example, you could manage game-level leaderboards, regional leaderboards, and even duration-based contest leaderboards all within this extension. All you need to do is decide on a custom name for each leaderboard and add those names to the scores document. More detailed instructions will be provided after installation.
 
@@ -21,9 +19,11 @@ This extension comes with a sample Unity project to demonstrate usage. The proje
 Note: To use this extension, you need to manage your user scores using Firestore. The documents in this collection must contain fields representing score and keyed by user id.
 
 ### Additional setup
+
 Before installing this extension, make sure that you've [set up a Cloud Firestore database](https://firebase.google.com/docs/firestore/quickstart) in your Firebase project.
 
 #### Billing
+
 To install an extension, your project must be on the [Blaze (pay as you go) plan](https://firebase.google.com/pricing)
 
 - You will be charged a small amount (typically around $0.01/month) for the Firebase resources required by this extension (even if it is not used).
@@ -31,43 +31,28 @@ To install an extension, your project must be on the [Blaze (pay as you go) plan
   - Cloud Firestore
   - Cloud Functions (Node.js 10+ runtime. [See FAQs](https://firebase.google.com/support/faq#extensions-pricing))
 
-
-
-
 **Configuration Parameters:**
 
-* Cloud Functions location: Where do you want to deploy the functions created for this extension? You usually want a location close to your database. For help selecting a location, refer to the [location selection guide](https://firebase.google.com/docs/functions/locations).
+- Cloud Functions location: Where do you want to deploy the functions created for this extension? You usually want a location close to your database. For help selecting a location, refer to the [location selection guide](https://firebase.google.com/docs/functions/locations).
 
-* Score field name: What is the name of the field used as sorting score?
+- Score field name: What is the name of the field used as sorting score?
 
+- Collection path for user score document: What is the path of the collections to monitor score change?
 
-* Collection path for user score document: What is the path of the collections to monitor score change?
+- User name field name: What is the name of the field for the user name to display in leaderboard?
 
+- Collection to host all leaderboards document: What is the name of the collections to create leaderboard document?
 
-* User name field name: What is the name of the field for the user name to display in leaderboard?
+- Leaderboard Name: The name of the leaderboard document.
 
-
-* Collection to host all leaderboards document: What is the name of the collections to create leaderboard document?
-
-
-* Leaderboard Name: The name of the leaderboard document.
-
-
-* Leaderboard Size: How many entries we would like to keep in the leaderboard.
-
-
-
+- Leaderboard Size: How many entries we would like to keep in the leaderboard.
 
 **Cloud Functions:**
 
-* **onScoreUpdate:** Update the leaderboard when new score entry is writen
-
-
+- **onScoreUpdate:** Update the leaderboard when new score entry is writen
 
 **Access Required**:
 
-
-
 This extension will operate with the following project IAM roles:
 
-* datastore.owner (Reason: Allows the extension to create and update leaderboard from Cloud Firestore.)
+- datastore.owner (Reason: Allows the extension to create and update leaderboard from Cloud Firestore.)
