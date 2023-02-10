@@ -1,6 +1,6 @@
 "use strict";
 /*
- * Copyright 2019 Google LLC
+ * Copyright 2023 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,21 +20,14 @@ const admin = require("firebase-admin");
 const firestore_1 = require("firebase-admin/firestore");
 const GMaps = require("@googlemaps/google-maps-services-js");
 const config_1 = require("./config");
+const utils_1 = require("./utils");
 const gMapsClient = new GMaps.Client();
 admin.initializeApp();
-// type GeoError = {
-//   status: string;
-//   message?: string;
-// };
-exports.writeLatLong = functions.firestore
-    .document(`${config_1.default.collectionId}/{docId}`)
-    .onWrite(async (snap, ctx) => {
-    var _a;
-    if (ctx.eventType === "google.firestore.document.delete")
+exports.writeLatLong = functions.firestore.document(`${config_1.default.collectionId}/{docId}`).onWrite(async (snap) => {
+    if (!(0, utils_1.validateAddress)(snap.after, snap.before)) {
         return;
+    }
     const { address } = snap.after.data();
-    if (!address || ((_a = snap.before.data()) === null || _a === void 0 ? void 0 : _a.address) === address)
-        return;
     try {
         const result = await geocode(address);
         await snap.after.ref.update({
@@ -53,14 +46,11 @@ exports.writeLatLong = functions.firestore
         });
     }
 });
-exports.writeBestDrivingTime = functions.firestore
-    .document(`${config_1.default.collectionId}/{docId}`)
-    .onWrite(async (snap, ctx) => {
-    if (ctx.eventType === "google.firestore.document.delete")
+exports.writeBestDrivingTime = functions.firestore.document(`${config_1.default.collectionId}/{docId}`).onWrite(async (snap) => {
+    if (!(0, utils_1.validateOriginAndDestination)(snap.after, snap.before)) {
         return;
+    }
     const { origin, destination } = snap.after.data();
-    if (!origin || !destination)
-        throw new Error("Missing origin or destination");
     try {
         const result = await bestDriveTime(origin, destination);
         await snap.after.ref.update({

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Google LLC
+ * Copyright 2023 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,79 +20,70 @@ import { FieldValue } from "firebase-admin/firestore";
 
 import * as GMaps from "@googlemaps/google-maps-services-js";
 import config from "./config";
+import { validateAddress, validateOriginAndDestination } from "./utils";
 
 const gMapsClient = new GMaps.Client();
 
 admin.initializeApp();
 
-// type GeoError = {
-//   status: string;
-//   message?: string;
-// };
+exports.writeLatLong = functions.firestore.document(`${config.collectionId}/{docId}`).onWrite(async (snap) => {
+  if (!validateAddress(snap.after, snap.before)) {
+    return;
+  }
 
-exports.writeLatLong = functions.firestore
-  .document(`${config.collectionId}/{docId}`)
-  .onWrite(async (snap, ctx) => {
-    if (ctx.eventType === "google.firestore.document.delete") return;
+  const { address } = snap.after.data() as {
+    address: string;
+  };
 
-    const { address } = snap.after.data() as {
-      address?: string;
-    };
+  try {
+    const result = await geocode(address);
 
-    if (!address || snap.before.data()?.address === address) return;
-    try {
-      const result = await geocode(address);
+    await snap.after.ref.update({
+      ext_getLatLongStatus: {
+        status: "OK",
+      },
+    });
 
-      await snap.after.ref.update({
-        ext_getLatLongStatus: {
-          status: "OK",
-        },
-      });
+    await snap.after.ref.update(result);
+  } catch (error) {
+    functions.logger.error(error);
+    await snap.after.ref.update({
+      ext_getLatLongStatus: { status: "ERROR", error: error },
+      longitude: FieldValue.delete(),
+      latitude: FieldValue.delete(),
+    });
+  }
+});
 
-      await snap.after.ref.update(result);
-    } catch (error) {
-      functions.logger.error(error);
-      await snap.after.ref.update({
-        ext_getLatLongStatus: { status: "ERROR", error: error },
-        longitude: FieldValue.delete(),
-        latitude: FieldValue.delete(),
-      });
-    }
-  });
+exports.writeBestDrivingTime = functions.firestore.document(`${config.collectionId}/{docId}`).onWrite(async (snap) => {
+  if (!validateOriginAndDestination(snap.after, snap.before)) {
+    return;
+  }
 
-exports.writeBestDrivingTime = functions.firestore
-  .document(`${config.collectionId}/{docId}`)
-  .onWrite(async (snap, ctx) => {
-    if (ctx.eventType === "google.firestore.document.delete") return;
+  const { origin, destination } = snap.after.data() as {
+    origin: string;
+    destination: string;
+  };
 
-    const { origin, destination } = snap.after.data() as {
-      origin?: string;
-      destination?: string;
-    };
-
-    if (!origin || !destination)
-      throw new Error("Missing origin or destination");
-
-    try {
-      const result = await bestDriveTime(origin, destination);
-      await snap.after.ref.update({
-        ext_getBestDriveTimeStatus: {
-          status: "OK",
-        },
-      });
-
-      await snap.after.ref.update({ bestDrivingTime: result });
-    } catch (error) {
-      functions.logger.error(error);
-      await snap.after.ref.update({
-        ext_getBestDriveTimeStatus: {
-          status: "ERROR",
-          error: error,
-        },
-        bestDrivingTime: FieldValue.delete(),
-      });
-    }
-  });
+  try {
+    const result = await bestDriveTime(origin, destination);
+    await snap.after.ref.update({
+      ext_getBestDriveTimeStatus: {
+        status: "OK",
+      },
+    });
+    await snap.after.ref.update({ bestDrivingTime: result });
+  } catch (error) {
+    functions.logger.error(error);
+    await snap.after.ref.update({
+      ext_getBestDriveTimeStatus: {
+        status: "ERROR",
+        error: error,
+      },
+      bestDrivingTime: FieldValue.delete(),
+    });
+  }
+});
 
 /**
  * Call the Google Maps API to the latitude and longitude of an address.
@@ -100,9 +91,7 @@ exports.writeBestDrivingTime = functions.firestore
  * @param address a string address to geocode.
  * @returns a stringified JSON object with the lat and long of the address.
  */
-async function geocode(
-  address: string
-): Promise<{ latitude: number; longitude: number }> {
+async function geocode(address: string): Promise<{ latitude: number; longitude: number }> {
   const result = await gMapsClient.geocode({
     params: {
       key: config.googleMapsApiKey!,
