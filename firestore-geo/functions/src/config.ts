@@ -15,7 +15,9 @@
  */
 
 export default {
-  location: process.env.LOCATION,
-  googleMapsApiKey: process.env.MAPS_API_KEY,
-  collectionId: process.env.COLLECTION_ID,
+  location: process.env.LOCATION!,
+  googleMapsApiKey: process.env.MAPS_API_KEY!,
+  collectionId: process.env.COLLECTION_ID!,
+  instanceId: process.env.EXT_INSTANCE_ID!,
+  projectId: process.env.PROJECT_ID!,
 };

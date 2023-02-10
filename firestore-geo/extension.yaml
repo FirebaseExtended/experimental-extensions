@@ -31,6 +31,14 @@ roles:
 
 
 resources:
+  - name: updateLatLong
+    type: firebaseextensions.v1beta.function
+    description: >-
+      Update the longitue and latitude.
+    properties:
+      location: ${LOCATION}
+      runtime: nodejs14
+      taskQueueTrigger: {}
   - name: writeLatLong
     type: firebaseextensions.v1beta.function
     description: >-

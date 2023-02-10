@@ -19,15 +19,53 @@ import * as admin from "firebase-admin";
 import { FieldValue } from "firebase-admin/firestore";
 
 import * as GMaps from "@googlemaps/google-maps-services-js";
-import config from "./config";
 import { validateAddress, validateOriginAndDestination } from "./utils";
 import { AxiosError } from "axios";
+
+import config from "./config";
+import { firestore } from "firebase-admin";
+import { enqueueTask } from "./tasks";
 
 const gMapsClient = new GMaps.Client();
 
 admin.initializeApp();
 
-exports.writeLatLong = functions.firestore.document(`${config.collectionId}/{docId}`).onWrite(async (snap) => {
+async function getLatLong(address: string, docRef: firestore.DocumentReference) {
+  try {
+    const result = await geocode(address);
+
+    await docRef.update({
+      ext_getLatLongStatus: {
+        status: "OK",
+      },
+    });
+
+    await docRef.update(result);
+  } catch (error) {
+    functions.logger.error(error);
+    await docRef.update({
+      ext_getLatLongStatus: { status: "ERROR", error: error },
+      longitude: FieldValue.delete(),
+      latitude: FieldValue.delete(),
+    });
+  }
+}
+
+export const updateLatLong = functions.tasks.taskQueue({}).onDispatch(async (message) => {
+  const { address, docId } = message.body as {
+    address: string;
+    docId: string;
+  };
+  const doc = admin.firestore().collection(config.collectionId).doc(docId);
+
+  try {
+    await getLatLong(address, doc);
+  } catch (error) {
+    functions.logger.error(error);
+  }
+});
+
+export const writeLatLong = functions.firestore.document(`${config.collectionId}/{docId}`).onWrite(async (snap) => {
   if (!validateAddress(snap.after, snap.before)) {
     return;
   }
@@ -46,6 +84,9 @@ exports.writeLatLong = functions.firestore.document(`${config.collectionId}/{doc
     });
 
     await snap.after.ref.update(result);
+
+    // Update the long/lat after 30 days.
+    await enqueueTask(address, snap.after.id);
   } catch (error) {
     functions.logger.error(error);
     await snap.after.ref.update({
@@ -56,35 +97,37 @@ exports.writeLatLong = functions.firestore.document(`${config.collectionId}/{doc
   }
 });
 
-exports.writeBestDrivingTime = functions.firestore.document(`${config.collectionId}/{docId}`).onWrite(async (snap) => {
-  if (!validateOriginAndDestination(snap.after, snap.before)) {
-    return;
-  }
+export const writeBestDrivingTime = functions.firestore
+  .document(`${config.collectionId}/{docId}`)
+  .onWrite(async (snap) => {
+    if (!validateOriginAndDestination(snap.after, snap.before)) {
+      return;
+    }
 
-  const { origin, destination } = snap.after.data() as {
-    origin: string;
-    destination: string;
-  };
+    const { origin, destination } = snap.after.data() as {
+      origin: string;
+      destination: string;
+    };
 
-  try {
-    const result = await bestDriveTime(origin, destination);
-    await snap.after.ref.update({
-      ext_getBestDriveTimeStatus: {
-        status: "OK",
-      },
-    });
-    await snap.after.ref.update({ bestDrivingTime: result });
-  } catch (error) {
-    functions.logger.error(error);
-    await snap.after.ref.update({
-      ext_getBestDriveTimeStatus: {
-        status: "ERROR",
-        error: error,
-      },
-      bestDrivingTime: FieldValue.delete(),
-    });
-  }
-});
+    try {
+      const result = await bestDriveTime(origin, destination);
+      await snap.after.ref.update({
+        ext_getBestDriveTimeStatus: {
+          status: "OK",
+        },
+      });
+      await snap.after.ref.update({ bestDrivingTime: result });
+    } catch (error) {
+      functions.logger.error(error);
+      await snap.after.ref.update({
+        ext_getBestDriveTimeStatus: {
+          status: "ERROR",
+          error: error,
+        },
+        bestDrivingTime: FieldValue.delete(),
+      });
+    }
+  });
 
 /**
  * Call the Google Maps API to the latitude and longitude of an address.
