@@ -160,28 +160,6 @@ const updateLeaderboardDocument = async (
   });
 };
 
-const deleteEntryLeaderboardDocument = async (
-  change: functions.Change<admin.firestore.DocumentSnapshot>
-): Promise<void> => {
-  const leaderboardCollectionRef = db
-    .collection(config.leaderboardCollectionPath)
-    .doc(config.leaderboardName);
-  if (leaderboardCollectionRef == null) {
-    logs.emptyLeaderboardDocumentEarlyOut("deleteEntryLeaderboardDocument");
-  }
-  const user_id = change.after.ref.id;
-  logs.deleteEntryInLeaderboard(leaderboardCollectionRef.path, user_id);
-  await db.runTransaction((transaction) => {
-    leaderboardCollectionRef.update(user_id, FieldValue.delete());
-    publishEvent(leaderboardCollectionRef.path);
-    logs.deleteEntryInLeaderboardComplete(
-      leaderboardCollectionRef.path,
-      user_id
-    );
-    return Promise.resolve();
-  });
-};
-
 export const onScoreUpdate = functions.handler.firestore.document.onWrite(
   async (change): Promise<void> => {
     logs.start(config);
@@ -193,8 +171,8 @@ export const onScoreUpdate = functions.handler.firestore.document.onWrite(
           updateLeaderboardDocument(change);
           break;
         case ChangeType.DELETE:
+          // leaderboard will not handle the case, just log the case.
           logs.changeDelete();
-          deleteEntryLeaderboardDocument(change);
           break;
       }
 
