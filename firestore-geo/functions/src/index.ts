@@ -21,6 +21,7 @@ import { FieldValue } from "firebase-admin/firestore";
 import * as GMaps from "@googlemaps/google-maps-services-js";
 import config from "./config";
 import { validateAddress, validateOriginAndDestination } from "./utils";
+import { AxiosError } from "axios";
 
 const gMapsClient = new GMaps.Client();
 
@@ -121,22 +122,33 @@ async function geocode(address: string): Promise<{ latitude: number; longitude: 
  * @param destination a string adress of the destination.
  */
 async function bestDriveTime(origin: string, destination: string) {
-  const result = await gMapsClient.distancematrix({
-    params: {
-      key: config.googleMapsApiKey!,
-      origins: [origin],
-      destinations: [destination],
-    },
-  });
+  try {
+    const result = await gMapsClient.distancematrix({
+      params: {
+        key: config.googleMapsApiKey!,
+        origins: [origin],
+        destinations: [destination],
+      },
+    });
 
-  functions.logger.log(result.data.rows[0].elements[0].status);
+    if (result.data.rows[0].elements[0].status !== "OK") {
+      throw {
+        message: result.data.error_message ?? "Something went wrong",
+        status: result.data.rows[0].elements[0].status,
+      };
+    }
 
-  if (result.data.rows[0].elements[0].status !== "OK") {
-    throw {
-      message: result.data.error_message ?? "Something went wrong",
-      status: result.data.rows[0].elements[0].status,
-    };
+    return result.data.rows[0].elements[0].duration.value;
+  } catch (error: any) {
+    if (error instanceof AxiosError) {
+      throw {
+        message:
+          ((error as AxiosError).response?.data as GMaps.DistanceMatrixResponseData | undefined)?.error_message ??
+          "Something went wrong",
+        status: (error as AxiosError).response?.statusText ?? 500,
+      };
+    }
+
+    throw error;
   }
-
-  return result.data.rows[0].elements[0].duration.value;
 }

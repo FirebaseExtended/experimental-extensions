@@ -21,6 +21,7 @@ const firestore_1 = require("firebase-admin/firestore");
 const GMaps = require("@googlemaps/google-maps-services-js");
 const config_1 = require("./config");
 const utils_1 = require("./utils");
+const axios_1 = require("axios");
 const gMapsClient = new GMaps.Client();
 admin.initializeApp();
 exports.writeLatLong = functions.firestore.document(`${config_1.default.collectionId}/{docId}`).onWrite(async (snap) => {
@@ -104,21 +105,31 @@ async function geocode(address) {
  * @param destination a string adress of the destination.
  */
 async function bestDriveTime(origin, destination) {
-    var _a;
-    const result = await gMapsClient.distancematrix({
-        params: {
-            key: config_1.default.googleMapsApiKey,
-            origins: [origin],
-            destinations: [destination],
-        },
-    });
-    functions.logger.log(result.data.rows[0].elements[0].status);
-    if (result.data.rows[0].elements[0].status !== "OK") {
-        throw {
-            message: (_a = result.data.error_message) !== null && _a !== void 0 ? _a : "Something went wrong",
-            status: result.data.rows[0].elements[0].status,
-        };
+    var _a, _b, _c, _d, _e, _f;
+    try {
+        const result = await gMapsClient.distancematrix({
+            params: {
+                key: config_1.default.googleMapsApiKey,
+                origins: [origin],
+                destinations: [destination],
+            },
+        });
+        if (result.data.rows[0].elements[0].status !== "OK") {
+            throw {
+                message: (_a = result.data.error_message) !== null && _a !== void 0 ? _a : "Something went wrong",
+                status: result.data.rows[0].elements[0].status,
+            };
+        }
+        return result.data.rows[0].elements[0].duration.value;
     }
-    return result.data.rows[0].elements[0].duration.value;
+    catch (error) {
+        if (error instanceof axios_1.AxiosError) {
+            throw {
+                message: (_d = (_c = (_b = error.response) === null || _b === void 0 ? void 0 : _b.data) === null || _c === void 0 ? void 0 : _c.error_message) !== null && _d !== void 0 ? _d : "Something went wrong",
+                status: (_f = (_e = error.response) === null || _e === void 0 ? void 0 : _e.statusText) !== null && _f !== void 0 ? _f : 500,
+            };
+        }
+        throw error;
+    }
 }
 //# sourceMappingURL=index.js.map
