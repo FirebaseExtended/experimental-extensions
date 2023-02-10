@@ -8,9 +8,9 @@
     "firestore-sentiment-analysis/functions",
     "storage-extract-image-text/functions",
     "storage-image-labeling/functions",
-    "firestore-nlp-extension/functions",
     "storage-mirror-firestore/functions",
-    "storage-mirror-firestore/stress_test"
+    "storage-mirror-firestore/stress_test",
+    "firestore-geo/functions"
   ],
   "version": "0.0.0"
 }
