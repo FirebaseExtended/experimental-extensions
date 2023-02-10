@@ -57,9 +57,6 @@ describe("extension", () => {
     let logMock;
     let errorLogMock;
     let admin;
-    let beforeSnapshot;
-    let afterSnapshot;
-    let documentChange;
     let leaderboardUpdate;
 
     beforeEach(() => {
@@ -70,15 +67,8 @@ describe("extension", () => {
       admin = require("firebase-admin");
       logMock = jest.fn();
       errorLogMock = jest.fn();
-      beforeSnapshot = snapshot({});
 
-      afterSnapshot = snapshot();
       leaderboardUpdate = mockUpdateLeaderboard();
-
-      documentChange = functionsTest.makeChange(
-        beforeSnapshot,
-        mockDocumentSnapshotFactory(afterSnapshot)
-      );
       admin.firestore().runTransaction = mockFirestoreTransaction();
 
       require("firebase-functions").logger = {
@@ -89,22 +79,30 @@ describe("extension", () => {
 
     // Tests
     test("function exits early if scores are the same", async () => {
-      leaderboardUpdate = mockUpdateLeaderboard();
+      let beforeSnapshot = snapshot({});
+      let afterSnapshot = snapshot();
+      let documentChange = functionsTest.makeChange(
+        beforeSnapshot,
+        mockDocumentSnapshotFactory(afterSnapshot)
+      );
       const callResult = await leaderboardUpdate(documentChange);
       expect(callResult).toBeUndefined();
     });
 
     test("function update leaderboard once scores are changed", async () => {
-      beforeSnapshot = snapshot();
+      let beforeSnapshot = snapshot();
 
-      afterSnapshot = snapshot({
+      let afterSnapshot = snapshot({
         score: 200,
         user_name: "mock User2",
         changed: 123,
       });
 
-      documentChange = functionsTest.makeChange(beforeSnapshot, afterSnapshot);
-      const callResult = await mockUpdateClassMethod(documentChange);
+      let documentChange = functionsTest.makeChange(
+        beforeSnapshot,
+        afterSnapshot
+      );
+      const callResult = await leaderboardUpdate(documentChange);
       expect(callResult).toBeUndefined();
     });
   });

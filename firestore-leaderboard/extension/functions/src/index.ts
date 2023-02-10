@@ -44,7 +44,7 @@ const eventChannel =
 const getChangeType = (
   change: functions.Change<admin.firestore.DocumentSnapshot>
 ): ChangeType => {
-  if (!change.after.exists) {
+  if (change.after == null || !change.after.exists) {
     return ChangeType.DELETE;
   }
   return ChangeType.UPDATE;
