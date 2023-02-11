@@ -6,11 +6,11 @@ You can test out this extension right away!
 
 1. If it doesn't exist already, create a collection called `${param:SCORE_COLLECTION_PATH}`.
 
-2. In the `${param:SCORE_COLLECTION_PATH}`, create a few documents with fields named `${param:SCORE_FIELD_NAME}`, `${param:USER_NAME_FIELD_NAME}`
+1. In the `${param:SCORE_COLLECTION_PATH}`, create a few documents with fields named `${param:SCORE_FIELD_NAME}`, `${param:USER_NAME_FIELD_NAME}`
 
-3. In a few seconds, under `${param:LEADERBOARD_COLLECTION_PATH}`, there will be a new leaderboard document `${param:LEADER_BOARD_NAME}`.
+1. In a few seconds, under `${param:LEADERBOARD_COLLECTION_PATH}`, there will be a new leaderboard document `${param:LEADER_BOARD_NAME}`.
 
-4. Make a change to the `${param:SCORE_FIELD_NAME}` field on any user document. In a few seconds, the leaderboard document will update with the new value.
+1. Make a change to the `${param:SCORE_FIELD_NAME}` field on any user document. In a few seconds, the leaderboard document will update with the new value.
 
 ### Using the extension
 

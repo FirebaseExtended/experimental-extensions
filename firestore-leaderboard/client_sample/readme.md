@@ -163,7 +163,6 @@ The sample provides a simple interface with several buttons:
  - `Show Leaderboard` Fetches the leaderboard and show it.
  - `Update Score` Update user score and see the result reflected.
  - `Change User` Switch to another user and see how it reflected on the leaderboard rendering.
- - `Delete User` Delete current user and see the leaderboard change.
 
 ## Support
 

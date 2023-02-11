@@ -222,7 +222,7 @@ namespace Firebase.Sample.Leaderboard
         .Collection(userCollectionPath)
         .Document(auth.CurrentUser.UserId);
       int scoreNumber;
-      if(!Int32.TryParse(scoreString, out scoreNumber))
+      if (!Int32.TryParse(scoreString, out scoreNumber))
       {
         DebugLog("Score string failed to parse {0} to int, early out.", scoreString);
         // Return a finished task.
@@ -246,33 +246,6 @@ namespace Firebase.Sample.Leaderboard
             DebugLog("INFO: Document updated successfully.");
           }
         });
-    }
-
-    // Delete the currently logged in user.
-    protected Task DeleteUserAsync()
-    {
-      if (!checkSDKs())
-      {
-        return Task.FromResult(0);
-      }
-      if (auth.CurrentUser != null)
-      {
-        DebugLog(String.Format("Attempting to delete user {0}...", auth.CurrentUser.UserId));
-        DisableUI();
-        return auth.CurrentUser
-          .DeleteAsync()
-          .ContinueWithOnMainThread(task =>
-          {
-            EnableUI();
-            LogTaskCompletion(task, "Delete user");
-          });
-      }
-      else
-      {
-        DebugLog("Sign-in before deleting user.");
-        // Return a finished task.
-        return Task.FromResult(0);
-      }
     }
 
     // Called when a sign-in without fetching profile data completes.
@@ -386,12 +359,6 @@ namespace Firebase.Sample.Leaderboard
         if (GUILayout.Button("Add User"))
         {
           SigninAnonymouslyAsync();
-        }
-
-        // Delete User Section
-        if (GUILayout.Button("Delete User"))
-        {
-          DeleteUserAsync();
         }
 
         // Update Score Section
