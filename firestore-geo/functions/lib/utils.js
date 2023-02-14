@@ -18,16 +18,15 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.validateOriginAndDestination = exports.validateAddress = void 0;
 const functions = require("firebase-functions");
 function validateAddress(after, before) {
-    var _a, _b;
     // If the document was deleted, terminate.
-    if (!(after === null || after === void 0 ? void 0 : after.data()) || !after.exists) {
+    if (!after?.data() || !after.exists) {
         return false;
     }
-    const address = (_a = after.data()) === null || _a === void 0 ? void 0 : _a.address;
+    const address = after.data()?.address;
     if (!address) {
         return false;
     }
-    if (((_b = before === null || before === void 0 ? void 0 : before.data()) === null || _b === void 0 ? void 0 : _b.address) === address) {
+    if (before?.data()?.address === address) {
         return false;
     }
     if (typeof address !== "string") {
@@ -38,17 +37,16 @@ function validateAddress(after, before) {
 }
 exports.validateAddress = validateAddress;
 function validateOriginAndDestination(after, before) {
-    var _a, _b, _c, _d;
     // If the document was deleted, terminate.
-    if (!(after === null || after === void 0 ? void 0 : after.data()) || !after.exists) {
+    if (!after?.data() || !after.exists) {
         return false;
     }
-    const destination = (_a = after.data()) === null || _a === void 0 ? void 0 : _a.destination;
-    const origin = (_b = after.data()) === null || _b === void 0 ? void 0 : _b.origin;
+    const destination = after.data()?.destination;
+    const origin = after.data()?.origin;
     if (!destination || !origin) {
         return false;
     }
-    if (((_c = before === null || before === void 0 ? void 0 : before.data()) === null || _c === void 0 ? void 0 : _c.destination) === destination && ((_d = before === null || before === void 0 ? void 0 : before.data()) === null || _d === void 0 ? void 0 : _d.origin) === origin) {
+    if (before?.data()?.destination === destination && before?.data()?.origin === origin) {
         return false;
     }
     if (typeof destination !== "string" || typeof origin !== "string") {
@@ -58,4 +56,3 @@ function validateOriginAndDestination(after, before) {
     return true;
 }
 exports.validateOriginAndDestination = validateOriginAndDestination;
-//# sourceMappingURL=utils.js.map

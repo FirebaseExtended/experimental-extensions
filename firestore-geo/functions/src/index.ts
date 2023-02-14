@@ -15,20 +15,20 @@
  */
 
 import * as functions from "firebase-functions";
-import * as admin from "firebase-admin";
+import { initializeApp, firestore } from "firebase-admin";
 import { FieldValue } from "firebase-admin/firestore";
 
-import * as GMaps from "@googlemaps/google-maps-services-js";
+import { Client as MapsClient, DistanceMatrixResponseData } from "@googlemaps/google-maps-services-js";
 import { validateAddress, validateOriginAndDestination } from "./utils";
 import { AxiosError } from "axios";
 
 import config from "./config";
-import { firestore } from "firebase-admin";
+
 import { enqueueTask } from "./tasks";
 
-const gMapsClient = new GMaps.Client();
+const gMapsClient = new MapsClient();
 
-admin.initializeApp();
+initializeApp();
 
 async function getLatLong(address: string, docRef: firestore.DocumentReference) {
   try {
@@ -51,12 +51,12 @@ async function getLatLong(address: string, docRef: firestore.DocumentReference) 
   }
 }
 
-export const updateLatLong = functions.tasks.taskQueue({}).onDispatch(async (message) => {
+export const updateLatLong = functions.tasks.taskQueue().onDispatch(async (message) => {
   const { address, docId } = message.body as {
     address: string;
     docId: string;
   };
-  const doc = admin.firestore().collection(config.collectionId).doc(docId);
+  const doc = firestore().collection(config.collectionId).doc(docId);
 
   try {
     await getLatLong(address, doc);
@@ -186,7 +186,7 @@ async function bestDriveTime(origin: string, destination: string) {
     if (error instanceof AxiosError) {
       throw {
         message:
-          ((error as AxiosError).response?.data as GMaps.DistanceMatrixResponseData | undefined)?.error_message ??
+          ((error as AxiosError).response?.data as DistanceMatrixResponseData | undefined)?.error_message ??
           "Something went wrong",
         status: (error as AxiosError).response?.statusText ?? 500,
       };

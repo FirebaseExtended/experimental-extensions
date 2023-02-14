@@ -22,4 +22,3 @@ exports.default = {
     instanceId: process.env.EXT_INSTANCE_ID,
     projectId: process.env.PROJECT_ID,
 };
-//# sourceMappingURL=config.js.map

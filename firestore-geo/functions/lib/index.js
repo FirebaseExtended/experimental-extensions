@@ -17,15 +17,15 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.writeBestDrivingTime = exports.writeLatLong = exports.updateLatLong = void 0;
 const functions = require("firebase-functions");
-const admin = require("firebase-admin");
+const firebase_admin_1 = require("firebase-admin");
 const firestore_1 = require("firebase-admin/firestore");
-const GMaps = require("@googlemaps/google-maps-services-js");
+const google_maps_services_js_1 = require("@googlemaps/google-maps-services-js");
 const utils_1 = require("./utils");
 const axios_1 = require("axios");
 const config_1 = require("./config");
 const tasks_1 = require("./tasks");
-const gMapsClient = new GMaps.Client();
-admin.initializeApp();
+const gMapsClient = new google_maps_services_js_1.Client();
+(0, firebase_admin_1.initializeApp)();
 async function getLatLong(address, docRef) {
     try {
         const result = await geocode(address);
@@ -45,9 +45,9 @@ async function getLatLong(address, docRef) {
         });
     }
 }
-exports.updateLatLong = functions.tasks.taskQueue({}).onDispatch(async (message) => {
+exports.updateLatLong = functions.tasks.taskQueue().onDispatch(async (message) => {
     const { address, docId } = message.body;
-    const doc = admin.firestore().collection(config_1.default.collectionId).doc(docId);
+    const doc = (0, firebase_admin_1.firestore)().collection(config_1.default.collectionId).doc(docId);
     try {
         await getLatLong(address, doc);
     }
@@ -114,7 +114,6 @@ exports.writeBestDrivingTime = functions.firestore
  * @returns a stringified JSON object with the lat and long of the address.
  */
 async function geocode(address) {
-    var _a;
     const result = await gMapsClient.geocode({
         params: {
             key: config_1.default.googleMapsApiKey,
@@ -123,7 +122,7 @@ async function geocode(address) {
     });
     if (result.data.status !== "OK") {
         throw {
-            message: (_a = result.data.error_message) !== null && _a !== void 0 ? _a : "Something went wrong",
+            message: result.data.error_message ?? "Something went wrong",
             status: result.data.status,
         };
     }
@@ -140,7 +139,6 @@ async function geocode(address) {
  * @param destination a string adress of the destination.
  */
 async function bestDriveTime(origin, destination) {
-    var _a, _b, _c, _d, _e, _f;
     try {
         const result = await gMapsClient.distancematrix({
             params: {
@@ -151,7 +149,7 @@ async function bestDriveTime(origin, destination) {
         });
         if (result.data.rows[0].elements[0].status !== "OK") {
             throw {
-                message: (_a = result.data.error_message) !== null && _a !== void 0 ? _a : "Something went wrong",
+                message: result.data.error_message ?? "Something went wrong",
                 status: result.data.rows[0].elements[0].status,
             };
         }
@@ -160,11 +158,11 @@ async function bestDriveTime(origin, destination) {
     catch (error) {
         if (error instanceof axios_1.AxiosError) {
             throw {
-                message: (_d = (_c = (_b = error.response) === null || _b === void 0 ? void 0 : _b.data) === null || _c === void 0 ? void 0 : _c.error_message) !== null && _d !== void 0 ? _d : "Something went wrong",
-                status: (_f = (_e = error.response) === null || _e === void 0 ? void 0 : _e.statusText) !== null && _f !== void 0 ? _f : 500,
+                message: error.response?.data?.error_message ??
+                    "Something went wrong",
+                status: error.response?.statusText ?? 500,
             };
         }
         throw error;
     }
 }
-//# sourceMappingURL=index.js.map
