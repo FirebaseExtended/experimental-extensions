@@ -78,21 +78,6 @@ params:
     default: ${STORAGE_BUCKET}
     required: true
 
-  - param: OUTPUT_TYPES
-    label: Output to storage, firestore, or both.
-    description: >
-      The kinds of outputs the extension will have. Storage and firestore can
-      both be selected. Defaults to storage.
-    type: multiSelect
-    options:
-      - label: Cloud Storage
-        value: storage
-      - label: Firestore
-        value: firestore
-    example: storage
-    default: storage
-    required: true
-
   - param: OUTPUT_FIRESTORE_COLLECTION
     label: Firestore collection for transcriptions
     description: >
