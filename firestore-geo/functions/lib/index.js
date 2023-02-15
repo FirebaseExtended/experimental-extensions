@@ -17,7 +17,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.writeBestDrivingTime = exports.writeLatLong = exports.updateLatLong = void 0;
 const functions = require("firebase-functions");
-const firebase_admin_1 = require("firebase-admin");
+const admin = require("firebase-admin");
 const firestore_1 = require("firebase-admin/firestore");
 const google_maps_services_js_1 = require("@googlemaps/google-maps-services-js");
 const utils_1 = require("./utils");
@@ -25,7 +25,7 @@ const axios_1 = require("axios");
 const config_1 = require("./config");
 const tasks_1 = require("./tasks");
 const gMapsClient = new google_maps_services_js_1.Client();
-(0, firebase_admin_1.initializeApp)();
+admin.initializeApp();
 async function getLatLong(address, docRef) {
     try {
         const result = await geocode(address);
@@ -45,9 +45,12 @@ async function getLatLong(address, docRef) {
         });
     }
 }
-exports.updateLatLong = functions.tasks.taskQueue().onDispatch(async (message) => {
-    const { address, docId } = message.body;
-    const doc = (0, firebase_admin_1.firestore)().collection(config_1.default.collectionId).doc(docId);
+exports.updateLatLong = functions
+    .runWith({ secrets: [`ext-${process.env.EXT_INSTANCE_ID}-MAPS_API_KEY`] })
+    .tasks.taskQueue()
+    .onDispatch(async (message) => {
+    const { address, docId } = message;
+    const doc = admin.firestore().collection(config_1.default.collectionId).doc(docId);
     try {
         await getLatLong(address, doc);
     }
@@ -59,22 +62,28 @@ exports.writeLatLong = functions.firestore.document(`${config_1.default.collecti
     if (!(0, utils_1.validateAddress)(snap.after, snap.before)) {
         return;
     }
-    const { address } = snap.after.data();
+    const { address, ext_getLatLongStatus } = snap.after.data();
     try {
-        const result = await geocode(address);
-        await snap.after.ref.update({
-            ext_getLatLongStatus: {
-                status: "OK",
-            },
-        });
-        await snap.after.ref.update(result);
+        await getLatLong(address, snap.after.ref);
         // Update the long/lat after 30 days.
-        await (0, tasks_1.enqueueTask)(address, snap.after.id);
+        if (!ext_getLatLongStatus) {
+            const taskId = await (0, tasks_1.enqueueTask)(address, snap.after.id);
+            snap.after.ref.update({ "ext_getLatLongStatus.task": taskId });
+        }
+        // Cancel the task if the address update time was not 30 days ago, and create a new one.
+        const ThirtyDaysAgo = admin.firestore.Timestamp.now().seconds - 60 * 60 * 24 * 30;
+        if (ext_getLatLongStatus &&
+            ext_getLatLongStatus.hasOwnProperty("task") &&
+            snap.after.updateTime.seconds >= ThirtyDaysAgo) {
+            await (0, tasks_1.cancelTask)(ext_getLatLongStatus.task);
+            const taskId = await (0, tasks_1.enqueueTask)(address, snap.after.id);
+            snap.after.ref.update({ "ext_getLatLongStatus.task": taskId });
+        }
     }
     catch (error) {
         functions.logger.error(error);
         await snap.after.ref.update({
-            ext_getLatLongStatus: { status: "ERROR", error: error },
+            ext_getLatLongStatus: { status: "ERROR", error: JSON.stringify(error) },
             longitude: firestore_1.FieldValue.delete(),
             latitude: firestore_1.FieldValue.delete(),
         });

@@ -15,8 +15,8 @@
  */
 
 import * as functions from "firebase-functions";
-import { initializeApp, firestore } from "firebase-admin";
-import { FieldValue } from "firebase-admin/firestore";
+import * as admin from "firebase-admin";
+import { FieldValue, DocumentReference } from "firebase-admin/firestore";
 
 import { Client as MapsClient, DistanceMatrixResponseData } from "@googlemaps/google-maps-services-js";
 import { validateAddress, validateOriginAndDestination } from "./utils";
@@ -24,13 +24,13 @@ import { AxiosError } from "axios";
 
 import config from "./config";
 
-import { enqueueTask } from "./tasks";
+import { cancelTask, enqueueTask } from "./tasks";
 
 const gMapsClient = new MapsClient();
 
-initializeApp();
+admin.initializeApp();
 
-async function getLatLong(address: string, docRef: firestore.DocumentReference) {
+async function getLatLong(address: string, docRef: DocumentReference) {
   try {
     const result = await geocode(address);
 
@@ -51,46 +51,63 @@ async function getLatLong(address: string, docRef: firestore.DocumentReference) 
   }
 }
 
-export const updateLatLong = functions.tasks.taskQueue().onDispatch(async (message) => {
-  const { address, docId } = message.body as {
-    address: string;
-    docId: string;
-  };
-  const doc = firestore().collection(config.collectionId).doc(docId);
+export const updateLatLong = functions
+  .runWith({ secrets: [`ext-${process.env.EXT_INSTANCE_ID}-MAPS_API_KEY`] })
+  .tasks.taskQueue()
+  .onDispatch(async (message) => {
+    const { address, docId } = message as {
+      address: string;
+      docId: string;
+    };
 
-  try {
-    await getLatLong(address, doc);
-  } catch (error) {
-    functions.logger.error(error);
-  }
-});
+    const doc = admin.firestore().collection(config.collectionId).doc(docId);
+
+    try {
+      await getLatLong(address, doc);
+    } catch (error) {
+      functions.logger.error(error);
+    }
+  });
 
 export const writeLatLong = functions.firestore.document(`${config.collectionId}/{docId}`).onWrite(async (snap) => {
   if (!validateAddress(snap.after, snap.before)) {
     return;
   }
 
-  const { address } = snap.after.data() as {
+  const { address, ext_getLatLongStatus } = snap.after.data() as {
     address: string;
+    ext_getLatLongStatus?: {
+      status: "OK" | "ERROR";
+      error?: string;
+      task?: string;
+    };
   };
 
   try {
-    const result = await geocode(address);
-
-    await snap.after.ref.update({
-      ext_getLatLongStatus: {
-        status: "OK",
-      },
-    });
-
-    await snap.after.ref.update(result);
+    await getLatLong(address, snap.after.ref);
 
     // Update the long/lat after 30 days.
-    await enqueueTask(address, snap.after.id);
+    if (!ext_getLatLongStatus) {
+      const taskId = await enqueueTask(address, snap.after.id);
+      snap.after.ref.update({ "ext_getLatLongStatus.task": taskId });
+    }
+
+    // Cancel the task if the address update time was not 30 days ago, and create a new one.
+    const ThirtyDaysAgo = admin.firestore.Timestamp.now().seconds - 60 * 60 * 24 * 30;
+    if (
+      ext_getLatLongStatus &&
+      ext_getLatLongStatus.hasOwnProperty("task") &&
+      snap.after.updateTime.seconds >= ThirtyDaysAgo
+    ) {
+      await cancelTask(ext_getLatLongStatus.task);
+      const taskId = await enqueueTask(address, snap.after.id);
+
+      snap.after.ref.update({ "ext_getLatLongStatus.task": taskId });
+    }
   } catch (error) {
     functions.logger.error(error);
     await snap.after.ref.update({
-      ext_getLatLongStatus: { status: "ERROR", error: error },
+      ext_getLatLongStatus: { status: "ERROR", error: JSON.stringify(error) },
       longitude: FieldValue.delete(),
       latitude: FieldValue.delete(),
     });
