@@ -14,13 +14,8 @@
  * limitations under the License.
  */
 
-function paramToArray(param: string | undefined): string[] | undefined {
-  return param?.split(",");
-}
-
 export default Object.freeze({
   bucket: process.env.EXTENSION_BUCKET,
-  outputTypes: paramToArray(process.env.OUTPUT_TYPES),
   languageCode: process.env.LANGUAGE_CODE,
   model: process.env.MODEL,
   outputCollection: process.env.OUTPUT_FIRESTORE_COLLECTION,
