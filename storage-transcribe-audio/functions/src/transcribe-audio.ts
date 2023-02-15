@@ -30,7 +30,8 @@ export async function transcribeAndUpload({
   audioChannelCount: number;
 }): Promise<TranscribeAudioResult> {
   const inputUri = `gs://${bucket.name}/${name}`;
-  const outputUri = `gs://${bucket.name}/${name}_transcription.txt`;
+  const outputCollection = config.outputCollection ? config.outputCollection : bucket.name
+  const outputUri = `gs://${outputCollection}/${name}_transcription.txt`;
   const warnings: WarningType[] = [];
   const request: google.cloud.speech.v1.ILongRunningRecognizeRequest = {
     config: {
