@@ -15,49 +15,19 @@
  * limitations under the License.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.cancelTask = exports.enqueueTask = void 0;
+exports.enqueueTask = void 0;
+const functions_1 = require("firebase-admin/functions");
 const tasks = require("@google-cloud/tasks");
 const config_1 = require("./config");
 const client = new tasks.CloudTasksClient();
 async function enqueueTask(address, docId) {
     // Retry the request if it fails.
-    // const queue = getFunctions().taskQueue(
-    //   `locations/${config.location}/functions/ext-${process.env.EXT_INSTANCE_ID}-updateLatLong`
-    // );
-    const queue = client.queuePath(config_1.default.projectId, config_1.default.location, `ext-${process.env.EXT_INSTANCE_ID}-updateLatLong`);
-    // Convert message to buffer.
-    const convertedPayload = JSON.stringify({
+    const queue = (0, functions_1.getFunctions)().taskQueue(`locations/${config_1.default.location}/functions/updateLatLong`, process.env.EXT_INSTANCE_ID);
+    await queue.enqueue({
         address: address,
         docId: docId,
-    });
-    const body = Buffer.from(convertedPayload).toString("base64");
-    const url = `https://${config_1.default.location}-${config_1.default.projectId}.cloudfunctions.net/ext-${process.env.EXT_INSTANCE_ID}-updateLatLong`;
-    const after29Days = new Date(Date.now() + 29 * 24 * 60 * 60 * 1000);
-    const [response] = await client.createTask({
-        parent: queue,
-        task: {
-            scheduleTime: {
-                seconds: after29Days.getTime() / 1000,
-            },
-            httpRequest: {
-                httpMethod: "POST",
-                oidcToken: {
-                    serviceAccountEmail: `ext-${config_1.default.instanceId}@${config_1.default.projectId}.iam.gserviceaccount.com`,
-                },
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                url: url,
-                body: body,
-            },
-        },
-    });
-    return response.name;
+    }, 
+    // Retry the request after 30 days.
+    { scheduleDelaySeconds: 30 * 24 * 60 * 60 });
 }
 exports.enqueueTask = enqueueTask;
-async function cancelTask(taskId) {
-    await client.deleteTask({
-        name: taskId,
-    });
-}
-exports.cancelTask = cancelTask;

@@ -20,10 +20,10 @@ const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const firestore_1 = require("firebase-admin/firestore");
 const google_maps_services_js_1 = require("@googlemaps/google-maps-services-js");
-const utils_1 = require("./utils");
 const axios_1 = require("axios");
-const config_1 = require("./config");
+const utils_1 = require("./utils");
 const tasks_1 = require("./tasks");
+const config_1 = require("./config");
 const gMapsClient = new google_maps_services_js_1.Client();
 admin.initializeApp();
 async function getLatLong(address, docRef) {
@@ -51,6 +51,14 @@ exports.updateLatLong = functions
     .onDispatch(async (message) => {
     const { address, docId } = message;
     const doc = admin.firestore().collection(config_1.default.collectionId).doc(docId);
+    const getDoc = await doc.get();
+    if (getDoc.updateTime) {
+        const ThirtyDaysAgo = admin.firestore.Timestamp.now().seconds - 60 * 60 * 24 * 30;
+        if (getDoc.updateTime.seconds >= ThirtyDaysAgo) {
+            // Abort if the document has been updated in the last 30 days.
+            return;
+        }
+    }
     try {
         await getLatLong(address, doc);
     }
@@ -65,20 +73,7 @@ exports.writeLatLong = functions.firestore.document(`${config_1.default.collecti
     const { address, ext_getLatLongStatus } = snap.after.data();
     try {
         await getLatLong(address, snap.after.ref);
-        // Update the long/lat after 30 days.
-        if (!ext_getLatLongStatus) {
-            const taskId = await (0, tasks_1.enqueueTask)(address, snap.after.id);
-            snap.after.ref.update({ "ext_getLatLongStatus.task": taskId });
-        }
-        // Cancel the task if the address update time was not 30 days ago, and create a new one.
-        const ThirtyDaysAgo = admin.firestore.Timestamp.now().seconds - 60 * 60 * 24 * 30;
-        if (ext_getLatLongStatus &&
-            ext_getLatLongStatus.hasOwnProperty("task") &&
-            snap.after.updateTime.seconds >= ThirtyDaysAgo) {
-            await (0, tasks_1.cancelTask)(ext_getLatLongStatus.task);
-            const taskId = await (0, tasks_1.enqueueTask)(address, snap.after.id);
-            snap.after.ref.update({ "ext_getLatLongStatus.task": taskId });
-        }
+        await (0, tasks_1.enqueueTask)(address, snap.after.id);
     }
     catch (error) {
         functions.logger.error(error);

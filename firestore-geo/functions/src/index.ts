@@ -19,12 +19,11 @@ import * as admin from "firebase-admin";
 import { FieldValue, DocumentReference } from "firebase-admin/firestore";
 
 import { Client as MapsClient, DistanceMatrixResponseData } from "@googlemaps/google-maps-services-js";
-import { validateAddress, validateOriginAndDestination } from "./utils";
 import { AxiosError } from "axios";
 
+import { validateAddress, validateOriginAndDestination } from "./utils";
+import { enqueueTask } from "./tasks";
 import config from "./config";
-
-import { cancelTask, enqueueTask } from "./tasks";
 
 const gMapsClient = new MapsClient();
 
@@ -61,6 +60,14 @@ export const updateLatLong = functions
     };
 
     const doc = admin.firestore().collection(config.collectionId).doc(docId);
+    const getDoc = await doc.get();
+    if (getDoc.updateTime) {
+      const ThirtyDaysAgo = admin.firestore.Timestamp.now().seconds - 60 * 60 * 24 * 30;
+      if (getDoc.updateTime.seconds >= ThirtyDaysAgo) {
+        // Abort if the document has been updated in the last 30 days.
+        return;
+      }
+    }
 
     try {
       await getLatLong(address, doc);
@@ -85,25 +92,7 @@ export const writeLatLong = functions.firestore.document(`${config.collectionId}
 
   try {
     await getLatLong(address, snap.after.ref);
-
-    // Update the long/lat after 30 days.
-    if (!ext_getLatLongStatus) {
-      const taskId = await enqueueTask(address, snap.after.id);
-      snap.after.ref.update({ "ext_getLatLongStatus.task": taskId });
-    }
-
-    // Cancel the task if the address update time was not 30 days ago, and create a new one.
-    const ThirtyDaysAgo = admin.firestore.Timestamp.now().seconds - 60 * 60 * 24 * 30;
-    if (
-      ext_getLatLongStatus &&
-      ext_getLatLongStatus.hasOwnProperty("task") &&
-      snap.after.updateTime.seconds >= ThirtyDaysAgo
-    ) {
-      await cancelTask(ext_getLatLongStatus.task);
-      const taskId = await enqueueTask(address, snap.after.id);
-
-      snap.after.ref.update({ "ext_getLatLongStatus.task": taskId });
-    }
+    await enqueueTask(address, snap.after.id);
   } catch (error) {
     functions.logger.error(error);
     await snap.after.ref.update({
