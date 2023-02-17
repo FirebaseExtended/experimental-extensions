@@ -70,7 +70,7 @@ exports.writeLatLong = functions.firestore.document(`${config_1.default.collecti
     if (!(0, utils_1.validateAddress)(snap.after, snap.before)) {
         return;
     }
-    const { address, ext_getLatLongStatus } = snap.after.data();
+    const { address } = snap.after.data();
     try {
         await getLatLong(address, snap.after.ref);
         await (0, tasks_1.enqueueTask)(address, snap.after.id);

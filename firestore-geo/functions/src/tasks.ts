@@ -20,7 +20,7 @@ import config from "./config";
 
 const client = new tasks.CloudTasksClient();
 
-export async function enqueueTask(address: string, docId: string) {
+export async function enqueueTask(address: string, docId: string, scheduleDelaySeconds?: number) {
   // Retry the request if it fails.
   const queue = getFunctions().taskQueue(
     `locations/${config.location}/functions/updateLatLong`,
@@ -33,6 +33,6 @@ export async function enqueueTask(address: string, docId: string) {
       docId: docId,
     },
     // Retry the request after 30 days.
-    { scheduleDelaySeconds: 30 * 24 * 60 * 60 }
+    { scheduleDelaySeconds: scheduleDelaySeconds ?? 30 * 24 * 60 * 60 }
   );
 }
