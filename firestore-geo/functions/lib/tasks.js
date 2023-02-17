@@ -20,7 +20,7 @@ const functions_1 = require("firebase-admin/functions");
 const tasks = require("@google-cloud/tasks");
 const config_1 = require("./config");
 const client = new tasks.CloudTasksClient();
-async function enqueueTask(address, docId) {
+async function enqueueTask(address, docId, scheduleDelaySeconds) {
     // Retry the request if it fails.
     const queue = (0, functions_1.getFunctions)().taskQueue(`locations/${config_1.default.location}/functions/updateLatLong`, process.env.EXT_INSTANCE_ID);
     await queue.enqueue({
@@ -28,6 +28,6 @@ async function enqueueTask(address, docId) {
         docId: docId,
     }, 
     // Retry the request after 30 days.
-    { scheduleDelaySeconds: 30 * 24 * 60 * 60 });
+    { scheduleDelaySeconds: scheduleDelaySeconds ?? 30 * 24 * 60 * 60 });
 }
 exports.enqueueTask = enqueueTask;

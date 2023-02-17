@@ -81,12 +81,11 @@ export const writeLatLong = functions.firestore.document(`${config.collectionId}
     return;
   }
 
-  const { address, ext_getLatLongStatus } = snap.after.data() as {
+  const { address } = snap.after.data() as {
     address: string;
     ext_getLatLongStatus?: {
       status: "OK" | "ERROR";
       error?: string;
-      task?: string;
     };
   };
 
