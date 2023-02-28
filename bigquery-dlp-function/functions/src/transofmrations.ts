@@ -8,165 +8,255 @@ type Row = protos.google.privacy.dlp.v2.Table.Row;
 type Table = protos.google.privacy.dlp.v2.ITable | undefined | null;
 
 class Transformation {
-  parent: string;
-  deidentifyConfig: DeidentifyRequest = {};
-  reidentifyConfig: ReidentifyRequest = {};
+	parent: string;
+	deidentifyConfig: DeidentifyRequest = {};
+	reidentifyConfig: ReidentifyRequest = {};
 
-  constructor() {
-    this.parent = `projects/${config.projectId}/locations/${config.location}`;
-  }
+	constructor() {
+		this.parent = `projects/${config.projectId}/locations/${config.location}`;
+	}
 }
 
 export class MaskTransformation extends Transformation {
-  /**
-   * Replace a value by a mask character.
-   *
-   * @param mask The character to mask the sensitive data with. If not supplied, defaults to `x`.
-   * @param numberToMask The number of characters to mask. If not supplied, defaults to `5`.
-   */
-  constructor(mask?: string, numberToMask?: number) {
-    super();
-    const maskingConfig = {
-      ...(config.method == "INFO_TYPE" && {
-        infoTypeTransformations: {
-          transformations: [
-            {
-              primitiveTransformation: {
-                characterMaskConfig: {
-                  maskingCharacter: mask ?? "x",
-                  numberToMask: numberToMask ?? 5,
-                },
-              },
-            },
-          ],
-        },
-      }),
-      ...(config.method == "RECORD" && {
-        recordTransformations: {
-          fieldTransformations: [
-            {
-              fields: getFieldIds(),
-              primitiveTransformation: {
-                characterMaskConfig: {
-                  maskingCharacter: mask ?? "x",
-                  numberToMask: numberToMask ?? 5,
-                },
-              },
-            },
-          ],
-        },
-      }),
-    };
+	/**
+	 * Replace a value by a mask character.
+	 *
+	 * @param mask The character to mask the sensitive data with. If not supplied, defaults to `x`.
+	 * @param numberToMask The number of characters to mask. If not supplied, defaults to `5`.
+	 */
+	constructor(mask?: string, numberToMask?: number) {
+		super();
+		const maskingConfig = {
+			...(config.method == "INFO_TYPE" && {
+				infoTypeTransformations: {
+					transformations: [
+						{
+							primitiveTransformation: {
+								characterMaskConfig: {
+									maskingCharacter: mask ?? "x",
+									numberToMask: numberToMask ?? 5,
+								},
+							},
+						},
+					],
+				},
+			}),
+			...(config.method == "RECORD" && {
+				recordTransformations: {
+					fieldTransformations: [
+						{
+							fields: getFieldIds(),
+							primitiveTransformation: {
+								characterMaskConfig: {
+									maskingCharacter: mask ?? "x",
+									numberToMask: numberToMask ?? 5,
+								},
+							},
+						},
+					],
+				},
+			}),
+		};
 
-    this.deidentifyConfig = {
-      parent: this.parent,
-      deidentifyConfig: maskingConfig,
-    };
-  }
+		this.deidentifyConfig = {
+			parent: this.parent,
+			deidentifyConfig: maskingConfig,
+		};
+	}
 }
 
 export class RedactTransformation extends Transformation {
-  /**
-   * Redacts a value by removing it.
-   */
-  constructor() {
-    super();
-    const redactConfig = {
-      ...(config.method == "INFO_TYPE" && {
-        infoTypeTransformations: {
-          transformations: [
-            {
-              primitiveTransformation: {
-                redactConfig: {},
-              },
-            },
-          ],
-        },
-      }),
-      ...(config.method == "RECORD" && {
-        recordTransformations: {
-          fieldTransformations: [
-            {
-              fields: getFieldIds(),
-              primitiveTransformation: {
-                redactConfig: {},
-              },
-            },
-          ],
-        },
-      }),
-    };
+	/**
+	 * Redacts a value by removing it.
+	 */
+	constructor() {
+		super();
+		const redactConfig = {
+			...(config.method == "INFO_TYPE" && {
+				infoTypeTransformations: {
+					transformations: [
+						{
+							primitiveTransformation: {
+								redactConfig: {},
+							},
+						},
+					],
+				},
+			}),
+			...(config.method == "RECORD" && {
+				recordTransformations: {
+					fieldTransformations: [
+						{
+							fields: getFieldIds(),
+							primitiveTransformation: {
+								redactConfig: {},
+							},
+						},
+					],
+				},
+			}),
+		};
 
-    this.deidentifyConfig = {
-      parent: this.parent,
-      deidentifyConfig: redactConfig,
-    };
-  }
+		this.deidentifyConfig = {
+			parent: this.parent,
+			deidentifyConfig: redactConfig,
+		};
+	}
+}
+
+export class ReplaceTransformation extends Transformation {
+	/**
+	 * Replace with a specified value.
+	 */
+	constructor() {
+		super();
+		const _replaceConfig = {
+			newValue: {
+				// TODO make configurable?
+				stringValue: "REPLACED",
+			},
+		};
+
+		const replaceConfig = {
+			...(config.method == "INFO_TYPE" && {
+				infoTypeTransformations: {
+					transformations: [
+						{
+							primitiveTransformation: {
+								replaceConfig: _replaceConfig,
+							},
+						},
+					],
+				},
+			}),
+			...(config.method == "RECORD" && {
+				recordTransformations: {
+					fieldTransformations: [
+						{
+							fields: getFieldIds(),
+							primitiveTransformation: {
+								replaceConfig: _replaceConfig,
+							},
+						},
+					],
+				},
+			}),
+		};
+
+		this.deidentifyConfig = {
+			parent: this.parent,
+			deidentifyConfig: replaceConfig,
+		};
+	}
+}
+
+export class ReplaceWithInfoTypeTransformation extends Transformation {
+	/**
+	 * Replace with a specified value.
+	 */
+	constructor() {
+		super();
+		const _replaceConfig = {
+			// TODO make configurable?
+			partToExtract: "MONTH",
+		};
+
+		const replaceConfig = {
+			...(config.method == "INFO_TYPE" && {
+				infoTypeTransformations: {
+					transformations: [
+						{
+							primitiveTransformation: {
+								replaceWithInfoTypeConfig: _replaceConfig,
+							},
+						},
+					],
+				},
+			}),
+			...(config.method == "RECORD" && {
+				recordTransformations: {
+					fieldTransformations: [
+						{
+							fields: getFieldIds(),
+							primitiveTransformation: {
+								replaceWithInfoTypeConfig: _replaceConfig,
+							},
+						},
+					],
+				},
+			}),
+		};
+
+		this.deidentifyConfig = {
+			parent: this.parent,
+			deidentifyConfig: replaceConfig,
+		};
+	}
 }
 
 export function rowsToTable(rows: []) {
-  let table = {
-    headers: [] as FieldId[],
-    rows: [] as Row[],
-  };
+	let table = {
+		headers: [] as FieldId[],
+		rows: [] as Row[],
+	};
 
-  for (const row of rows) {
-    const data = row[0] as Record<string, any>;
+	for (const row of rows) {
+		const data = row[0] as Record<string, any>;
 
-    const keys = Object.keys(data);
-    const values = Object.values(data);
+		const keys = Object.keys(data);
+		const values = Object.values(data);
 
-    if (table.headers.length === 0) {
-      // Add headers only once
-      table.headers = keys.map((key) => {
-        const field = protos.google.privacy.dlp.v2.FieldId.create({
-          name: key,
-        });
-        return field;
-      });
-    }
+		if (table.headers.length === 0) {
+			// Add headers only once
+			table.headers = keys.map((key) => {
+				const field = protos.google.privacy.dlp.v2.FieldId.create({
+					name: key,
+				});
+				return field;
+			});
+		}
 
-    const tableRow = protos.google.privacy.dlp.v2.Table.Row.create({
-      values: values.map((v) => {
-        const field = protos.google.privacy.dlp.v2.Value.create({
-          stringValue: v,
-        });
-        return field;
-      }),
-    });
+		const tableRow = protos.google.privacy.dlp.v2.Table.Row.create({
+			values: values.map((v) => {
+				const field = protos.google.privacy.dlp.v2.Value.create({
+					stringValue: v,
+				});
+				return field;
+			}),
+		});
 
-    table.rows.push(tableRow);
-  }
+		table.rows.push(tableRow);
+	}
 
-  return table;
+	return table;
 }
 
-export function getFieldIds() {
-  const fields = config.fields?.split(",");
-  const fieldIds = fields?.map((field) => {
-    return { name: field };
-  });
-  return fieldIds;
+function getFieldIds() {
+	const fields = config.fields?.split(",");
+	const fieldIds = fields?.map((field) => {
+		return { name: field };
+	});
+	return fieldIds;
 }
 
 export function tableToReplies(table: Table) {
-  const replies = [];
-  const rows = table?.rows?.map((row) =>
-    row.values?.map((value) => value.stringValue)
-  );
+	const replies = [];
+	const rows = table?.rows?.map((row) =>
+		row.values?.map((value) => value.stringValue)
+	);
 
-  if (!rows || !table || !table.headers) return [];
+	if (!rows || !table || !table.headers) return [];
 
-  for (const row of rows) {
-    const reply = {} as Record<string, any>;
+	for (const row of rows) {
+		const reply = {} as Record<string, any>;
 
-    for (let i = 0; i < table.headers.length; i++) {
-      const header = table.headers[i].name as string;
-      reply[header] = row![i];
-    }
+		for (let i = 0; i < table.headers.length; i++) {
+			const header = table.headers[i].name as string;
+			reply[header] = row![i];
+		}
 
-    replies.push(reply);
-  }
+		replies.push(reply);
+	}
 
-  return replies;
+	return replies;
 }

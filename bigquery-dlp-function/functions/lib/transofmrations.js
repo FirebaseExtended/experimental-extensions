@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.tableToReplies = exports.getFieldIds = exports.rowsToTable = exports.RedactTransformation = exports.MaskTransformation = void 0;
+exports.tableToReplies = exports.rowsToTable = exports.ReplaceWithInfoTypeTransformation = exports.ReplaceTransformation = exports.RedactTransformation = exports.MaskTransformation = void 0;
 const config_1 = require("./config");
 const dlp_1 = require("@google-cloud/dlp");
 class Transformation {
@@ -89,6 +89,86 @@ class RedactTransformation extends Transformation {
     }
 }
 exports.RedactTransformation = RedactTransformation;
+class ReplaceTransformation extends Transformation {
+    /**
+     * Replace with a specified value.
+     */
+    constructor() {
+        super();
+        const _replaceConfig = {
+            newValue: {
+                // TODO make configurable?
+                stringValue: "REPLACED",
+            },
+        };
+        const replaceConfig = Object.assign(Object.assign({}, (config_1.default.method == "INFO_TYPE" && {
+            infoTypeTransformations: {
+                transformations: [
+                    {
+                        primitiveTransformation: {
+                            replaceConfig: _replaceConfig,
+                        },
+                    },
+                ],
+            },
+        })), (config_1.default.method == "RECORD" && {
+            recordTransformations: {
+                fieldTransformations: [
+                    {
+                        fields: getFieldIds(),
+                        primitiveTransformation: {
+                            replaceConfig: _replaceConfig,
+                        },
+                    },
+                ],
+            },
+        }));
+        this.deidentifyConfig = {
+            parent: this.parent,
+            deidentifyConfig: replaceConfig,
+        };
+    }
+}
+exports.ReplaceTransformation = ReplaceTransformation;
+class ReplaceWithInfoTypeTransformation extends Transformation {
+    /**
+     * Replace with a specified value.
+     */
+    constructor() {
+        super();
+        const _replaceConfig = {
+            // TODO make configurable?
+            partToExtract: "MONTH",
+        };
+        const replaceConfig = Object.assign(Object.assign({}, (config_1.default.method == "INFO_TYPE" && {
+            infoTypeTransformations: {
+                transformations: [
+                    {
+                        primitiveTransformation: {
+                            replaceWithInfoTypeConfig: _replaceConfig,
+                        },
+                    },
+                ],
+            },
+        })), (config_1.default.method == "RECORD" && {
+            recordTransformations: {
+                fieldTransformations: [
+                    {
+                        fields: getFieldIds(),
+                        primitiveTransformation: {
+                            replaceWithInfoTypeConfig: _replaceConfig,
+                        },
+                    },
+                ],
+            },
+        }));
+        this.deidentifyConfig = {
+            parent: this.parent,
+            deidentifyConfig: replaceConfig,
+        };
+    }
+}
+exports.ReplaceWithInfoTypeTransformation = ReplaceWithInfoTypeTransformation;
 function rowsToTable(rows) {
     let table = {
         headers: [],
@@ -128,7 +208,6 @@ function getFieldIds() {
     });
     return fieldIds;
 }
-exports.getFieldIds = getFieldIds;
 function tableToReplies(table) {
     var _a;
     const replies = [];

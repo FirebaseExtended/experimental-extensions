@@ -22,6 +22,12 @@ exports.deidentifyData = functions.https.onRequest(async (request, response) => 
         case "redact":
             transformation = new transofmrations_1.RedactTransformation();
             break;
+        case "fixed":
+            transformation = new transofmrations_1.ReplaceTransformation();
+            break;
+        case "replaceWithInfoType":
+            transformation = new transofmrations_1.ReplaceWithInfoTypeTransformation();
+            break;
         default:
             transformation = new transofmrations_1.MaskTransformation();
     }
