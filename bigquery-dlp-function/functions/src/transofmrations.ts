@@ -232,8 +232,7 @@ export function rowsToTable(rows: []) {
 }
 
 function getFieldIds() {
-	const fields = config.fields?.split(",");
-	const fieldIds = fields?.map((field) => {
+	const fieldIds = config.fields?.map((field) => {
 		return { name: field };
 	});
 	return fieldIds;

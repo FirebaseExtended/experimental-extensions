@@ -202,8 +202,7 @@ function rowsToTable(rows) {
 exports.rowsToTable = rowsToTable;
 function getFieldIds() {
     var _a;
-    const fields = (_a = config_1.default.fields) === null || _a === void 0 ? void 0 : _a.split(",");
-    const fieldIds = fields === null || fields === void 0 ? void 0 : fields.map((field) => {
+    const fieldIds = (_a = config_1.default.fields) === null || _a === void 0 ? void 0 : _a.map((field) => {
         return { name: field };
     });
     return fieldIds;

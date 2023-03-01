@@ -26,7 +26,7 @@ const bigqueryConnectionClient = new ConnectionServiceClient();
 
 exports.deidentifyData = functions.https.onRequest(
 	async (request, response) => {
-		const { calls, userDefinedContext } = request.body;
+		const { calls } = request.body;
 
 		functions.logger.debug("Incoming request from BigQuery", calls);
 		var transformation;
@@ -46,7 +46,7 @@ exports.deidentifyData = functions.https.onRequest(
 		}
 
 		try {
-			switch (userDefinedContext.method) {
+			switch (config.method) {
 				case "INFO_TYPE":
 					response.send({
 						replies: await deidentifyWithInfoTypeTransformations(
@@ -79,7 +79,7 @@ exports.deidentifyData = functions.https.onRequest(
 
 exports.reidentifyData = functions.https.onRequest(
 	async (request, response) => {
-		const { calls, userDefinedContext } = request.body;
+		const { calls } = request.body;
 
 		functions.logger.debug("Incoming request from BigQuery", calls);
 
@@ -92,7 +92,7 @@ exports.reidentifyData = functions.https.onRequest(
 		}
 
 		try {
-			if (userDefinedContext.method === "INFO_TYPE") {
+			if (config.method === "INFO_TYPE") {
 				response.send({
 					replies: await reidentifyWithInfoTypeTransformations(
 						calls,
@@ -100,7 +100,7 @@ exports.reidentifyData = functions.https.onRequest(
 						transformation
 					),
 				});
-			} else if (userDefinedContext.method === "RECORD") {
+			} else if (config.method === "RECORD") {
 				response.send({
 					replies: await deidentifyWithRecordTransformations(
 						calls,
@@ -163,14 +163,12 @@ exports.createBigQueryConnection = functions.tasks
           CREATE FUNCTION \`${config.projectId}.${config.datasetId}\`.deidentify(data JSON) RETURNS JSON
           REMOTE WITH CONNECTION \`${config.projectId}.${config.location}.${instanceId}\`
           OPTIONS (
-            endpoint = 'https://${config.location}-${config.projectId}.cloudfunctions.net/${instanceId}-deidentifyData',
-            user_defined_context = [("method", "${config.method}"), ("technique", "${config.technique}")]
+            endpoint = 'https://${config.location}-${config.projectId}.cloudfunctions.net/${instanceId}-deidentifyData'
           );
           CREATE FUNCTION \`${config.projectId}.${config.datasetId}\`.reidentify(data JSON) RETURNS JSON
           REMOTE WITH CONNECTION \`${config.projectId}.${config.location}.${instanceId}\`
           OPTIONS (
-            endpoint = 'https://${config.location}-${config.projectId}.cloudfunctions.net/${instanceId}-reidentifyData',
-            user_defined_context = [("method", "${config.method}"), ("technique", "${config.technique}")]
+            endpoint = 'https://${config.location}-${config.projectId}.cloudfunctions.net/${instanceId}-reidentifyData'          
           );
         END;
          `;

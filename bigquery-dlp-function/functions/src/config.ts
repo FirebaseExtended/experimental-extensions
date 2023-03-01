@@ -15,11 +15,11 @@
  */
 
 export default {
-  projectId: process.env.PROJECT_ID,
-  extInstanceId: process.env.EXT_INSTANCE_ID,
-  datasetId: process.env.DATASET_ID,
-  location: process.env.LOCATION,
-  method: process.env.TRANSFORMATION_METHOD,
-  technique: process.env.TRANSFORMATION_TECHNIQUE,
-  fields: process.env.FIELDS_TO_TRANSFORM,
+	projectId: process.env.PROJECT_ID,
+	extInstanceId: process.env.EXT_INSTANCE_ID,
+	datasetId: process.env.DATASET_ID,
+	location: process.env.LOCATION,
+	method: process.env.TRANSFORMATION_METHOD,
+	technique: process.env.TRANSFORMATION_TECHNIQUE,
+	fields: process.env.FIELDS_TO_TRANSFORM?.split(","),
 };

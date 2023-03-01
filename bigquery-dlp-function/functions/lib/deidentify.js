@@ -9,7 +9,7 @@ const transofmrations_1 = require("./transofmrations");
  *
  * Read more about this method: https://cloud.google.com/dlp/docs/deidentify-sensitive-data#infotype_transformations
  *
- * @param {string} text The text to deidentify.
+ * @param {Array} rows The text to deidentify.
  *
  * @returns {Promise<Record<string, any>>} The deidentified record.
  */
@@ -37,7 +37,7 @@ exports.deidentifyWithInfoTypeTransformations = deidentifyWithInfoTypeTransforma
  *
  * Read more about this method: https://cloud.google.com/dlp/docs/deidentify-sensitive-data#record_transformations
  *
- * @param {string} text The text to deidentify.
+ * @param {Array} rows The rows with data to deidentify.
  *
  * @returns {Promise<string>} The deidentified text.
  */

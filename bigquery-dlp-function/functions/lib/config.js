@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = {
     projectId: process.env.PROJECT_ID,
@@ -22,6 +23,6 @@ exports.default = {
     location: process.env.LOCATION,
     method: process.env.TRANSFORMATION_METHOD,
     technique: process.env.TRANSFORMATION_TECHNIQUE,
-    fields: process.env.FIELDS_TO_TRANSFORM,
+    fields: (_a = process.env.FIELDS_TO_TRANSFORM) === null || _a === void 0 ? void 0 : _a.split(","),
 };
 //# sourceMappingURL=config.js.map
