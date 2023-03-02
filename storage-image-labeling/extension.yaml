@@ -2,7 +2,7 @@ name: storage-image-labeling
 version: 0.0.2
 specVersion: v1beta
 
-displayName: Image Labeling
+displayName: Image Labeling from Storage
 description: Performs image labeling on images uploaded to Storage and writes labels to Firestore.
 
 license: Apache-2.0 # The license you want for the extension

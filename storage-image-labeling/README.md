@@ -1,4 +1,4 @@
-# Image Labeling
+# Image Labeling from Storage
 
 **Author**: Firebase (**[https://firebase.google.com](https://firebase.google.com)**)
 
