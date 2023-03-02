@@ -34,7 +34,7 @@ Shortens URLs written to a specified Cloud Firestore collection using Firebase D
 
 Serves Firestore Data Bundles based on specs defined as Firestore Documents, with the ability to use Hosting and Storage as cache.
 
-### [Image text extraction](/storage-extract-image-text#image-text-extraction)
+### [Image Text Extraction from Storage](/storage-extract-image-text#image-text-extraction)
 
 Extracts text from images uploaded to a Cloud Storage bucket and writes extracted text to Firestore.
 

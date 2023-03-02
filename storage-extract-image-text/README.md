@@ -1,4 +1,4 @@
-# Image Text Extraction
+# Image Text Extraction from Storage
 
 **Author**: Firebase (**[https://firebase.google.com](https://firebase.google.com)**)
 

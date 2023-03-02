@@ -2,7 +2,7 @@ name: storage-extract-image-text
 version: 0.0.4
 specVersion: v1beta
 
-displayName: Image Text Extraction
+displayName: Image Text Extraction from Storage
 description: Extracts text from images uploaded to storage and writes extracted text to Firestore.
 
 license: Apache-2.0 # The license you want for the extension
