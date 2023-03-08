@@ -1,7 +1,6 @@
 {
   "extensions": {
-    "firestore-record-user-acknowledgements": "../firestore-record-user-acknowledgements",
-    "firestore-bundle-server": "../firestore-bundle-server"
+    "firestore-auth-claims": "../firestore-auth-claims"
   },
   "storage": {
     "rules": "storage.rules"
