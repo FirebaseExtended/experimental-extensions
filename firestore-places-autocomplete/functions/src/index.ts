@@ -27,25 +27,51 @@ export const autocomplete = functions.firestore
 
 		if (snapshot.after.isEqual(snapshot.before)) return;
 
-		const input = data.input;
+		const { input } = data;
 
-		const req = axios({
-			method: "get",
-			url: `https://maps.googleapis.com/maps/api/place/autocomplete/json`,
-			headers: {},
-			params: {
-				input: input,
-				types: "geocode",
-				language: "ar",
-				key: config.apiKey,
-			},
-		});
+		if (!input) return;
 
 		try {
-			const res = await req;
+			const res = await axios({
+				method: "get",
+				url: `https://maps.googleapis.com/maps/api/place/autocomplete/json`,
+				headers: {},
+				params: {
+					input: input,
+					types: "geocode",
+					key: config.apiKey,
+				},
+			});
+			console.log(res.data);
+			if (res.data.status !== "OK") {
+				const {
+					status,
+					error_message,
+				}: {
+					status: string;
+					error_message: string;
+				} = res.data;
+				functions.logger.error(status, error_message);
+
+				await snapshot.after.ref.update({
+					ext_PlacesAutocomplete: {
+						status,
+						error_message,
+					},
+				});
+
+				return;
+			}
+
 			const predictions = res.data.predictions;
-			await snapshot.after.ref.update({ predictions: predictions });
+			await snapshot.after.ref.update({
+				ext_PlacesAutocomplete: { predictions: predictions },
+			});
 		} catch (err) {
 			functions.logger.error(err);
+			await snapshot.after.ref.update({
+				"ext_PlacesAutocomplete.error":
+					err ?? "Something wrong happened, check your Cloud logs.",
+			});
 		}
 	});
