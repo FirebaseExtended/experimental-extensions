@@ -1,14 +1,19 @@
 import * as functions from "firebase-functions";
 import { apikeys_v2 } from "googleapis";
+import * as admin from "firebase-admin";
 
-exports.apiKeysDiagnostic = functions.pubsub
-	.schedule("every 1 minutes")
+admin.initializeApp();
+
+export const apiKeysDiagnostic = functions.pubsub
+	.schedule("every 2 minutes")
 	.onRun(async (context) => {
-		const client = new apikeys_v2.Apikeys({});
+		console.log("hi");
 
-		const { data } = await client.projects.locations.keys.list({
-			parent: `projects/${functions.config().project.id}`,
-		});
+		// const client = new apikeys_v2.Apikeys({});
 
-		console.log(data);
+		// const { data } = await client.projects.locations.keys.list({
+		// 	parent: `projects/${functions.config().project.id}`,
+		// });
+
+		// console.log(data);
 	});

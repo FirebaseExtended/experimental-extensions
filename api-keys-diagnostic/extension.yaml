@@ -16,6 +16,10 @@ sourceUrl: https://github.com/firebase/firebase-tools/tree/master/templates/exte
 
 billingRequired: false
 
+roles:
+  - role: cloudscheduler.admin
+    reason: Allows the extension to create a new Cloud Scheduler function.
+    
 resources:
   - name: apiKeysDiagnostic
     type: firebaseextensions.v1beta.function
@@ -24,7 +28,7 @@ resources:
     properties:
       location: ${LOCATION}
       scheduleTrigger:
-        schedule: 'every 1 minutes'
+        schedule: "every 2 minutes"
 
 params:
   - param: LOCATION
