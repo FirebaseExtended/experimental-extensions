@@ -81,3 +81,7 @@ params:
         value: australia-southeast1
     required: true
     immutable: true
+
+events:
+  - type: firebase.extensions.api-keys-diagnostic.unsecured
+    description: Occurs when an API key is found to be unsecured.
