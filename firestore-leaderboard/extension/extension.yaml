@@ -158,7 +158,7 @@ params:
     label: Leaderboard Size
     description: >
       How many entries we would like to keep in the leaderboard.
-    type: integer
+    type: string
     example: 100
     default: 100
     validationRegex: "^[1-9][0-9]*$"
