@@ -1,0 +1,21 @@
+# Unity project temp files
+Assets/Editor Default Resources
+Assets/ExternalDependencyManager
+Assets/Firebase/Editor
+Assets/Firebase/m2repository
+Assets/Firebase/Plugins
+Assets/Firebase/Sample/GuiSkin.guiskin
+Assets/Plugins
+Assets/StreamingAssets
+Library/
+Logs/
+Packages/
+ProjectSettings/GvhProjectSettings.xml
+Temp/
+obj/
+
+Assembly-CSharp.csproj
+client_sample.sln
+*.meta
+google-services.json
+GoogleService-Info.plist
