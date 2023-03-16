@@ -224,7 +224,7 @@ namespace Firebase.Sample.Leaderboard
       int scoreNumber;
       if (!Int32.TryParse(scoreString, out scoreNumber))
       {
-        DebugLog("Score string failed to parse {0} to int, early out.", scoreString);
+        DebugLog(String.Format("Score string failed to parse {0} to int, early out.", scoreString));
         // Return a finished task.
         return Task.FromResult(0);
       }
