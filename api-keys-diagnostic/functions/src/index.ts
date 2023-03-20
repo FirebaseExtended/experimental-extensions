@@ -31,22 +31,23 @@ export const apiKeysDiagnostic = functions.pubsub
 
 			// Check if any of the API keys are not restricted
 			const unsecuredKeys = data.keys.filter((key) => !key.restrictions);
-			console.log(JSON.stringify(unsecuredKeys, null, 2));
+			functions.logger.log(JSON.stringify(unsecuredKeys, null, 2));
 
 			// If there are any unsecured keys, send an email notification
 			if (unsecuredKeys.length > 0) {
+				functions.logger.info("Sending event");
+
 				eventChannel &&
-					eventChannel.publish({
+					(await eventChannel.publish({
 						type: "firebase.extensions.api-keys-diagnostic.unsecured",
 						subject: "Unsecured API Keys Found",
-						source: "firebase",
 						data: {
 							message: `The following API keys have no restrictions:\n\n${unsecuredKeys
 								.map((key) => key.name)
 								.join("\n")}`,
 							keys: JSON.stringify(unsecuredKeys),
 						},
-					});
+					}));
 			}
 		} catch (error) {
 			console.error("Error: ", error);
