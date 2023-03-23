@@ -2,6 +2,7 @@ import * as functions from "firebase-functions";
 import { apikeys_v2, google } from "googleapis";
 import * as admin from "firebase-admin";
 import { getEventarc } from "firebase-admin/eventarc";
+import config from "./config";
 
 admin.initializeApp();
 
@@ -24,7 +25,7 @@ export const apiKeysDiagnostic = functions.pubsub
 			});
 
 			const { data } = await client.projects.locations.keys.list({
-				parent: `projects/dev-extensions-testing/locations/global`,
+				parent: `projects/${config.projectId}/locations/global`,
 			});
 
 			if (!data.keys) return;
