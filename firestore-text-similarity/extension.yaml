@@ -1,0 +1,104 @@
+name: firestore-text-similarity
+version: 0.0.1
+specVersion: v1beta
+
+displayName: Search Firestore using Vertex Matching Engine
+
+description: >-
+  Creates a Vertex Matching Engine index and uses it to search for documents in Firestore.
+
+license: Apache-2.0  # https://spdx.org/licenses/
+
+sourceUrl: https://github.com/firebase/firebase-tools/tree/master/templates/extensions
+
+billingRequired: false
+
+apis:
+  - apiName: vpcaccess.googleapis.com
+    reason: >-
+      This extension requires VPC Access to create a private connection to Vertex Matching Engine.
+
+roles:
+  - role: datastore.user
+    reason: >-
+      This extension requires read/write access to Firestore.
+  - role: roles/vpcaccess.user
+    reason: >-
+      This extension requires VPC Access to create a private connection to Vertex Matching Engine.
+
+resources:
+  - name: generateEmbeddingsFirestore
+    type: firebaseextensions.v1beta.function
+    description: >-
+      HTTP request-triggered function that responds with a specified greeting message
+    properties:
+      location: ${LOCATION}
+      runtime: "nodejs16"
+      eventTrigger:
+        eventType: providers/cloud.firestore/eventTypes/document.create
+        resource: projects/${param:PROJECT_ID}/databases/(default)/documents/{document=**}
+  - name: setupMatchingEngine
+    type: firebaseextensions.v1beta.function
+    description: >-
+      Sets up the Vertex Matching Engine index and creates a private connection to it.
+    properties:
+      location: ${LOCATION}
+      runtime: "nodejs16"
+      taskQueueTrigger: {}
+
+params:
+  - param: LOCATION
+    label: Cloud Functions location
+    description: >-
+      Where do you want to deploy the functions created for this extension?
+      For help selecting a location, refer to the [location selection
+      guide](https://firebase.google.com/docs/functions/locations).
+    type: select
+    options:
+      - label: Iowa (us-central1)
+        value: us-central1
+      - label: South Carolina (us-east1)
+        value: us-east1
+      - label: Northern Virginia (us-east4)
+        value: us-east4
+      - label: Los Angeles (us-west2)
+        value: us-west2
+      - label: Salt Lake City (us-west3)
+        value: us-west3
+      - label: Las Vegas (us-west4)
+        value: us-west4
+      - label: Warsaw (europe-central2)
+        value: europe-central2
+      - label: Belgium (europe-west1)
+        value: europe-west1
+      - label: London (europe-west2)
+        value: europe-west2
+      - label: Frankfurt (europe-west3)
+        value: europe-west3
+      - label: Zurich (europe-west6)
+        value: europe-west6
+      - label: Hong Kong (asia-east2)
+        value: asia-east2
+      - label: Tokyo (asia-northeast1)
+        value: asia-northeast1
+      - label: Osaka (asia-northeast2)
+        value: asia-northeast2
+      - label: Seoul (asia-northeast3)
+        value: asia-northeast3
+      - label: Mumbai (asia-south1)
+        value: asia-south1
+      - label: Jakarta (asia-southeast2)
+        value: asia-southeast2
+      - label: Montreal (northamerica-northeast1)
+        value: northamerica-northeast1
+      - label: Sao Paulo (southamerica-east1)
+        value: southamerica-east1
+      - label: Sydney (australia-southeast1)
+        value: australia-southeast1
+    required: true
+    immutable: true
+
+ lifecycleEvents:
+  onInstall:
+    function: setupMatchingEngine
+    processingMessage: Setting up Vertex Matching Engine
