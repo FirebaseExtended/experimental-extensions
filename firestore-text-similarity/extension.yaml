@@ -45,6 +45,14 @@ resources:
       location: ${LOCATION}
       runtime: "nodejs16"
       taskQueueTrigger: {}
+  - name: generateEmbeddingsTask
+    type: firebaseextensions.v1beta.function
+    description: >-
+      Generate embeddings for a specified set of documents.
+    properties:
+      location: ${LOCATION}
+      runtime: "nodejs16"
+      taskQueueTrigger: {}
 
 params:
   - param: EXCLUDED_COLLECTIONS
