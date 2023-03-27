@@ -47,6 +47,13 @@ resources:
       taskQueueTrigger: {}
 
 params:
+  - param: EXCLUDED_COLLECTIONS
+    label: Excluded Collections
+    description: >-
+      Comma-separated list of collections to exclude from the search index.
+    type: string
+    required: false
+    immutable: true
   - param: LOCATION
     label: Cloud Functions location
     description: >-
@@ -98,7 +105,7 @@ params:
     required: true
     immutable: true
 
- lifecycleEvents:
+lifecycleEvents:
   onInstall:
     function: setupMatchingEngine
     processingMessage: Setting up Vertex Matching Engine

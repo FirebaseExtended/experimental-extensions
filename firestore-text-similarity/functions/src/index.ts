@@ -4,6 +4,7 @@ import { getExtensions } from "firebase-admin/extensions";
 
 import { setupVPCNetwork } from "./vpc";
 import { getEmbeddings } from "./embeddings";
+import { isValidReference } from "./utils";
 
 admin.initializeApp();
 
@@ -20,6 +21,10 @@ export const setupMatchingEngine = functions.tasks
 			// TODO - Create a tasks to generate embeddings for all documents in Firestore
 			const collections = await admin.firestore().listCollections();
 			for (const collection of collections) {
+				if (isValidReference(collection))
+					// Skip extension-specific collections and user-specified collections.
+					continue;
+
 				const documents = await collection.listDocuments();
 				for (const document of documents) {
 					const task = {
@@ -46,12 +51,21 @@ export const setupMatchingEngine = functions.tasks
 export const generateEmbeddingsFirestore = functions.firestore
 	.document("{document=**}")
 	.onCreate(async (snap) => {
-		const doc = snap.data();
-		const data = [];
-		for (const key in doc) {
-			data.push(doc[key]);
+		if (!isValidReference(snap.ref)) {
+			console.log(`Skipping ${snap.ref.path}`);
+			return;
 		}
-		functions.logger.debug("Data to be embedded", { data });
-		const embeddings = await getEmbeddings(data);
+
+		const data = snap.data();
+
+		if (Object.keys(data).length <= 0) return;
+
+		const fieldsData: string[] = [];
+		for (const key in fieldsData) {
+			data.push(fieldsData[key]);
+		}
+
+		functions.logger.debug("Data to be embedded", { fieldsData });
+		const embeddings = await getEmbeddings(fieldsData);
 		functions.logger.info("Embeddings generated 🎉", embeddings.length);
 	});
