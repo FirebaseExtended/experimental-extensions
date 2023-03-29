@@ -1,7 +1,6 @@
 {
   "extensions": {
-    "firestore-record-user-acknowledgements": "../firestore-record-user-acknowledgements",
-    "firestore-bundle-server": "../firestore-bundle-server"
+    "storage-image-labeling": "../storage-image-labeling"
   },
   "storage": {
     "rules": "storage.rules"

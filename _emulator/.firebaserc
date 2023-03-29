@@ -1,5 +1,39 @@
 {
   "projects": {
     "default": "demo-experimental"
+  },
+  "targets": {},
+  "etags": {
+    "dev-extensions-testing": {
+      "extensionInstances": {
+        "moralis-auth-qcmt": "d71c7b6995a1ada7bde50810fe95bb7d684f446514be48d794099efae6371acd",
+        "greet-the-world": "b0017862e08c9179b7d704352fe933f6a0664c7906fbe5159aa4b1a15e427877",
+        "firestore-address-validation": "03a2463ba9cc378fc97980368f36725fc267e8dcbb756ec385f8ea413a37f8f4",
+        "moralis-streams": "aea3b308046e3d5adcf8645b2d4800f03c9480c20cfbb810a0717865b751c2a2",
+        "firestore-text-similarity": "7311b91381b0ea6139375b2d694bcd31d3708cd5c3967c0a188f512319d1eeed",
+        "moralis-auth": "a2c0af0e98e2dc6dcd3b93c8e76fd24a40263e6e6273897d9335f16207c90a0e",
+        "mobilebert-eval": "d79a8fab98125acfc645cf8901f06060ac0b775094b7f59760ace609e5ab1606",
+        "firestore-geo-functions": "07a3846d12895f88f216af8e1e136471d2135c8a98da20e93610e6d85b0904f1",
+        "firestore-bundle-builder": "d6031ba8376ed3cab276a4c56f54ce72ff1571936d3f7cbd79554822c780c7e6",
+        "firestore-geo-functions-8unk": "6f12cc15dd8e27f427aeed3bdad6af012b96e37b99750e2a7b2f60ac8891f9e6",
+        "pdfplum": "78a89ceeac9245daddf0da19f55a94263546d9f1d50a3d6729816f67c97a007b",
+        "storage-file-intel": "ae6d43af53128575ae812cecc07d2e4f01934301a8e5bc43c5c26e56ffecec64",
+        "firestore-audit-document": "64f0049db85f1276e1ea94ee228daad648b66120c6afd9f2b6eb18e9aefe13d5",
+        "firestore-elastic-app-search": "36c45a07d4f1112aa8c7ac27a34ec346664130d932e4d91a1dae878dd465d936",
+        "firestore-meilisearch": "03cb6b0e621e291269dbb66c14b16a22dbcb79d20e3947a9f1c628536ec2862c",
+        "firestore-redact-text": "c887f9f721db8c01fe61cb540954decac3d258981097e17904d4115f487c9365",
+        "record-user-acknowledgements": "12f925b6c109a7f4630011bc9649d3a63bcc0009e2a4e69432b6c15a23e95070",
+        "bigquery-dlp-functions": "58cb8875d1dec33cb81aa8bec1fc1c419c4821c88552a160afd72b24b637e12d",
+        "firestore-send-email": "9ad4931b19d276a89fc105d4ef62670204a151a15a4394cda38d46c6e2c33aa2",
+        "bigquery-geo-functions": "2840c8f7c67ac98942b3e7cccf136d7e4c82b6f4446edc351d78aca6a9657e26",
+        "storage-resize-images": "9ab4bdb06a7d491baeeb097dc7a7962093a8063a884144cbf566645e09394bc7",
+        "firestore-counter": "35c80def28e043cb2e4915d52d787f6d4e530946e2180d074c0450529dc1f7c0",
+        "puchasely-firebase-extension": "3b657014b57ec8b8e5977ca7854b3afe5d52ac23f0a374bf6f2b5bd8b2816fa1",
+        "firestore-audit-log": "b6b619c6d81a4d375fd14a5fe6f971c76995fd79f0a3d6ae8b0a91ea46715ff4",
+        "storage-image-labeling": "216d21811b58519ad947fdc380531dd736f4db0e376851f173ae0a12c678f333",
+        "firestore-bundle-server": "2e66ebb5590eeb0f1fb666e837f704d5bb520743508739f5e961f2c578e37f3f",
+        "firestore-algolia-search": "1a86c380ed65df472ef4bed172d305ce8cada22bc510e990897e1562e5f62009"
+      }
+    }
   }
 }

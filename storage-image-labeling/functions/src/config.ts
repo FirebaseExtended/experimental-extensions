@@ -16,4 +16,5 @@
 
 export default {
   collectionPath: process.env.COLLECTION_PATH || "imageLabels",
+  bucketName: process.env.IMG_BUCKET,
 };

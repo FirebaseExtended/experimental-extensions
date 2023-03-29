@@ -15,14 +15,15 @@
  * limitations under the License.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.labelImage = void 0;
 const functions = require("firebase-functions");
+const admin = require("firebase-admin");
 const vision_1 = require("@google-cloud/vision");
 const config_1 = require("./config");
-const admin = require("firebase-admin");
 admin.initializeApp();
 const client = new vision_1.default.ImageAnnotatorClient();
 const db = admin.firestore();
-exports.labelImage = functions.storage.object().onFinalize(async (object) => {
+exports.labelImage = functions.storage.bucket(process.env.IMG_BUCKET).object().onFinalize(async (object) => {
     var _a, _b;
     // TODO: allow configuration.
     const { contentType } = object; // This is the image MIME type
@@ -31,7 +32,11 @@ exports.labelImage = functions.storage.object().onFinalize(async (object) => {
         return;
     }
     if (!contentType.startsWith("image/")) {
-        functions.logger.log(`Ignoring file "${object.name}" because it's not an image'`);
+        functions.logger.log(`Ignoring file "${object.name}" because it's not an image`);
+        return;
+    }
+    if (!object.name) {
+        functions.logger.log(`Ignoring file "${object.id}" because it has no name`);
         return;
     }
     const bucket = admin.storage().bucket(object.bucket);

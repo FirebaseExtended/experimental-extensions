@@ -28,7 +28,7 @@ resources:
       eventTrigger:
         eventType: google.storage.object.finalize
         resource: projects/_/buckets/${param:IMG_BUCKET}
-      runtime: "nodejs10"
+      runtime: "nodejs16"
 
 params:
   - param: LOCATION
@@ -60,6 +60,7 @@ params:
     default: us-central1
     required: true
     immutable: true
+
   - param: IMG_BUCKET
     label: Cloud Storage bucket for images
     description: >
@@ -70,6 +71,7 @@ params:
     validationErrorMessage: Invalid storage bucket
     default: ${STORAGE_BUCKET}
     required: true
+
   - param: COLLECTION_PATH
     label: Collection path
     description: >
