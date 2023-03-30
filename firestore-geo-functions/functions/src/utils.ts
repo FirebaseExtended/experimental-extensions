@@ -60,7 +60,10 @@ export function validateOriginAndDestination(
     return false;
   }
 
-  if (before?.data()?.destination === destination && before?.data()?.origin === origin) {
+  if (
+    before?.data()?.destination === destination &&
+    before?.data()?.origin === origin
+  ) {
     return false;
   }
 
