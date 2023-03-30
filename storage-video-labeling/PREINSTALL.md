@@ -1,0 +1,1 @@
+This extension will automatically annotate media from the specified `input` storage bucket and path.  This will output a `.json` file with the resulting annotations into the specified `output` storage bucket and path.
