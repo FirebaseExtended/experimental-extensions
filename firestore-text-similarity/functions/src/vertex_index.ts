@@ -4,7 +4,10 @@ import {
 } from "@google-cloud/aiplatform";
 import config from "./config";
 
-const indexClient = new IndexServiceClient();
+const indexClient = new IndexServiceClient({
+	apiEndpoint: `${config.location}-aiplatform.googleapis.com`,
+	fallback: "rest",
+});
 const indexEndpointClient = new IndexEndpointServiceClient();
 
 export async function createIndex() {
@@ -14,31 +17,45 @@ export async function createIndex() {
 			name: "ext-" + config.instanceId,
 			displayName: "Firestore Text Similarity Extension",
 			indexUpdateMethod: "STREAM_UPDATE",
+			metadataSchemaUri:
+				"gs://google-cloud-aiplatform/schema/metadata/index/1.0.0/index_metadata.yaml",
 			metadata: {
 				structValue: {
 					fields: {
-						// contentsDeltaUri: {
-						// 	stringValue: "gs://your-bucket/path/to/contents-delta",
-						// },
+						contentsDeltaUri: {
+							stringValue: "gs://your-bucket/path/to/contents-delta",
+						},
 						isCompleteOverwrite: { boolValue: false },
 						config: {
 							structValue: {
 								fields: {
 									dimensions: { numberValue: 128 },
-									approximateNeighborsCount: { numberValue: 100 },
-									distanceMeasureType: {
-										stringValue: "DOT_PRODUCT_DISTANCE",
-									},
-									featureNormType: { stringValue: "NONE" },
 									algorithmConfig: {
 										structValue: {
 											fields: {
-												type: { stringValue: "treeAhConfig" },
-												leafNodeEmbeddingCount: { numberValue: 1000 },
-												leafNodesToSearchPercent: { numberValue: 10 },
+												type: { stringValue: "bruteForceConfig" },
 											},
 										},
+										// structValue: {
+										// 	fields: {
+										// 		type: { stringValue: "treeAhConfig" },
+										// 		treeAhConfig: {
+										// 			structValue: {
+										// 				fields: {
+										// 					type: { stringValue: "treeAhConfig" },
+										// 					leafNodeEmbeddingCount: { numberValue: 1000 },
+										// 					leafNodesToSearchPercent: { numberValue: 10 },
+										// 				},
+										// 			},
+										// 		},
+										// 	},
+										//},
 									},
+									// approximateNeighborsCount: { numberValue: 100 },
+									// distanceMeasureType: {
+									// 	stringValue: "DOT_PRODUCT_DISTANCE",
+									// },
+									// featureNormType: { stringValue: "NONE" },
 								},
 							},
 						},

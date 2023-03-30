@@ -5,6 +5,7 @@ import { getExtensions } from "firebase-admin/extensions";
 import { isValidReference } from "./utils";
 import { getEmbeddings } from "./embeddings";
 import { createIndex, createIndexEndpoint, deployIndex } from "./vertex_index";
+
 import config from "./config";
 
 admin.initializeApp();
@@ -17,10 +18,10 @@ export const setupMatchingEngine = functions
 
 		try {
 			const index = await createIndex();
-			// const indexEndpoint = await createIndexEndpoint();
-			// functions.logger.info(`Index Endpoint ${indexEndpoint} has been created`);
+			const indexEndpoint = await createIndexEndpoint();
+			functions.logger.info(`Index Endpoint ${indexEndpoint} has been created`);
 
-			// await deployIndex(indexEndpoint.name!, index.name!);
+			await deployIndex(indexEndpoint.name!, index.name!);
 
 			// TODO - keep track of the tasks status in Firestore
 			// TODO - create an index for the embeddings file
@@ -41,25 +42,26 @@ export const generateEmbeddingsFirestore = functions
 	.runWith({ memory: "2GB", timeoutSeconds: 540, vpcConnector: config.network })
 	.firestore.document("{document=**}/{documentId}")
 	.onCreate(async (snap) => {
-		if (!isValidReference(snap.ref)) {
-			console.log(`Skipping ${snap.ref.path}`);
-			return;
-		}
+		const index = await createIndex();
+		// if (!isValidReference(snap.ref)) {
+		// 	console.log(`Skipping ${snap.ref.path}`);
+		// 	return;
+		// }
 
-		const data = snap.data();
+		// const data = snap.data();
 
-		functions.logger.debug("Skip document?", Object.keys(data).length);
+		// functions.logger.debug("Skip document?", Object.keys(data).length);
 
-		if (Object.keys(data).length == 0) return;
+		// if (Object.keys(data).length == 0) return;
 
-		const fieldsData: string[] = [];
-		for (const key in data) {
-			fieldsData.push(data[key]);
-		}
+		// const fieldsData: string[] = [];
+		// for (const key in data) {
+		// 	fieldsData.push(data[key]);
+		// }
 
-		functions.logger.debug("Data to be embedded", { fieldsData });
-		const embeddings = await getEmbeddings(fieldsData);
-		functions.logger.info("Embeddings generated 🎉", embeddings.length);
+		// functions.logger.debug("Data to be embedded", { fieldsData });
+		// const embeddings = await getEmbeddings(fieldsData);
+		// functions.logger.info("Embeddings generated 🎉", embeddings.length);
 	});
 
 export const generateEmbeddingsTask = functions
