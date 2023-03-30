@@ -1,54 +1,35 @@
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
 import { getExtensions } from "firebase-admin/extensions";
-import { getFunctions } from "firebase-admin/functions";
 
-import { setupVPCNetwork } from "./vpc";
 import { isValidReference } from "./utils";
 import { getEmbeddings } from "./embeddings";
+import { createIndex, createIndexEndpoint, deployIndex } from "./vertex_index";
+import config from "./config";
 
 admin.initializeApp();
 
-export const setupMatchingEngine = functions.tasks
-	.taskQueue()
+export const setupMatchingEngine = functions
+	.runWith({ memory: "2GB", vpcConnector: config.network })
+	.tasks.taskQueue()
 	.onDispatch(async (task) => {
 		const runtime = getExtensions().runtime();
 
 		try {
-			const response = await setupVPCNetwork();
-			functions.logger.info(
-				`VPC Network name ${response.network} has been created with connector ${response.name}`
-			);
-			// TODO - Create tasks to generate embeddings for all documents in Firestore
-			const collections = await admin.firestore().listCollections();
-			for (const collection of collections) {
-				const docs: string[] = [];
-				if (isValidReference(collection))
-					// Skip extension-specific collections and user-specified collections.
-					continue;
+			const index = await createIndex();
+			// const indexEndpoint = await createIndexEndpoint();
+			// functions.logger.info(`Index Endpoint ${indexEndpoint} has been created`);
 
-				const documents = await collection.listDocuments();
-				for (const document of documents) {
-					if (Object.keys(await document.get()).length <= 0) continue;
-					docs.push(document.path);
-				}
-
-				console.log("Docs to be scheduled", docs.length);
-
-				// Enqueue tasks to generate embeddings for all documents in Firestore.
-				await getFunctions().taskQueue("generateEmbeddingsTask").enqueue({
-					document: docs,
-				});
-			}
+			// await deployIndex(indexEndpoint.name!, index.name!);
 
 			// TODO - keep track of the tasks status in Firestore
 			// TODO - create an index for the embeddings file
 			await runtime.setProcessingState(
 				"PROCESSING_COMPLETE",
-				"Generatrd embeddings for Firestore and stored the result in Storage, find it in this path:" +
-					"bueckt path"
+				"The matching engine has been successfully set up."
 			);
 		} catch (error) {
+			functions.logger.error(error);
 			await runtime.setProcessingState(
 				"PROCESSING_FAILED",
 				"Failed to generate embeddings, for more details check the logs."
@@ -56,8 +37,9 @@ export const setupMatchingEngine = functions.tasks
 		}
 	});
 
-export const generateEmbeddingsFirestore = functions.firestore
-	.document("{document=**}")
+export const generateEmbeddingsFirestore = functions
+	.runWith({ memory: "2GB", timeoutSeconds: 540, vpcConnector: config.network })
+	.firestore.document("{document=**}/{documentId}")
 	.onCreate(async (snap) => {
 		if (!isValidReference(snap.ref)) {
 			console.log(`Skipping ${snap.ref.path}`);
@@ -66,11 +48,13 @@ export const generateEmbeddingsFirestore = functions.firestore
 
 		const data = snap.data();
 
-		if (Object.keys(data).length <= 0) return;
+		functions.logger.debug("Skip document?", Object.keys(data).length);
+
+		if (Object.keys(data).length == 0) return;
 
 		const fieldsData: string[] = [];
-		for (const key in fieldsData) {
-			data.push(fieldsData[key]);
+		for (const key in data) {
+			fieldsData.push(data[key]);
 		}
 
 		functions.logger.debug("Data to be embedded", { fieldsData });
@@ -80,19 +64,23 @@ export const generateEmbeddingsFirestore = functions.firestore
 
 export const generateEmbeddingsTask = functions
 	.runWith({
+		memory: "2GB",
 		timeoutSeconds: 540,
+		vpcConnector: config.network,
 	})
 	.tasks.taskQueue()
 	.onDispatch(async (task) => {
-		const document = task.document;
+		const document = task.documents;
 		const snap = await admin.firestore().doc(document).get();
 		const data = snap.data();
 
 		if (!data) return;
+		functions.logger.debug("Skip document?", Object.keys(data).length);
+		if (Object.keys(data).length == 0) return;
 
 		const fieldsData: string[] = [];
-		for (const key in fieldsData) {
-			data.push(fieldsData[key]);
+		for (const key in data) {
+			data.push(data[key]);
 		}
 
 		functions.logger.debug("Data to be embedded", { fieldsData });

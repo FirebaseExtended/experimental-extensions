@@ -17,14 +17,14 @@ apis:
   - apiName: vpcaccess.googleapis.com
     reason: >-
       This extension requires VPC Access to create a private connection to Vertex Matching Engine.
+  - apiName: aiplatform.googleapis.com
+    reason: >-
+      This extension requires Vertex AI to create a Vertex Matching Engine index.
 
 roles:
   - role: datastore.user
     reason: >-
       This extension requires read/write access to Firestore.
-  - role: roles/vpcaccess.user
-    reason: >-
-      This extension requires VPC Access to create a private connection to Vertex Matching Engine.
 
 resources:
   - name: generateEmbeddingsFirestore
@@ -34,9 +34,11 @@ resources:
     properties:
       location: ${LOCATION}
       runtime: "nodejs16"
+      availableMemoryMb: 2048
+      timeout: 540s
       eventTrigger:
         eventType: providers/cloud.firestore/eventTypes/document.create
-        resource: projects/${param:PROJECT_ID}/databases/(default)/documents/{document=**}
+        resource: projects/${param:PROJECT_ID}/databases/(default)/documents/{document=**}/{documentId}
   - name: setupMatchingEngine
     type: firebaseextensions.v1beta.function
     description: >-
@@ -44,6 +46,7 @@ resources:
     properties:
       location: ${LOCATION}
       runtime: "nodejs16"
+      availableMemoryMb: 2048
       taskQueueTrigger: {}
   - name: generateEmbeddingsTask
     type: firebaseextensions.v1beta.function
@@ -52,13 +55,30 @@ resources:
     properties:
       location: ${LOCATION}
       runtime: "nodejs16"
+      availableMemoryMb: 2048
       taskQueueTrigger: {}
 
 params:
-  - param: EXCLUDED_COLLECTIONS
-    label: Excluded Collections
+  - param: COLLECTION_NAME
+    label: Collection to index
     description: >-
-      Comma-separated list of collections to exclude from the search index.
+      Comma-separated list of collections to include in the search index.
+    type: string
+    required: true
+    immutable: true
+  - param: FIELDS
+    label: Fields in a Document to index
+    description: >-
+      Comma-separated list of field names to include in the search index.
+      If you leave this blank, all fields will be indexed.
+    type: string
+    required: false
+    immutable: true
+  - param: NETWORK
+    label: VPC Network
+    description: >-
+      The VPC network that the Vertex Matching Engine index will be deployed to.
+      If you leave this blank, the extension will create a new VPC network.
     type: string
     required: false
     immutable: true

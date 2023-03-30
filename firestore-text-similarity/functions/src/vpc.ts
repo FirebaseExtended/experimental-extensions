@@ -16,13 +16,13 @@ const vpcaccessClient = new VpcAccessServiceClient({ auth: auth });
  * Creates a VPC network & connector for the project.
  */
 export async function setupVPCNetwork() {
-	const connectorId = `ext-${config.instanceId}-network`;
+	const network = config.network;
 
 	await compute.networks.insert({
 		auth: await auth.getClient(),
 		project: config.projectId,
 		requestBody: {
-			name: connectorId,
+			name: network,
 			autoCreateSubnetworks: true,
 		},
 	});
@@ -31,7 +31,7 @@ export async function setupVPCNetwork() {
 		connectorId: `ext-connector`,
 		connector: {
 			connectedProjects: [config.projectId],
-			network: connectorId,
+			network: network,
 			ipCidrRange: "10.8.0.0/28",
 			maxInstances: 3,
 			minInstances: 2,

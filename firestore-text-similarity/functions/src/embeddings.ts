@@ -9,7 +9,7 @@ const use = require("@tensorflow-models/universal-sentence-encoder");
  * @returns an array of arrays containing 512 numbers representing the embedding of the text.
  */
 export async function getEmbeddings(
-	text: string | Array<string>
+	text: string | string[]
 ): Promise<number[]> {
 	const model = await use.load();
 	const embeddings = await model.embed(text.length ? text : [text]);
