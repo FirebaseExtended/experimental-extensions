@@ -1,4 +1,4 @@
-name: storage-extract-image-text
+name: storage-image-text-extraction
 version: 0.0.4
 specVersion: v1beta
 
@@ -29,7 +29,7 @@ resources:
       eventTrigger:
         eventType: google.storage.object.finalize
         resource: projects/_/buckets/${param:IMG_BUCKET}
-      runtime: "nodejs10"
+      runtime: "nodejs16"
 
 params:
   - param: LOCATION

@@ -47,8 +47,36 @@ exports.extractText = functions.storage.object().onFinalize(async (object) => {
       },
     ],
   };
-  const results = await client.annotateImage(request);
-  const extractedText = results?.[0]?.textAnnotations?.[0]?.description;
+
+  const filePath = `gs://${object.bucket}/${object.name}`;
+  
+  const [results] = await client.annotateImage(request);
+  
+  const textAnnotations = results.textAnnotations;
+
+  if (!textAnnotations) {
+    functions.logger.log(`text annotation did not complete successfully on image ${filePath}`);
+    return;
+  }
+
+  functions.logger.log("Extracted text from image: ", textAnnotations);
+
+  if (textAnnotations.length === 0 || !textAnnotations[0].description) {
+    functions.logger.log(`No text found in image ${filePath}`);
+
+    await db
+    .collection(config.collectionPath)
+    .doc(object.name)
+    .create({
+      file: "gs://" + object.bucket + "/" + object.name,
+      text: null,
+    });
+
+    return;
+  }
+
+  const extractedText = textAnnotations[0].description;
+  
   await db
     .collection(config.collectionPath)
     .doc(object.name)

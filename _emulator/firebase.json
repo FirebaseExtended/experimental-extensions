@@ -1,7 +1,6 @@
 {
   "extensions": {
-    "firestore-record-user-acknowledgements": "../firestore-record-user-acknowledgements",
-    "firestore-bundle-server": "../firestore-bundle-server"
+    "storage-image-text-extraction": "../storage-image-text-extraction"
   },
   "storage": {
     "rules": "storage.rules"
@@ -35,7 +34,11 @@
   },
   "hosting": {
     "public": "dist",
-    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
     "rewrites": [
       {
         "source": "/bundles/*",

@@ -23,7 +23,7 @@ admin.initializeApp();
 const client = new vision_1.default.ImageAnnotatorClient();
 const db = admin.firestore();
 exports.extractText = functions.storage.object().onFinalize(async (object) => {
-    var _a, _b, _c, _d, _e, _f;
+    var _a, _b, _c;
     // TODO: allow configuration.
     if (!((_a = object.name) === null || _a === void 0 ? void 0 : _a.toLowerCase().endsWith(".jpg")) &&
         !((_b = object.name) === null || _b === void 0 ? void 0 : _b.toLowerCase().endsWith(".jpeg")) &&
@@ -43,8 +43,26 @@ exports.extractText = functions.storage.object().onFinalize(async (object) => {
             },
         ],
     };
-    const results = await client.annotateImage(request);
-    const extractedText = (_f = (_e = (_d = results === null || results === void 0 ? void 0 : results[0]) === null || _d === void 0 ? void 0 : _d.textAnnotations) === null || _e === void 0 ? void 0 : _e[0]) === null || _f === void 0 ? void 0 : _f.description;
+    const filePath = `gs://${object.bucket}/${object.name}`;
+    const [results] = await client.annotateImage(request);
+    const textAnnotations = results.textAnnotations;
+    if (!textAnnotations) {
+        functions.logger.log(`text annotation did not complete successfully on image ${filePath}`);
+        return;
+    }
+    functions.logger.log("Extracted text from image: ", textAnnotations);
+    if (textAnnotations.length === 0 || !textAnnotations[0].description) {
+        functions.logger.log(`No text found in image ${filePath}`);
+        await db
+            .collection(config_1.default.collectionPath)
+            .doc(object.name)
+            .create({
+            file: "gs://" + object.bucket + "/" + object.name,
+            text: null,
+        });
+        return;
+    }
+    const extractedText = textAnnotations[0].description;
     await db
         .collection(config_1.default.collectionPath)
         .doc(object.name)
