@@ -6,12 +6,12 @@ export type UploadAudioResult = UploadAudioSuccess | Failure;
 
 export enum Status {
   SUCCESS,
-  FAILURE
+  FAILURE,
 }
 
 export interface UploadAudioSuccess {
-  status: Status.SUCCESS,
-  uploadResponse: UploadResponse,
+  status: Status.SUCCESS;
+  uploadResponse: UploadResponse;
 }
 
 export interface TranscodeAudioSuccess {

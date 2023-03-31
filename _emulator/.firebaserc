@@ -1,5 +1,32 @@
 {
   "projects": {
     "default": "demo-experimental"
+  },
+  "targets": {},
+  "etags": {
+    "dev-extensions-testing": {
+      "extensionInstances": {
+        "mobilebert-eval": "d79a8fab98125acfc645cf8901f06060ac0b775094b7f59760ace609e5ab1606",
+        "storage-file-intel": "ae6d43af53128575ae812cecc07d2e4f01934301a8e5bc43c5c26e56ffecec64",
+        "storage-image-text-extraction": "e4e126d4d3125eb3c7abe58154746b642db768fae6c9276a0cc3f3f770a8ce1e",
+        "firestore-elastic-app-search": "36c45a07d4f1112aa8c7ac27a34ec346664130d932e4d91a1dae878dd465d936",
+        "firestore-meilisearch": "03cb6b0e621e291269dbb66c14b16a22dbcb79d20e3947a9f1c628536ec2862c",
+        "firestore-redact-text": "c887f9f721db8c01fe61cb540954decac3d258981097e17904d4115f487c9365",
+        "record-user-acknowledgements": "5cdf664313cb85d465cf964e74020f4dba7f7c7f05e694c82f659b644815c550",
+        "firestore-text-similarity": "40fa5ad7fc1995d0c67ce10f12a14a31999898642ddd0e366cafd3fadd7fbfa0",
+        "bigquery-dlp-functions": "58cb8875d1dec33cb81aa8bec1fc1c419c4821c88552a160afd72b24b637e12d",
+        "firestore-send-email": "9ad4931b19d276a89fc105d4ef62670204a151a15a4394cda38d46c6e2c33aa2",
+        "storage-transcribe-audio": "6c8eddc8758748cf3a434166d9b08ce9f0b420fa35e3e740627deb513d339149",
+        "bigquery-geo-functions": "2840c8f7c67ac98942b3e7cccf136d7e4c82b6f4446edc351d78aca6a9657e26",
+        "storage-resize-images": "9ab4bdb06a7d491baeeb097dc7a7962093a8063a884144cbf566645e09394bc7",
+        "firestore-counter": "35c80def28e043cb2e4915d52d787f6d4e530946e2180d074c0450529dc1f7c0",
+        "puchasely-firebase-extension": "3b657014b57ec8b8e5977ca7854b3afe5d52ac23f0a374bf6f2b5bd8b2816fa1",
+        "firestore-audit-log": "b6b619c6d81a4d375fd14a5fe6f971c76995fd79f0a3d6ae8b0a91ea46715ff4",
+        "storage-image-labeling": "6000d0fa4db31debc4a4c138e1e8932a2dfb2c7c8e623df9df4c1b720f76fd51",
+        "storage-video-labeling": "7bae1249b157cef5d7c9c547f5aabb24e9b09fcf6ed600ee82691237846ddeb3",
+        "firestore-bundle-server": "2e66ebb5590eeb0f1fb666e837f704d5bb520743508739f5e961f2c578e37f3f",
+        "firestore-algolia-search": "1a86c380ed65df472ef4bed172d305ce8cada22bc510e990897e1562e5f62009"
+      }
+    }
   }
 }

@@ -30,8 +30,10 @@ export async function transcribeAndUpload({
   audioChannelCount: number;
 }): Promise<TranscribeAudioResult> {
   const inputUri = `gs://${bucket.name}/${name}`;
-  const outputCollection = config.outputCollection ? config.outputCollection : bucket.name
-  const outputUri = `gs://${outputCollection}/${name}_transcription.txt`;
+  const outputCollection = config.outputCollection
+    ? config.outputCollection
+    : bucket.name;
+  const outputUri = `gs://${bucket.name}/${outputCollection}/${name}_transcription.txt`;
   const warnings: WarningType[] = [];
   const request: google.cloud.speech.v1.ILongRunningRecognizeRequest = {
     config: {
@@ -75,7 +77,8 @@ export async function transcribeAndUpload({
   }
 
   // Intermediate step prior to proper simplification
-  const transcription: Record<number, string[]> | null = getTranscriptionsByChannel(response.results);
+  const transcription: Record<number, string[]> | null =
+    getTranscriptionsByChannel(response.results);
 
   if (transcription == null) {
     return {
@@ -107,7 +110,7 @@ export async function transcribeAndUpload({
 }
 
 export async function transcodeToLinear16(
-  localTmpPath: string,
+  localTmpPath: string
 ): Promise<TranscodeAudioResult> {
   const probeData: ffmpeg.FfprobeData = await probePromise(localTmpPath);
   const warnings: WarningType[] = [];
@@ -178,25 +181,32 @@ export async function transcodeToLinear16(
   };
 }
 
-export async function uploadTranscodedFile({localPath, storagePath, bucket}: {localPath: string; storagePath: string; bucket: Bucket}): Promise<UploadAudioResult> {
+export async function uploadTranscodedFile({
+  localPath,
+  storagePath,
+  bucket,
+}: {
+  localPath: string;
+  storagePath: string;
+  bucket: Bucket;
+}): Promise<UploadAudioResult> {
   try {
     const uploadResponse = await bucket.upload(localPath, {
       destination: storagePath,
       metadata: { metadata: { isTranscodeOutput: true } },
-    })
+    });
 
     return {
       status: Status.SUCCESS,
       uploadResponse,
     };
-
-  } catch(err: unknown) {
+  } catch (err: unknown) {
     return {
       status: Status.FAILURE,
       warnings: [],
       type: FailureType.TRANSCODED_UPLOAD_FAILED,
       details: err,
-    }
+    };
   }
 }
 

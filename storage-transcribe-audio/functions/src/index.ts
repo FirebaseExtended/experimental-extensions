@@ -20,6 +20,7 @@ import { getEventarc, Channel } from "firebase-admin/eventarc";
 import * as speech from "@google-cloud/speech";
 import * as path from "path";
 import * as os from "os";
+import * as mkdirp from "mkdirp";
 
 import * as logs from "./logs";
 import {
@@ -27,12 +28,12 @@ import {
   errorFromAny,
   publishCompleteEvent,
 } from "./util";
-import mkdirp = require("mkdirp");
 import {
   transcodeToLinear16,
   transcribeAndUpload,
   uploadTranscodedFile,
 } from "./transcribe-audio";
+
 import { Status } from "./types";
 import config from "./config";
 
@@ -105,9 +106,10 @@ export const transcribeAudio = functions.storage
       logs.debug("uploading transcoded file");
       const transcodedUploadResult = await uploadTranscodedFile({
         localPath: transcodeResult.outputPath,
-        storagePath: (config.outputCollection || "") + transcodeResult,
+        storagePath:
+          (config.outputCollection || "") + transcodeResult.outputPath,
         bucket: bucket,
-      })
+      });
       if (transcodedUploadResult.status == Status.FAILURE) {
         logs.transcodeUploadFailed(transcodedUploadResult);
         if (eventChannel) {
@@ -118,7 +120,7 @@ export const transcribeAudio = functions.storage
       logs.debug("uploaded transcoded file");
 
       const { sampleRateHertz, audioChannelCount } = transcodeResult;
-      const [file, /*, metadata */] = transcodedUploadResult.uploadResponse;
+      const [file /*, metadata */] = transcodedUploadResult.uploadResponse;
 
       const transcriptionResult = await transcribeAndUpload({
         client,

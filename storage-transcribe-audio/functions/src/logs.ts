@@ -19,11 +19,7 @@ import { logger } from "firebase-functions";
 import { ObjectMetadata } from "firebase-functions/v1/storage";
 
 import config from "./config";
-import {
-  Failure,
-  failureTypeToMessage,
-  warningTypeToMessage,
-} from "./types";
+import { Failure, failureTypeToMessage, warningTypeToMessage } from "./types";
 
 export const error = (err: Error) => {
   logger.error("Error when transcribing audio");
