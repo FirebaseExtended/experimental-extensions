@@ -4,7 +4,12 @@ import { getExtensions } from "firebase-admin/extensions";
 
 import { isValidReference } from "./utils";
 import { getEmbeddings } from "./embeddings";
-import { createIndex, createIndexEndpoint, deployIndex } from "./vertex_index";
+import {
+	createEmptyBucket,
+	createIndex,
+	createIndexEndpoint,
+	deployIndex,
+} from "./vertex_index";
 
 import config from "./config";
 
@@ -17,18 +22,11 @@ export const setupMatchingEngine = functions
 		const runtime = getExtensions().runtime();
 
 		try {
-			const index = await createIndex();
-			const indexEndpoint = await createIndexEndpoint();
-			functions.logger.info(`Index Endpoint ${indexEndpoint} has been created`);
-
-			await deployIndex(indexEndpoint.name!, index.name!);
+			await createEmptyBucket();
+			await createIndex();
 
 			// TODO - keep track of the tasks status in Firestore
 			// TODO - create an index for the embeddings file
-			await runtime.setProcessingState(
-				"PROCESSING_COMPLETE",
-				"The matching engine has been successfully set up."
-			);
 		} catch (error) {
 			functions.logger.error(error);
 			await runtime.setProcessingState(
@@ -42,26 +40,20 @@ export const generateEmbeddingsFirestore = functions
 	.runWith({ memory: "2GB", timeoutSeconds: 540, vpcConnector: config.network })
 	.firestore.document("{document=**}/{documentId}")
 	.onCreate(async (snap) => {
-		const index = await createIndex();
-		// if (!isValidReference(snap.ref)) {
-		// 	console.log(`Skipping ${snap.ref.path}`);
-		// 	return;
-		// }
-
-		// const data = snap.data();
-
-		// functions.logger.debug("Skip document?", Object.keys(data).length);
-
-		// if (Object.keys(data).length == 0) return;
-
-		// const fieldsData: string[] = [];
-		// for (const key in data) {
-		// 	fieldsData.push(data[key]);
-		// }
-
-		// functions.logger.debug("Data to be embedded", { fieldsData });
-		// const embeddings = await getEmbeddings(fieldsData);
-		// functions.logger.info("Embeddings generated 🎉", embeddings.length);
+		if (!isValidReference(snap.ref)) {
+			console.log(`Skipping ${snap.ref.path}`);
+			return;
+		}
+		const data = snap.data();
+		functions.logger.debug("Skip document?", Object.keys(data).length);
+		if (Object.keys(data).length == 0) return;
+		const fieldsData: string[] = [];
+		for (const key in data) {
+			fieldsData.push(data[key]);
+		}
+		functions.logger.debug("Data to be embedded", { fieldsData });
+		const embeddings = await getEmbeddings(fieldsData);
+		functions.logger.info("Embeddings generated 🎉", embeddings.length);
 	});
 
 export const generateEmbeddingsTask = functions

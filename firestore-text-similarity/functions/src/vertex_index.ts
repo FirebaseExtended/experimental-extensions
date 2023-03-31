@@ -4,11 +4,29 @@ import {
 } from "@google-cloud/aiplatform";
 import config from "./config";
 
+import * as admin from "firebase-admin";
+
 const indexClient = new IndexServiceClient({
 	apiEndpoint: `${config.location}-aiplatform.googleapis.com`,
 	fallback: "rest",
 });
 const indexEndpointClient = new IndexEndpointServiceClient();
+
+/**
+ * Creates a new bucket & an empty file in it.
+ *
+ * This is a workaround for the fact that the Matching Engine API requires a bucket
+ * with a file in it.
+ *
+ * @returns {Promise<void>}
+ */
+export async function createEmptyBucket() {
+	await admin
+		.storage()
+		.bucket(config.instanceId)
+		.file("data/empty.json")
+		.save("", {});
+}
 
 export async function createIndex() {
 	const res = await indexClient.createIndex({
@@ -18,44 +36,31 @@ export async function createIndex() {
 			displayName: "Firestore Text Similarity Extension",
 			indexUpdateMethod: "STREAM_UPDATE",
 			metadataSchemaUri:
-				"gs://google-cloud-aiplatform/schema/metadata/index/1.0.0/index_metadata.yaml",
+				"gs://google-cloud-aiplatform/schema/matchingengine/metadata/nearest_neighbor_search_1.0.0.yaml",
 			metadata: {
 				structValue: {
 					fields: {
 						contentsDeltaUri: {
-							stringValue: "gs://your-bucket/path/to/contents-delta",
+							stringValue: `gs://${config.instanceId}/data/empty.json`,
 						},
 						isCompleteOverwrite: { boolValue: false },
 						config: {
 							structValue: {
 								fields: {
 									dimensions: { numberValue: 128 },
+									distanceMeasureType: { stringValue: "DOT_PRODUCT_DISTANCE" },
+									featureNormType: { stringValue: "NONE" },
 									algorithmConfig: {
 										structValue: {
 											fields: {
-												type: { stringValue: "bruteForceConfig" },
+												bruteForceConfig: {
+													structValue: {
+														fields: {},
+													},
+												},
 											},
 										},
-										// structValue: {
-										// 	fields: {
-										// 		type: { stringValue: "treeAhConfig" },
-										// 		treeAhConfig: {
-										// 			structValue: {
-										// 				fields: {
-										// 					type: { stringValue: "treeAhConfig" },
-										// 					leafNodeEmbeddingCount: { numberValue: 1000 },
-										// 					leafNodesToSearchPercent: { numberValue: 10 },
-										// 				},
-										// 			},
-										// 		},
-										// 	},
-										//},
 									},
-									// approximateNeighborsCount: { numberValue: 100 },
-									// distanceMeasureType: {
-									// 	stringValue: "DOT_PRODUCT_DISTANCE",
-									// },
-									// featureNormType: { stringValue: "NONE" },
 								},
 							},
 						},
