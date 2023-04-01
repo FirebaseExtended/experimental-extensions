@@ -286,7 +286,6 @@ params:
         value: vi-VN
     default: en-US
     required: false
-    immutable: true
 
   - param: VOICE_TYPE
     label: Voice type
@@ -303,7 +302,6 @@ params:
       - label: Studio
         value: Studio
     default: Standard
-    required: true
 
   - param: SSML_GENDER
     label: SSML Gender
@@ -323,8 +321,6 @@ params:
       What audio encoding do you want to use?
     type: select
     options:
-    - label: Unspecified
-      value: AUDIO_ENCODING_UNSPECIFIED
     - label: LINEAR16
       value: LINEAR16
     - label: MP3
@@ -335,7 +331,7 @@ params:
       value: MULAW
     - label: ALAW
       value: ALAW
-    default: AUDIO_ENCODING_UNSPECIFIED
+    default: MP3
     required: true
     
   - param: ENABLE_PER_DOCUMENT_OVERRIDES
