@@ -128,9 +128,234 @@ params:
   - param: COLLECTION_PATH
     label: Collection path
     description: >
-      What is the path to the collection that contains the strings that you want to translate?
+      What collection path contains documents with text you want to synthesize?
     example: translations
     validationRegex: "^[^/]+(/[^/]+/[^/]+)*$"
     validationErrorMessage: Must be a valid Cloud Firestore Collection
-    default: translations
+    type: string
+    default: synthesize
     required: true
+
+  - param: BUCKET_NAME
+    label: Bucket name
+    description: >
+      In which storage bucket do you want to keep synthesized text?
+    type: string
+    required: false
+
+  - param: STORAGE_PATH
+    label: Storage path
+    description: >
+      What is the location in your storage bucket you would like to keep synthesized audio?
+      By default this will be the root of the bucket.
+    type: string
+    required: false
+
+  - param: ENABLE_SSML
+    label: Enable ssml
+    description: >-
+      If set to \"Yes\", text processed by this extension will be assumed to be written in ssml.
+    type: select
+    options:
+      - label: Yes
+        value: yes
+      - label: No
+        value: no
+    default: no
+    required: true
+
+  - param: LANGUAGE_CODE
+    label: Language code
+    description: >-
+      What language code do you want to use?
+    type: select
+    options:
+      - label: Afrikaans (South Africa)
+        value: af-ZA
+      - label: Arabic
+        value: ar-XA
+      - label: Basque (Spain)
+        value: eu-ES
+      - label: Bengali (India)
+        value: bn-IN
+      - label: Bulgarian (Bulgaria)
+        value: bg-BG
+      - label: Catalan (Spain)
+        value: ca-ES
+      - label: Chinese (Hong Kong)
+        value: yue-HK
+      - label: Czech (Czech Republic)
+        value: cs-CZ
+      - label: Danish (Denmark)
+        value: da-DK
+      - label: Dutch (Belgium)
+        value: nl-BE
+      - label: Dutch (Netherlands)
+        value: nl-NL
+      - label: English (Australia)
+        value: en-AU
+      - label: English (India)
+        value: en-IN
+      - label: English (UK)
+        value: en-GB
+      - label: English (US)
+        value: en-US
+      - label: Filipino (Philippines)
+        value: fil-PH
+      - label: Finnish (Finland)
+        value: fi-FI
+      - label: French (Canada)
+        value: fr-CA
+      - label: French (France)
+        value: fr-FR
+      - label: Galician (Spain)
+        value: gl-ES
+      - label: German (Germany)
+        value: de-DE
+      - label: Greek (Greece)
+        value: el-GR
+      - label: Gujarati (India)
+        value: gu-IN
+      - label: Hebrew (Israel)
+        value: he-IL
+      - label: Hindi (India)
+        value: hi-IN
+      - label: Hungarian (Hungary)
+        value: hu-HU
+      - label: Icelandic (Iceland)
+        value: is-IS
+      - label: Indonesian (Indonesia)
+        value: id-ID
+      - label: Italian (Italy)
+        value: it-IT
+      - label: Japanese (Japan)
+        value: ja-JP
+      - label: Kannada (India)
+        value: kn-IN
+      - label: Korean (South Korea)
+        value: ko-KR
+      - label: Latvian (Latvia)
+        value: lv-LV
+      - label: Lithuanian (Lithuania)
+        value: lt-LT
+      - label: Malay (Malaysia)
+        value: ms-MY
+      - label: Malayalam (India)
+        value: ml-IN
+      - label: Mandarin Chinese
+        value: cmn-CN
+      - label: Mandarin Chinese TW
+        value: cmn-TW
+      - label: Marathi (India)
+        value: mr-IN
+      - label: Norwegian (Norway)
+        value: nb-NO
+      - label: Polish (Poland)
+        value: pl-PL
+      - label: Portuguese (Brazil)
+        value: pt-BR
+      - label: Portuguese (Portugal)
+        value: pt-PT
+      - label: Punjabi (India)
+        value: pa-IN
+      - label: Romanian (Romania)
+        value: ro-RO
+      - label: Russian (Russia)
+        value: ru-RU
+      - label: Serbian (Cyrillic)
+        value: sr-RS
+      - label: Slovak (Slovakia)
+        value: sk-SK
+      - label: Spanish (Spain)
+        value: es-ES
+      - label: Spanish (US)
+        value: es-US
+      - label: Swedish (Sweden)
+        value: sv-SE
+      - label: Tamil (India)
+        value: ta-IN
+      - label: Telugu (India)
+        value: te-IN
+      - label: Thai (Thailand)
+        value: th-TH
+      - label: Turkish (Turkey)
+        value: tr-TR
+      - label: Ukrainian (Ukraine)
+        value: uk-UA
+      - label: Vietnamese (Vietnam)
+        value: vi-VN
+    default: en-US
+    required: false
+    immutable: true
+
+  - param: VOICE_TYPE
+    label: Voice type
+    description: >-
+      What voice type do you want to use?
+    type: select
+    options:
+      - label: Standard
+        value: Standard
+      - label: WaveNet
+        value: WaveNet
+      - label: Neural2
+        value: Neural2
+      - label: Studio
+        value: Studio
+    default: Standard
+    required: true
+
+  - param: SSML_GENDER
+    label: SSML Gender
+    description: >-
+      What SSML Gender do you want to use?
+    options:
+      - label: Female
+        value: FEMALE
+      - label: Male
+        value: MALE
+    default: FEMALE
+    required: true
+
+  - param: AUDIO_ENCODING
+    label: SSML Gender
+    description: >-
+      What audio encoding do you want to use?
+    type: select
+    options:
+    - label: Unspecified
+      value: AUDIO_ENCODING_UNSPECIFIED
+    - label: LINEAR16
+      value: LINEAR16
+    - label: MP3
+      value: MP3
+    - label: OGG_OPUS
+      value: OGG_OPUS
+    - label: MULAW
+      value: MULAW
+    - label: ALAW
+      value: ALAW
+    default: AUDIO_ENCODING_UNSPECIFIED
+    required: true
+    
+  - param: ENABLE_PER_DOCUMENT_OVERRIDES
+    label: Enable per document overrides.
+    description: >-
+      If set to \"Yes\", options for synthesizing audio will be overwritten 
+      by fields in the document containing the text to be synthesized.
+    type: select
+    options:
+      - label: Yes
+        value: yes
+      - label: No
+        value: no
+    default: no
+    required: true
+
+  - param: VOICE_NAME
+    label: Voice name
+    description: >
+      Alternatively you may specify a voice name, this will override other
+      extension synthesization parameters (language code, SSML Gender, Voice type).
+    type: string
+    required: false

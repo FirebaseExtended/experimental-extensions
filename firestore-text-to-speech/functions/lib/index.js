@@ -9,6 +9,15 @@ const tts = require("@google-cloud/text-to-speech");
 const logger = functions.logger;
 admin.initializeApp();
 const ttsClient = new tts.TextToSpeechClient();
+function buildRequest({ text, languageCode = config_1.default.languageCode, ssmlGender = config_1.default.ssmlGender, audioEncoding = config_1.default.audioEncoding, voiceName = config_1.default.voiceName }) {
+    return {
+        input: config_1.default.ssml ? { ssml: text } : { text: text },
+        voice: voiceName ? { name: voiceName } : { languageCode, ssmlGender },
+        audioConfig: {
+            audioEncoding
+        }
+    };
+}
 exports.processText = functions
     .runWith({ secrets: [`ext-${process.env.EXT_INSTANCE_ID}-API_KEY`] })
     .tasks.taskQueue({
@@ -22,14 +31,14 @@ exports.processText = functions
     },
 })
     .onDispatch(async (data) => {
-    const text = data.text;
-    const id = data.id;
+    const request = data.request;
+    const docId = data.docId;
     try {
-        const speech = await textToSpeech(text);
+        const speech = await textToSpeech(request);
         if (speech && speech.audioContent) {
             // Merge the address validity data with the address document.
             const bucket = admin.storage().bucket();
-            const file = bucket.file(id + ".mpeg");
+            const file = bucket.file(docId + ".mpeg");
             await file.save(Buffer.from(speech.audioContent));
             return;
         }
@@ -42,31 +51,29 @@ exports.textToSpeechTrigger = functions.firestore
     .document(`${config_1.default.collectionPath}/{docId}`)
     .onCreate(async (snap, _) => {
     if (snap.data().text) {
-        await enqueueTask(snap.data().text, snap.id);
+        const { text, languageCode, ssmlGender, audioEncoding, voiceName } = snap.data();
+        const request = config_1.default.enablePerDocumentOverrides ? buildRequest({
+            text,
+            languageCode,
+            ssmlGender,
+            audioEncoding,
+            voiceName
+        }) : buildRequest({ text });
+        await enqueueTask(request, snap.id);
     }
     return;
 });
-async function enqueueTask(text, docId) {
+async function enqueueTask(request, docId) {
     // Retry the request if it fails.
     const queue = (0, functions_1.getFunctions)().taskQueue(`ext-${process.env.EXT_INSTANCE_ID}-processText`);
     await queue.enqueue({
-        text: text,
-        id: docId,
+        request,
+        docId,
     }, 
     // Retry the request after 60 seconds.
     { scheduleDelaySeconds: 60 });
 }
-async function textToSpeech(text) {
-    const ssmlGender = tts.protos.google.cloud.texttospeech.v1.SsmlVoiceGender.NEUTRAL;
-    const audioEncoding = tts.protos.google.cloud.texttospeech.v1.AudioEncoding.MP3;
-    // Construct the request
-    const request = {
-        input: { text: text },
-        // Select the language and SSML voice gender (optional)
-        voice: { languageCode: 'en-US', ssmlGender },
-        // select the type of audio encoding
-        audioConfig: { audioEncoding },
-    };
+async function textToSpeech(request) {
     let response;
     // Performs the text-to-speech request
     try {

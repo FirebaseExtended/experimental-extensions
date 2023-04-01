@@ -15,7 +15,16 @@
  * limitations under the License.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = {
+const config = {
     location: process.env.LOCATION,
     collectionPath: process.env.COLLECTION_PATH,
+    ssml: process.env.SSML === "yes",
+    languageCode: process.env.LANGUAGE_CODE,
+    audioEncoding: process.env.AUDIO_ENCODING,
+    ssmlGender: process.env.SSML_GENDER,
+    bucketName: process.env.BUCKET_NAME,
+    storagePath: process.env.STORAGE_PATH,
+    enablePerDocumentOverrides: process.env.ENABLE_PER_DOCUMENT_OVERRIDES === "yes",
+    voiceName: process.env.VOICE_NAME
 };
+exports.default = config;

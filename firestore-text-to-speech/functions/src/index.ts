@@ -3,14 +3,39 @@ import * as functions from "firebase-functions";
 import { getFunctions } from "firebase-admin/functions";
 import config from "./config";
 import * as tts from "@google-cloud/text-to-speech";
-import { Bucket } from "@google-cloud/storage";
-
+import { AudioEncoding, ISynthesizeSpeechRequest, ISynthesizeSpeechResponse, SsmlVoiceGender } from "./types";
 
 const logger = functions.logger;
 
 admin.initializeApp();
 
 const ttsClient = new tts.TextToSpeechClient();
+
+
+interface BuildRequestOptions {
+    text: string;
+    languageCode?: string;
+    ssmlGender?: SsmlVoiceGender;
+    audioEncoding?: AudioEncoding;
+    voiceName?: string;
+}
+
+function buildRequest({
+    text,
+    languageCode = config.languageCode,
+    ssmlGender = config.ssmlGender,
+    audioEncoding = config.audioEncoding,
+    voiceName = config.voiceName
+}: BuildRequestOptions): ISynthesizeSpeechRequest {
+    return {
+        input: config.ssml ? { ssml: text } : { text: text },
+        voice: voiceName ? { name: voiceName } : {languageCode, ssmlGender},
+        audioConfig: {
+            audioEncoding
+        }
+    }
+}
+
 
 export const processText = functions
     .runWith({ secrets: [`ext-${process.env.EXT_INSTANCE_ID}-API_KEY`] })
@@ -25,16 +50,16 @@ export const processText = functions
         },
     })
     .onDispatch(async (data) => {
-        const text = data.text as string
-        const id = data.id as string
+        const request: ISynthesizeSpeechRequest = data.request;
+        const docId: string = data.docId;
 
         try {
-            const speech = await textToSpeech(text);
+            const speech = await textToSpeech(request);
             if (speech && speech.audioContent) {
                 // Merge the address validity data with the address document.
 
                 const bucket = admin.storage().bucket();
-                const file = bucket.file(id + ".mpeg");
+                const file = bucket.file(docId + ".mpeg");
 
                 await file.save(Buffer.from(speech.audioContent))
 
@@ -50,44 +75,47 @@ export const processText = functions
 export const textToSpeechTrigger = functions.firestore
     .document(`${config.collectionPath}/{docId}`)
     .onCreate(async (snap, _) => {
-
         if (snap.data().text) {
-            await enqueueTask(snap.data().text, snap.id);
+            const {
+                text,
+                languageCode,
+                ssmlGender,
+                audioEncoding,
+                voiceName
+            } = snap.data() as BuildRequestOptions;
+
+            const request = config.enablePerDocumentOverrides ? buildRequest({
+                text,
+                languageCode,
+                ssmlGender,
+                audioEncoding,
+                voiceName
+            }) : buildRequest({ text });
+            await enqueueTask(request, snap.id);
         }
         return;
     });
 
 
 
-async function enqueueTask(text: string, docId: string) {
+async function enqueueTask(request: ISynthesizeSpeechRequest, docId: string) {
     // Retry the request if it fails.
     const queue = getFunctions().taskQueue(
         `ext-${process.env.EXT_INSTANCE_ID}-processText`
     );
     await queue.enqueue(
         {
-            text: text,
-            id: docId,
+            request,
+            docId,
         },
         // Retry the request after 60 seconds.
         { scheduleDelaySeconds: 60 }
     );
 }
 
-async function textToSpeech(text: string) {
 
-    const ssmlGender = tts.protos.google.cloud.texttospeech.v1.SsmlVoiceGender.NEUTRAL;
-    const audioEncoding = tts.protos.google.cloud.texttospeech.v1.AudioEncoding.MP3;
-
-    // Construct the request
-    const request = {
-        input: { text: text },
-        // Select the language and SSML voice gender (optional)
-        voice: { languageCode: 'en-US', ssmlGender },
-        // select the type of audio encoding
-        audioConfig: { audioEncoding },
-    };
-    let response: tts.protos.google.cloud.texttospeech.v1.ISynthesizeSpeechResponse;
+async function textToSpeech(request: ISynthesizeSpeechRequest) {
+    let response: ISynthesizeSpeechResponse;
     // Performs the text-to-speech request
     try {
 

@@ -14,8 +14,32 @@
  * limitations under the License.
  */
 
-export default {
+import { AudioEncoding, SsmlVoiceGender } from "./types";
+
+interface Config {
+  location: string;
+  collectionPath: string;
+  ssml: boolean;
+  languageCode: string;
+  audioEncoding: AudioEncoding;
+  ssmlGender: SsmlVoiceGender;
+  bucketName: string;
+  storagePath: string;
+  enablePerDocumentOverrides: boolean;
+  voiceName: string;
+}
+
+const config: Config = {
     location: process.env.LOCATION,
     collectionPath: process.env.COLLECTION_PATH,
+    ssml: process.env.SSML === "yes",
+    languageCode: process.env.LANGUAGE_CODE,
+    audioEncoding: process.env.AUDIO_ENCODING as unknown as AudioEncoding,
+    ssmlGender: process.env.SSML_GENDER as unknown as SsmlVoiceGender,
+    bucketName: process.env.BUCKET_NAME,
+    storagePath: process.env.STORAGE_PATH,
+    enablePerDocumentOverrides: process.env.ENABLE_PER_DOCUMENT_OVERRIDES === "yes",
+    voiceName: process.env.VOICE_NAME
   };
-  
+
+export default config;
