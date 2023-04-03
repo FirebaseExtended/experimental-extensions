@@ -120,7 +120,7 @@ params:
       Invalid paths, must be a comma-separated list of absolute path values.
     required: false
 
-  - param: LABEL_MODE
+  - param: DETAIL
     label: Amount of text extraction information to write to firestore.
     description: >
       How much information should be written to firestore? Do you want just the extracted text written to firestore, 

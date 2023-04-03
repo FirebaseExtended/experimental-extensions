@@ -75,7 +75,7 @@ exports.extractText = functions.storage.object().onFinalize(async (object) => {
 
   const extractedText = textAnnotations[0].description;
   
-  const data = config.mode === "basic" ? {
+  const data = config.detail === "basic" ? {
     file: `gs://${object.bucket}/${object.name}`,
     text: extractedText,
   } : {
