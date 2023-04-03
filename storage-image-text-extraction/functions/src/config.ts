@@ -14,6 +14,13 @@
  * limitations under the License.
  */
 
+function paramToArray(param : unknown) {
+  return typeof param === "string" ? param.split(",") : undefined;
+}
+
 export default {
   collectionPath: process.env.COLLECTION_PATH || "extractedText",
+  includePathList: paramToArray(process.env.INCLUDE_PATH_LIST),
+  excludePathList: paramToArray(process.env.EXCLUDE_PATH_LIST),
+  mode: process.env.LABEL_MODE === "basic" ? "basic" : "full",
 };

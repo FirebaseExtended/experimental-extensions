@@ -15,27 +15,25 @@
  */
 
 import * as functions from "firebase-functions";
+import * as admin from "firebase-admin";
 import vision from "@google-cloud/vision";
-
+import * as logs from "./logs";
 import config from "./config";
+import { shouldExtractText } from "./util";
 
-const admin = require("firebase-admin");
 admin.initializeApp();
 
 const client = new vision.ImageAnnotatorClient();
 const db = admin.firestore();
 
 exports.extractText = functions.storage.object().onFinalize(async (object) => {
-  // TODO: allow configuration.
-  if (
-    !object.name?.toLowerCase().endsWith(".jpg") &&
-    !object.name?.toLowerCase().endsWith(".jpeg") &&
-    !object.name?.toLowerCase().endsWith(".png")
-  ) {
+  
+  if (!shouldExtractText(object)) {
     return;
   }
+
   const bucket = admin.storage().bucket(object.bucket);
-  const imageContents = await bucket.file(object.name).download();
+  const imageContents = await bucket.file(object.name!).download();
   const imageBase64 = Buffer.from(imageContents[0]).toString("base64");
   const request = {
     image: {
@@ -55,20 +53,20 @@ exports.extractText = functions.storage.object().onFinalize(async (object) => {
   const textAnnotations = results.textAnnotations;
 
   if (!textAnnotations) {
-    functions.logger.log(`text annotation did not complete successfully on image ${filePath}`);
+    logs.imageExtractionFailed(object.name!)
     return;
   }
 
-  functions.logger.log("Extracted text from image: ", textAnnotations);
+  logs.successfulImageExtraction(object.name!)
 
   if (textAnnotations.length === 0 || !textAnnotations[0].description) {
-    functions.logger.log(`No text found in image ${filePath}`);
+    logs.noTextFound(object.name!)
 
     await db
     .collection(config.collectionPath)
-    .doc(object.name)
-    .create({
-      file: "gs://" + object.bucket + "/" + object.name,
+    .doc(object.name!)
+    .set({
+      file: filePath,
       text: null,
     });
 
@@ -77,11 +75,16 @@ exports.extractText = functions.storage.object().onFinalize(async (object) => {
 
   const extractedText = textAnnotations[0].description;
   
+  const data = config.mode === "basic" ? {
+    file: `gs://${object.bucket}/${object.name}`,
+    text: extractedText,
+  } : {
+    file: `gs://${object.bucket}/${object.name}`,
+    textAnnotations
+  }
+
   await db
     .collection(config.collectionPath)
-    .doc(object.name)
-    .create({
-      file: "gs://" + object.bucket + "/" + object.name,
-      text: extractedText,
-    });
+    .doc(object.name!)
+    .set(data);
 });
