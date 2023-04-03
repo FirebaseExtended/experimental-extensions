@@ -16,7 +16,7 @@ You can test out this extension right away!
 
 You can upload images using the [Cloud Storage for Firebase SDK](https://firebase.google.com/docs/storage/) for your platform (iOS, Android, or Web). Alternatively, you can upload images directly in the Firebase console's Storage dashboard.
 
-Whenever you upload an image to the specified bucket and directory, this extension will label (classify) any images uploaded to a specific Cloud Storag bucket and write the labels to Firestore, under the name of the file that was uploaded..
+Whenever you upload an image to the specified bucket and directory, this extension will label (classify) any images uploaded to a specific Cloud Storage bucket and write the labels to Firestore, under the name of the file that was uploaded.
 
 ### Monitoring
 
