@@ -17,8 +17,10 @@
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
 import vision from "@google-cloud/vision";
-
+import * as logs from "./logs";
 import config from "./config";
+import { formatLabels, getVisionRequest, shouldLabelImage } from "./util";
+import { IAnnotatedImageResponse } from "./types";
 
 admin.initializeApp();
 
@@ -29,48 +31,49 @@ export const labelImage = functions.storage
   .bucket(process.env.IMG_BUCKET)
   .object()
   .onFinalize(async (object) => {
-    // TODO: allow configuration.
-    const { contentType } = object; // This is the image MIME type
-    if (!contentType) {
-      functions.logger.log(
-        `Ignoring file "${object.name}" unable to determine content type`
-      );
+
+    logs.functionTriggered(config);
+
+
+    if (!shouldLabelImage(object)) {
       return;
     }
-    if (!contentType.startsWith("image/")) {
-      functions.logger.log(
-        `Ignoring file "${object.name}" because it's not an image`
-      );
-      return;
-    }
-    if (!object.name) {
-      functions.logger.log(
-        `Ignoring file "${object.id}" because it has no name`
-      );
-      return;
-    }
+
     const bucket = admin.storage().bucket(object.bucket);
-    const imageContents = await bucket.file(object.name).download();
+    const imageContents = await bucket.file(object.name!).download();
     const imageBase64 = Buffer.from(imageContents[0]).toString("base64");
-    const request = {
-      image: {
-        content: imageBase64,
-      },
-      features: [
-        {
-          type: "LABEL_DETECTION",
-        },
-      ],
-    };
-    const results = await client.annotateImage(request);
-    const labels = results?.[0]?.labelAnnotations?.map(
-      (label) => label.description
-    );
+
+    const request = getVisionRequest(imageBase64);
+
+    logs.labelingImage(object.name!);
+    let results: IAnnotatedImageResponse
+
+    try {
+      [results] = await client.annotateImage(request);
+    } catch (error) {
+      logs.labelingError(object.name!, error);
+      return;
+    }
+    logs.labelingComplete(object.name!);
+
+    let labelAnnotations = results.labelAnnotations;
+
+    if (!labelAnnotations) {
+      logs.noLabels(object.name!);
+      labelAnnotations = [];
+    }
+
+    logs.writingToFirestore(object.name!);
+    // prevent from creating a document with a slash in the name
+    const docName = object.name!.replace(/\//g, "_");
+
+    const labels = formatLabels(labelAnnotations)
+
     await db
       .collection(config.collectionPath)
-      .doc(object.name)
-      .create({
-        file: "gs://" + object.bucket + "/" + object.name,
+      .doc(docName)
+      .set({
+        file: `gs://${object.bucket}/${object.name}`,
         labels,
       });
   });
