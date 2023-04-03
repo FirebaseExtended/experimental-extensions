@@ -35,8 +35,8 @@ exports.labelVideo = functions.storage.object().onFinalize(async (object) => {
   if (!shouldProcessStorageObject(object.name)) return;
 
   // Output to a folder named the same as the original file, minus the file extension.
-  const outputUri = `gs://${config.outputVideosBucket}${
-    config.outputVideosPath
+  const outputUri = `gs://${config.outputBucket}${
+    config.outputPath
   }${path.basename(object.name)}.json`;
 
   const annotateConfig: IAnnotateVideoRequest = {

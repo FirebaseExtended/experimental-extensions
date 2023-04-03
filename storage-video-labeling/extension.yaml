@@ -66,8 +66,8 @@ params:
     default: ${STORAGE_BUCKET}
     required: true
 
-  - param: OUTPUT_VIDEOS_BUCKET
-    label: Cloud Storage bucket where processed videos should be output to.
+  - param: OUTPUT_BUCKET
+    label: Cloud Storage bucket where the ouput json from a processed videos should be stored.
     description: >
       Cloud Storage bucket where videos should be process to.
     type: string
@@ -88,10 +88,10 @@ params:
     default: /video_annotation_input/
     required: true
 
-  - param: OUTPUT_VIDEOS_PATH
+  - param: OUTPUT_PATH
     label: Output videos path
     description: >
-      A Storage path in the output video bucket that the processed videos should be output to.
+      A Storage path in the output video bucket that the output json should be stored.
     type: string
     example: /video_annotation_output/
     validationRegex: ^\/([0-9a-zA-Z_\/\-]*\/){0,1}$

@@ -13,7 +13,7 @@
     "generate-readme": "node ../../generate-experimental-readme.js storage-label-videos > ../README.md"
   },
   "engines": {
-    "node": "12"
+    "node": "16"
   },
   "main": "lib/index.js",
   "dependencies": {
