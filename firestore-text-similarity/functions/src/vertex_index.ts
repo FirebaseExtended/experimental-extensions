@@ -31,7 +31,7 @@ export async function createIndex() {
 		structValue: {
 			fields: {
 				contentsDeltaUri: {
-					stringValue: `gs://${config.instanceId}/data/empty.json`,
+					stringValue: `gs://${config.instanceId}/data`,
 				},
 				isCompleteOverwrite: { boolValue: false },
 				config: {

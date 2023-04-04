@@ -65,7 +65,7 @@ resources:
           - attribute: serviceName
             value: aiplatform.googleapis.com
           - attribute: methodName
-            value: google.cloud.aiplatform.v1beta1.IndexService.CreateIndex
+            value: google.cloud.aiplatform.v1.IndexService.CreateIndex
   - name: setupMatchingEngine
     type: firebaseextensions.v1beta.function
     description: >-

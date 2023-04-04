@@ -14,16 +14,34 @@ import {
 
 admin.initializeApp();
 
+/**
+ * Setup the Matching Engine Index on the first run of the extension.
+ */
+export const setupMatchingEngine = functions
+	.runWith({ memory: "2GB", vpcConnector: config.network })
+	.tasks.taskQueue()
+	.onDispatch(async (task) => {
+		const runtime = getExtensions().runtime();
+
+		try {
+			// await createEmptyBucket();
+			await createIndex();
+
+			// TODO - Make sure Cloud Audit Logs is enabled for Vertex AI API.
+		} catch (error) {
+			functions.logger.error(error);
+			await runtime.setProcessingState(
+				"PROCESSING_FAILED",
+				"Failed to generate embeddings, for more details check the logs."
+			);
+		}
+	});
+
+/**
+ * Triggered when a new index is created.
+ */
 export const onIndexCreated = functionsv2.eventarc.onCustomEventPublished(
-	{
-		memory: "512MiB",
-		eventType: "google.cloud.audit.log.v1.written",
-		eventFilters: {
-			"protoPayload.methodName":
-				"google.cloud.aiplatform.v1beta1.IndexService.CreateIndex",
-			"protoPayload.serviceName": "apikeys.googleapis.com",
-		},
-	},
+	"google.cloud.audit.log.v1.written",
 	async (event) => {
 		const runtime = getExtensions().runtime();
 		functionsv2.logger.info("Event recieved", event);
@@ -37,26 +55,6 @@ export const onIndexCreated = functionsv2.eventarc.onCustomEventPublished(
 		);
 	}
 );
-
-export const setupMatchingEngine = functions
-	.runWith({ memory: "2GB", vpcConnector: config.network })
-	.tasks.taskQueue()
-	.onDispatch(async (task) => {
-		const runtime = getExtensions().runtime();
-
-		try {
-			// await createEmptyBucket();
-			await createIndex();
-
-			// TODO - The index takes around 40 minutes, will need an asynchronous solution
-		} catch (error) {
-			functions.logger.error(error);
-			await runtime.setProcessingState(
-				"PROCESSING_FAILED",
-				"Failed to generate embeddings, for more details check the logs."
-			);
-		}
-	});
 
 export const generateEmbeddingsFirestore = functions
 	.runWith({ memory: "2GB", timeoutSeconds: 540, vpcConnector: config.network })
