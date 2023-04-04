@@ -200,7 +200,8 @@ function deliver(write: QueuedWrite) {
   return ref.set(data, { merge: MERGE_WRITE });
 }
 
-exports.deliverWrites = functions.handler.pubsub.schedule.onRun(async () => {
+
+exports.deliverWrites = functions.pubsub.schedule('scheduled writes').onRun(async () => {
   try {
     await resetStuck();
     await fetchAndProcess();
