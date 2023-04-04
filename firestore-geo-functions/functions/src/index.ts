@@ -33,6 +33,7 @@ const gMapsClient = new MapsClient();
 admin.initializeApp();
 
 async function getLatLong(address: string, docRef: DocumentReference) {
+  console.log("Step 1  >>>>");
   try {
     const result = await geocode(address);
 
@@ -62,12 +63,16 @@ export const updateLatLong = functions
       docId: string;
     };
 
+    console.log("config >>>>>", message, config);
+
     const doc = admin.firestore().collection(config.collectionId).doc(docId);
     const getDoc = await doc.get();
     if (getDoc.updateTime) {
       const ThirtyDaysAgo =
         admin.firestore.Timestamp.now().seconds - 60 * 60 * 24 * 30;
+
       if (getDoc.updateTime.seconds >= ThirtyDaysAgo) {
+        console.log("here >>>", getDoc.updateTime);
         // Abort if the document has been updated in the last 30 days.
         return;
       }
@@ -162,6 +167,8 @@ async function geocode(
       status: result.data.status,
     };
   }
+
+  console.log("Step 2  >>>>", result.data.status);
 
   const location = result.data.results[0].geometry.location;
 
