@@ -43,29 +43,20 @@ apis:
 roles:
   - role: datastore.user
     reason: Allows the extension to write translated strings to Cloud Firestore.
-  - role: storage.admin
+  - role: storage.objectAdmin
     reason: Allows the extension to write translated strings to Cloud Storage.
 
 resources:
-  - name: textToSpeechTrigger
+  - name: textToSpeech
     type: firebaseextensions.v1beta.function
     description:
-      Processes document changes in the specified Cloud Firestore collection,
-      syncing them to custom claims in Firebase Auth users.
+      Processes document changes in the specified Cloud Firestore collection, writing synthesized natural speech files to Cloud Storage
     properties:
       location: ${param:LOCATION}
       runtime: nodejs16
       eventTrigger:
         eventType: providers/cloud.firestore/eventTypes/document.write
         resource: projects/${param:PROJECT_ID}/databases/(default)/documents/${param:COLLECTION_PATH}/{id}
-  - name: processText
-    type: firebaseextensions.v1beta.function
-    description: >-
-      Handles tasks from text to speech.
-    properties:
-      location: ${LOCATION}
-      runtime: nodejs14
-      taskQueueTrigger: {}
 
 params:
   - param: LOCATION
@@ -307,6 +298,7 @@ params:
     label: SSML Gender
     description: >-
       What SSML Gender do you want to use?
+    type: select
     options:
       - label: Female
         value: FEMALE
