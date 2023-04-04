@@ -1,5 +1,6 @@
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
+import config from "./config";
 
 admin.initializeApp();
 
@@ -18,20 +19,19 @@ interface QueuedWrite {
   serverTimestampFields?: string[];
 }
 
-const MERGE_WRITE = process.env.MERGE_WRITE === "true";
 const BATCH_SIZE = 100;
-const QUEUE_COLLECTION = process.env.QUEUE_COLLECTION || "queued_writes";
-const TARGET_COLLECTION = process.env.TARGET_COLLECTION;
-const STALENESS_THRESHOLD_SECONDS = parseInt(
-  process.env.STALENESS_THRESHOLD_SECONDS || "0",
-  10
-);
-const CLEANUP: "DELETE" | "KEEP" =
-  (process.env.CLEANUP as "DELETE" | "KEEP") || "DELETE";
+
+const {
+  mergeWrite,
+  queueCollection,
+  targetCollection,
+  stalenessThresholdSeconds,
+  cleanup
+} = config;
 
 const db = admin.firestore();
-const queueRef = db.collection(QUEUE_COLLECTION);
-const targetRef = TARGET_COLLECTION ? db.collection(TARGET_COLLECTION) : null;
+const queueRef = db.collection(queueCollection);
+const targetRef = targetCollection ? db.collection(targetCollection) : null;
 
 async function fetchAndProcess(): Promise<void> {
   const toProcess = await queueRef
@@ -59,7 +59,7 @@ async function fetchAndProcess(): Promise<void> {
     }
 
     functions.logger.error(
-      `Failed to deliver "${QUEUE_COLLECTION}/${result.id}":`,
+      `Failed to deliver "${queueCollection}/${result.id}":`,
       result.error
     );
   }
@@ -80,8 +80,8 @@ function isStale(write: QueuedWrite): boolean {
   return (
     (write.invalidAfterTime &&
       write.invalidAfterTime.toMillis() < Date.now()) ||
-    (STALENESS_THRESHOLD_SECONDS > 0 &&
-      write.deliverTime.toMillis() + STALENESS_THRESHOLD_SECONDS * 1000 <
+    (stalenessThresholdSeconds > 0 &&
+      write.deliverTime.toMillis() + stalenessThresholdSeconds * 1000 <
         Date.now())
   );
 }
@@ -92,7 +92,7 @@ async function processWrite(
 ): Promise<ProcessResult> {
   let error;
   try {
-    if (!write.collection && !write.doc && !TARGET_COLLECTION) {
+    if (!write.collection && !write.doc && !targetCollection) {
       throw new Error("no target collection/doc was specified for this write");
     }
 
@@ -114,11 +114,11 @@ async function processWrite(
 
     if (isStale(write)) {
       functions.logger.warn(
-        `Write "${QUEUE_COLLECTION}/${ref.id}" is past invalidAfterTime, skipped delivery.`
+        `Write "${queueCollection}/${ref.id}" is past invalidAfterTime, skipped delivery.`
       );
     } else {
       await deliver(write);
-      functions.logger.info(`Delivered write "${QUEUE_COLLECTION}/${ref.id}"`);
+      functions.logger.info(`Delivered write "${queueCollection}/${ref.id}"`);
     }
   } catch (e: any) {
     error = e;
@@ -131,7 +131,7 @@ async function processWrite(
   }
 
   if (!error) {
-    switch (CLEANUP) {
+    switch (cleanup) {
       case "DELETE":
         await ref.delete();
         break;
@@ -164,7 +164,7 @@ async function resetStuck(): Promise<void> {
         lastTimeoutTime: admin.firestore.FieldValue.serverTimestamp(),
       });
       functions.logger.error(
-        `Write "${QUEUE_COLLECTION}/${doc.id}" was still PROCESSING after lease expired. Reset to PENDING.`
+        `Write "${queueCollection}/${doc.id}" was still PROCESSING after lease expired. Reset to PENDING.`
       );
     })
   );
@@ -174,34 +174,31 @@ async function resetStuck(): Promise<void> {
   }
 }
 
+function getTargetRef(write: QueuedWrite) {
+  if (targetCollection && write.id) return targetRef!.doc(write.id);
+  if (targetCollection) return targetRef!.doc();
+  if (write.doc) return db.doc(write.doc);
+  if (write.collection) return db.collection(write.collection).doc();
+  throw new Error(
+    `unable to determine write location from scheduled write: ${JSON.stringify(
+      write
+    )}`
+  );
+}
+
 function deliver(write: QueuedWrite) {
-  let ref: admin.firestore.DocumentReference;
-  if (TARGET_COLLECTION && write.id) {
-    ref = targetRef!.doc(write.id);
-  } else if (TARGET_COLLECTION) {
-    ref = targetRef!.doc();
-  } else if (write.doc) {
-    ref = db.doc(write.doc);
-  } else if (write.collection) {
-    ref = db.collection(write.collection).doc();
-  } else {
-    throw new Error(
-      `unable to determine write location from scheduled write: ${JSON.stringify(
-        write
-      )}`
-    );
-  }
+  const ref = getTargetRef(write);
 
   const data = { ...write.data };
   for (const field of write.serverTimestampFields || []) {
     data[field] = admin.firestore.FieldValue.serverTimestamp();
   }
 
-  return ref.set(data, { merge: MERGE_WRITE });
+  return ref.set(data, { merge: mergeWrite });
 }
 
 
-exports.deliverWrites = functions.pubsub.schedule('scheduled writes').onRun(async () => {
+exports.deliverWrites = functions.pubsub.schedule(config.schedule).onRun(async () => {
   try {
     await resetStuck();
     await fetchAndProcess();
