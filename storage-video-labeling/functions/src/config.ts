@@ -17,7 +17,8 @@
 import { parseDetectionMode } from "./utils";
 
 export default {
-  locationId: process.env.LOCATION_ID,
+  locationId: process.env.LOCATION,
+  inputVideosBucket: process.env.INPUT_VIDEOS_BUCKET,
   inputVideosPath: process.env.INPUT_VIDEOS_PATH!,
   outputUri: process.env.OUTPUT_STORAGE_URI,
   outputBucket: process.env.OUTPUT_BUCKET!,
