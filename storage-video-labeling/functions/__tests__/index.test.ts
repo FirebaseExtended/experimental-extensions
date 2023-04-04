@@ -1,5 +1,5 @@
 import * as firebaseFunctionsTest from 'firebase-functions-test';
-import * as videoIntelligence from "@google-cloud/video-intelligence"
+// import * as videoIntelligence from "@google-cloud/video-intelligence"
 import { labelVideo } from '../src/index';
 
 // We mock out the config here instead of setting environment variables directly
@@ -19,28 +19,14 @@ jest.mock('../src/config', () => ({
     }
 }));
 
-// Anything that isnt mocked will be obtained from here. It needs to be a function as jest will
-// hoist mock functions to the top of the file.
-const actualVideoIntelligenceModule = () => videoIntelligence
-
 // mock to check the arguments passed to the annotateVideo function+
 const mock = jest.fn();
 
 // Mock the video intelligence  clent
 jest.mock('@google-cloud/video-intelligence', () => {
     return {
-        protos: {
-            google: {
-                cloud: {
-                    videointelligence: {
-                        v1: {
-                            LabelDetectionMode: () => actualVideoIntelligenceModule().protos.google.cloud.videointelligence.v1.LabelDetectionMode,
-                        }
-                    }
-                }
-            }
-        },
-        VideoIntelligenceServiceClient: jest.fn().mockImplementation(() => {
+        ...jest.requireActual('@google-cloud/video-intelligence'),
+        VideoIntelligenceServiceClient: function mockedClient() {
             return {
                 annotateVideo: async (args: any) => {
                     mock(args)
@@ -52,7 +38,7 @@ jest.mock('@google-cloud/video-intelligence', () => {
                 },
             }
         }
-        )
+
     }
 });
 
@@ -61,14 +47,13 @@ jest.mock('@google-cloud/video-intelligence', () => {
 
 const fft = firebaseFunctionsTest();
 
-
 const wrappedLabelVideo = fft.wrap(labelVideo);
 
 describe('labelVideo', () => {
     beforeEach(() => {
         jest.clearAllMocks();
     });
-    test('should label video', async () => {
+    test('should hit the google API with the correct arguments', async () => {
 
         const testMetadata = fft.storage.makeObjectMetadata({
             name: 'videos/test.mp4',
@@ -97,5 +82,20 @@ describe('labelVideo', () => {
         }
 
         expect(mock).toBeCalledWith(expectedArgs);
+    });
+
+    test('should skip if the object is not in the input path', async () => {
+
+        const testMetadata = fft.storage.makeObjectMetadata({
+            name: 'notvideos/test.mp4',
+            bucket: 'test-bucket',
+            contentType: 'video/mp4',
+            size: '1234',
+            timeCreated: '2020-01-01T00:00:00.000Z',
+        });
+
+        await wrappedLabelVideo(testMetadata);
+
+        expect(mock).not.toBeCalled();
     });
 });
