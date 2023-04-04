@@ -1,9 +1,10 @@
-import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
+import * as functions from "firebase-functions";
+import * as functionsv2 from "firebase-functions/v2";
 import { getExtensions } from "firebase-admin/extensions";
 
+import config from "./config";
 import { isValidReference } from "./utils";
-import { getEmbeddings } from "./embeddings";
 import {
 	createEmptyBucket,
 	createIndex,
@@ -11,9 +12,31 @@ import {
 	deployIndex,
 } from "./vertex_index";
 
-import config from "./config";
-
 admin.initializeApp();
+
+export const onIndexCreated = functionsv2.eventarc.onCustomEventPublished(
+	{
+		memory: "512MiB",
+		eventType: "google.cloud.audit.log.v1.written",
+		eventFilters: {
+			"protoPayload.methodName":
+				"google.cloud.aiplatform.v1beta1.IndexService.CreateIndex",
+			"protoPayload.serviceName": "apikeys.googleapis.com",
+		},
+	},
+	async (event) => {
+		const runtime = getExtensions().runtime();
+		functionsv2.logger.info("Event recieved", event);
+
+		const res = await createIndexEndpoint();
+		functionsv2.logger.info("Index Endpoint created", res);
+
+		await runtime.setProcessingState(
+			"PROCESSING_COMPLETE",
+			"Successfuly created a Matching Index Endpoint."
+		);
+	}
+);
 
 export const setupMatchingEngine = functions
 	.runWith({ memory: "2GB", vpcConnector: config.network })
@@ -22,11 +45,10 @@ export const setupMatchingEngine = functions
 		const runtime = getExtensions().runtime();
 
 		try {
-			await createEmptyBucket();
+			// await createEmptyBucket();
 			await createIndex();
 
-			// TODO - keep track of the tasks status in Firestore
-			// TODO - create an index for the embeddings file
+			// TODO - The index takes around 40 minutes, will need an asynchronous solution
 		} catch (error) {
 			functions.logger.error(error);
 			await runtime.setProcessingState(
@@ -52,36 +74,36 @@ export const generateEmbeddingsFirestore = functions
 			fieldsData.push(data[key]);
 		}
 		functions.logger.debug("Data to be embedded", { fieldsData });
-		const embeddings = await getEmbeddings(fieldsData);
-		functions.logger.info("Embeddings generated 🎉", embeddings.length);
+		//const embeddings = await getEmbeddings(fieldsData);
+		//functions.logger.info("Embeddings generated 🎉", embeddings.length);
 	});
 
-export const generateEmbeddingsTask = functions
-	.runWith({
-		memory: "2GB",
-		timeoutSeconds: 540,
-		vpcConnector: config.network,
-	})
-	.tasks.taskQueue()
-	.onDispatch(async (task) => {
-		const document = task.documents;
-		const snap = await admin.firestore().doc(document).get();
-		const data = snap.data();
+// export const generateEmbeddingsTask = functions
+// 	.runWith({
+// 		memory: "2GB",
+// 		timeoutSeconds: 540,
+// 		vpcConnector: config.network,
+// 	})
+// 	.tasks.taskQueue()
+// 	.onDispatch(async (task) => {
+// 		const document = task.documents;
+// 		const snap = await admin.firestore().doc(document).get();
+// 		const data = snap.data();
 
-		if (!data) return;
-		functions.logger.debug("Skip document?", Object.keys(data).length);
-		if (Object.keys(data).length == 0) return;
+// 		if (!data) return;
+// 		functions.logger.debug("Skip document?", Object.keys(data).length);
+// 		if (Object.keys(data).length == 0) return;
 
-		const fieldsData: string[] = [];
-		for (const key in data) {
-			data.push(data[key]);
-		}
+// 		const fieldsData: string[] = [];
+// 		for (const key in data) {
+// 			data.push(data[key]);
+// 		}
 
-		functions.logger.debug("Data to be embedded", { fieldsData });
-		const embeddings = await getEmbeddings(fieldsData);
-		functions.logger.info("Embeddings generated 🎉", embeddings.length);
+// 		functions.logger.debug("Data to be embedded", { fieldsData });
+// 		const embeddings = await getEmbeddings(fieldsData);
+// 		functions.logger.info("Embeddings generated 🎉", embeddings.length);
 
-		// TODO - store the embeddings in Storage
+// 		// TODO - store the embeddings in Storage
 
-		// TODO - update the task status in Firestore
-	});
+// 		// TODO - update the task status in Firestore
+// 	});

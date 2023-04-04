@@ -20,17 +20,26 @@ apis:
   - apiName: aiplatform.googleapis.com
     reason: >-
       This extension requires Vertex AI to create a Vertex Matching Engine index.
+  - apiName: eventarc.googleapis.com
+    reason: Powers all events and triggers
+  - apiName: run.googleapis.com
+    reason: Powers v2 functions
 
 roles:
   - role: datastore.user
     reason: >-
       This extension requires read/write access to Firestore.
+  - role: storage.admin
+    reason: >-
+      This extension requires write access to Cloud Storage.
+
 
 resources:
   - name: generateEmbeddingsFirestore
     type: firebaseextensions.v1beta.function
     description: >-
-      HTTP request-triggered function that responds with a specified greeting message
+      An event-triggered function that gets called when a document is created or updated.
+      It generates embeddings for the document and updates the Matching Engine index.
     properties:
       location: ${LOCATION}
       runtime: "nodejs16"
@@ -39,19 +48,28 @@ resources:
       eventTrigger:
         eventType: providers/cloud.firestore/eventTypes/document.create
         resource: projects/${param:PROJECT_ID}/databases/(default)/documents/{document=**}/{documentId}
+  - name: onIndexCreated
+    type: firebaseextensions.v1beta.v2function
+    description: >-
+      An event-triggered function that gets called when a Vertex Matching Engine index is created.
+    properties:
+      location: ${LOCATION}
+      buildConfig:
+        runtime: nodejs16
+      serviceConfig:
+        availableMemory: 512M
+      eventTrigger:
+        eventType: google.cloud.audit.log.v1.written
+        triggerRegion: global
+        eventFilters:
+          - attribute: serviceName
+            value: aiplatform.googleapis.com
+          - attribute: methodName
+            value: google.cloud.aiplatform.v1beta1.IndexService.CreateIndex
   - name: setupMatchingEngine
     type: firebaseextensions.v1beta.function
     description: >-
       Sets up the Vertex Matching Engine index and creates a private connection to it.
-    properties:
-      location: ${LOCATION}
-      runtime: "nodejs16"
-      availableMemoryMb: 2048
-      taskQueueTrigger: {}
-  - name: generateEmbeddingsTask
-    type: firebaseextensions.v1beta.function
-    description: >-
-      Generate embeddings for a specified set of documents.
     properties:
       location: ${LOCATION}
       runtime: "nodejs16"
