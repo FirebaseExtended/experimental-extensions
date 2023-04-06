@@ -2,6 +2,8 @@ Use this extension to automatically update the latitude and longitude of an addr
 
 It listens to specified fields in documents within a Firestore collection and updates the `latitude`, `longitude`, and `best driving time` as needed.
 
+### Features
+
 ### Automatically retrieves latitude and longitude for an address.
 This feature listens to Firestore document creation/updates and updates geolocation information accordingly when a valid `address` has been added/updated in a document.
 
@@ -24,7 +26,7 @@ admin.firestore().collection('address_book').add({
 ```
 
 ### Supports exponential backoff for error handling.
-Further best practices lead to using exponential backoff to ensure that the extension will continue to try and updated the document data for any task, by using expoential backoff guidelines through Cloud Tasks.
+The extension uses exponential backoff guidelines through Cloud Tasks to ensure that it will continue trying to update the document data for any task. Learn more about this feature.
 
 You can read more about this feature [here](https://developers.google.com/maps/documentation/routes/web-service-best-practices#exponential-backoff)
 
