@@ -4,7 +4,7 @@ import path from "path";
   require("dotenv").config({
     path: path.resolve(
       __dirname,
-      "../../../_emulator/extensions/firestore-geo-functions.env"
+      "../../../_emulator/extensions/firestore-geo-functions.env.local"
     ),
   });
 

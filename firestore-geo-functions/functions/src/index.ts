@@ -33,7 +33,6 @@ const gMapsClient = new MapsClient();
 admin.initializeApp();
 
 async function getLatLong(address: string, docRef: DocumentReference) {
-  console.log("Step 1  >>>>");
   try {
     const result = await geocode(address);
 
@@ -63,8 +62,6 @@ export const updateLatLong = functions
       docId: string;
     };
 
-    console.log("config >>>>>", message, config);
-
     const doc = admin.firestore().collection(config.collectionId).doc(docId);
     const getDoc = await doc.get();
     if (getDoc.updateTime) {
@@ -72,7 +69,6 @@ export const updateLatLong = functions
         admin.firestore.Timestamp.now().seconds - 60 * 60 * 24 * 30;
 
       if (getDoc.updateTime.seconds >= ThirtyDaysAgo) {
-        console.log("here >>>", getDoc.updateTime);
         // Abort if the document has been updated in the last 30 days.
         return;
       }
@@ -87,31 +83,41 @@ export const updateLatLong = functions
 
 export const writeLatLong = functions.firestore
   .document(`${config.collectionId}/{docId}`)
-  .onWrite(async (snap) => {
-    if (!validateAddress(snap.after, snap.before)) {
-      return;
-    }
+  .onWrite(
+    async (snap: functions.Change<functions.firestore.DocumentSnapshot>) => {
+      if (!validateAddress(snap)) {
+        return;
+      }
 
-    const { address } = snap.after.data() as {
-      address: string;
-      ext_getLatLongStatus?: {
-        status: "OK" | "ERROR";
-        error?: string;
+      const currentSnap = snap.after.exists ? snap.after : snap.before;
+      const currentSnapData = currentSnap.data();
+
+      const { address } = currentSnapData as {
+        address: string;
+        ext_getLatLongStatus?: {
+          status: "OK" | "ERROR";
+          error?: string;
+        };
       };
-    };
 
-    try {
-      await getLatLong(address, snap.after.ref);
-      await enqueueTask(address, snap.after.id);
-    } catch (error) {
-      functions.logger.error(error);
-      await snap.after.ref.update({
-        ext_getLatLongStatus: { status: "ERROR", error: JSON.stringify(error) },
-        longitude: FieldValue.delete(),
-        latitude: FieldValue.delete(),
-      });
+      try {
+        await getLatLong(address, currentSnap.ref);
+
+        /** Run exponential backoff to catch any errors */
+        await enqueueTask(address, currentSnap.id);
+      } catch (error) {
+        functions.logger.error(error);
+        await snap.after.ref.update({
+          ext_getLatLongStatus: {
+            status: "ERROR",
+            error: JSON.stringify(error),
+          },
+          longitude: FieldValue.delete(),
+          latitude: FieldValue.delete(),
+        });
+      }
     }
-  });
+  );
 
 export const writeBestDrivingTime = functions.firestore
   .document(`${config.collectionId}/{docId}`)
@@ -167,8 +173,6 @@ async function geocode(
       status: result.data.status,
     };
   }
-
-  console.log("Step 2  >>>>", result.data.status);
 
   const location = result.data.results[0].geometry.location;
 

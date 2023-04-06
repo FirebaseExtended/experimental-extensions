@@ -16,27 +16,37 @@
 
 import * as functions from "firebase-functions";
 import { firestore } from "firebase-admin";
+import { DocumentChangeType } from "./types";
 
 export function validateAddress(
-  after: firestore.DocumentSnapshot | undefined,
-  before: firestore.DocumentSnapshot | undefined
+  snap: functions.Change<functions.firestore.DocumentSnapshot>
 ): boolean {
-  // If the document was deleted, terminate.
-  if (!after?.data() || !after.exists) {
+  const changeType = checkDocumentChange(snap);
+
+  /** If the document was deleted, terminate. */
+  if (changeType === DocumentChangeType.DELETED) {
     return false;
   }
 
-  const address = after.data()?.address;
+  /** Extract data from the snapshot */
+  const { after, before } = snap;
 
-  if (!address) {
+  const { address: afterAddress } = after?.data() || {};
+  const { address: beforeAddress } = before?.data() || {};
+
+  /** Check document created valdation */
+  if (changeType === DocumentChangeType.CREATED) {
+    /** If no address return false */
+    if (!afterAddress) return false;
+  }
+
+  /** Check that address has been updated */
+  if (beforeAddress === afterAddress) {
     return false;
   }
 
-  if (before?.data()?.address === address) {
-    return false;
-  }
-
-  if (typeof address !== "string") {
+  /** Check if address is string */
+  if (typeof afterAddress !== "string") {
     functions.logger.error("Type of address must be a string");
     return false;
   }
@@ -73,4 +83,20 @@ export function validateOriginAndDestination(
   }
 
   return true;
+}
+
+export function checkDocumentChange(
+  snapshot: functions.Change<functions.firestore.DocumentSnapshot>
+) {
+  const beforeData = snapshot?.before?.data(); // Data before the write operation
+  const afterData = snapshot?.after?.data(); // Data after the write operation
+
+  /** Reference added document */
+  if (!beforeData && afterData) return DocumentChangeType.CREATED;
+
+  /** Reference deleted document */
+  if (beforeData && !afterData) return DocumentChangeType.DELETED;
+
+  /** Reference updated document */
+  return DocumentChangeType.UPDATED;
 }
