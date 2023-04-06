@@ -11,7 +11,7 @@ author:
 
 displayName: Firestore Geo Functions
 
-description: TODO
+description: Provides location based utilities, adding positional infornmation to addresses and calculating distances betweem two locations.
 
 license: Apache-2.0 
 
