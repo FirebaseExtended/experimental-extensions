@@ -19,59 +19,59 @@ import axios from "axios";
 import config from "./config";
 
 export const autocomplete = functions.firestore
-	.document(`${config.collectionId}/{documentId}`)
-	.onWrite(async (snapshot) => {
-		const data = snapshot.after.data();
+  .document(`${config.collectionId}/{documentId}`)
+  .onWrite(async (snapshot) => {
+    const data = snapshot.after.data();
 
-		if (!data) return;
+    if (!data) return;
 
-		if (snapshot.after.isEqual(snapshot.before)) return;
+    if (snapshot.after.isEqual(snapshot.before)) return;
 
-		const { input } = data;
+    const { input } = data;
 
-		if (!input) return;
+    if (!input) return;
 
-		try {
-			const res = await axios({
-				method: "get",
-				url: `https://maps.googleapis.com/maps/api/place/autocomplete/json`,
-				headers: {},
-				params: {
-					input: input,
-					types: "geocode",
-					key: config.apiKey,
-				},
-			});
-			console.log(res.data);
-			if (res.data.status !== "OK") {
-				const {
-					status,
-					error_message,
-				}: {
-					status: string;
-					error_message: string;
-				} = res.data;
-				functions.logger.error(status, error_message);
+    try {
+      const res = await axios({
+        method: "get",
+        url: `https://maps.googleapis.com/maps/api/place/autocomplete/json`,
+        headers: {},
+        params: {
+          input: input,
+          types: "geocode",
+          key: config.apiKey,
+        },
+      });
+      console.log(res.data);
+      if (res.data.status !== "OK") {
+        const {
+          status,
+          error_message,
+        }: {
+          status: string;
+          error_message: string;
+        } = res.data;
+        functions.logger.error(status, error_message);
 
-				await snapshot.after.ref.update({
-					ext_PlacesAutocomplete: {
-						status,
-						error_message,
-					},
-				});
+        await snapshot.after.ref.update({
+          ext_PlacesAutocomplete: {
+            status,
+            error_message,
+          },
+        });
 
-				return;
-			}
+        return;
+      }
 
-			const predictions = res.data.predictions;
-			await snapshot.after.ref.update({
-				ext_PlacesAutocomplete: { predictions: predictions },
-			});
-		} catch (err) {
-			functions.logger.error(err);
-			await snapshot.after.ref.update({
-				"ext_PlacesAutocomplete.error":
-					err ?? "Something wrong happened, check your Cloud logs.",
-			});
-		}
-	});
+      const predictions = res.data.predictions;
+      await snapshot.after.ref.update({
+        ext_PlacesAutocomplete: { predictions: predictions },
+      });
+    } catch (err) {
+      functions.logger.error(err);
+      await snapshot.after.ref.update({
+        "ext_PlacesAutocomplete.error":
+          err ?? "Something wrong happened, check your Cloud logs.",
+      });
+    }
+  });
