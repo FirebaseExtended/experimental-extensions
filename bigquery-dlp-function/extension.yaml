@@ -11,7 +11,7 @@ author:
 
 displayName: BigQuery DLP Remote Function
 
-description: TODO
+description: This extension creates BigQuery functions to facilitate de-identification and re-identification in queries, providing configurable techniques, seamless integration, and ensuring better data privacy and compliance.
 
 license: Apache-2.0 # https://spdx.org/licenses/
 
