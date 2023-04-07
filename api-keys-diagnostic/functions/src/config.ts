@@ -1,3 +1,3 @@
 export default {
-	projectId: process.env.PROJECT_ID,
+  projectId: process.env.PROJECT_ID,
 };
