@@ -18,7 +18,7 @@ specVersion: v1beta
 
 displayName: Text to Speech with Firestore and Storage
 description:
-  Converts text to speech with 
+  Converts text from Firestore documents into spoken audio files using Google Cloud Text-to-Speech API.
 
 license: Apache-2.0
 
