@@ -12,9 +12,9 @@ admin
   });
 ```
 
-Monitor address predictions: Once the extension is installed, it will automatically fetch address predictions from the Google Maps Places API whenever a new document is added or an existing document is updated in the specified Firestore collection. The predictions will be stored in the ext_PlacesAutocomplete field within the document.
+Monitor address predictions: Once the extension is installed, it will automatically fetch address predictions from the [Google Maps Places API](https://developers.google.com/maps/documentation/javascript/get-api-key) whenever a new document is added or an existing document is updated in the specified Firestore collection. The predictions will be stored in the `ext_PlacesAutocomplete` field within the document.
 
-The structure of the ext_PlacesAutocomplete field will be as follows:
+The structure of the `ext_PlacesAutocomplete` field will be as follows:
 
 ```js
 {
