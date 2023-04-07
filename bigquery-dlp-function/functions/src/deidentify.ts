@@ -2,12 +2,12 @@ import * as functions from "firebase-functions";
 import { DlpServiceClient } from "@google-cloud/dlp";
 
 import {
-	MaskTransformation,
-	RedactTransformation,
-	ReplaceTransformation,
-	ReplaceWithInfoTypeTransformation,
-	rowsToTable,
-	tableToReplies,
+  MaskTransformation,
+  RedactTransformation,
+  ReplaceTransformation,
+  ReplaceWithInfoTypeTransformation,
+  rowsToTable,
+  tableToReplies,
 } from "./transofmrations";
 
 /**
@@ -21,36 +21,36 @@ import {
  * @returns {Promise<Record<string, any>>} The deidentified record.
  */
 export async function deidentifyWithInfoTypeTransformations(
-	rows: [],
-	client: DlpServiceClient,
-	transformation:
-		| MaskTransformation
-		| RedactTransformation
-		| ReplaceTransformation
-		| ReplaceWithInfoTypeTransformation
+  rows: [],
+  client: DlpServiceClient,
+  transformation:
+    | MaskTransformation
+    | RedactTransformation
+    | ReplaceTransformation
+    | ReplaceWithInfoTypeTransformation
 ): Promise<Record<string, any>> {
-	const deidentifiedItems = [];
+  const deidentifiedItems = [];
 
-	for (const row of rows) {
-		const data = row[0] as Record<string, any>;
+  for (const row of rows) {
+    const data = row[0] as Record<string, any>;
 
-		for (const key in data) {
-			if (data.hasOwnProperty(key)) {
-				const element = data[key];
-				const request = {
-					...transformation.deidentifyConfig,
-					item: { value: element },
-				};
+    for (const key in data) {
+      if (data.hasOwnProperty(key)) {
+        const element = data[key];
+        const request = {
+          ...transformation.deidentifyConfig,
+          item: { value: element },
+        };
 
-				const [response] = await client.deidentifyContent(request);
-				data[key] = response.item?.value;
-			}
-		}
+        const [response] = await client.deidentifyContent(request);
+        data[key] = response.item?.value;
+      }
+    }
 
-		deidentifiedItems.push(data);
-	}
+    deidentifiedItems.push(data);
+  }
 
-	return deidentifiedItems;
+  return deidentifiedItems;
 }
 
 /**
@@ -64,36 +64,36 @@ export async function deidentifyWithInfoTypeTransformations(
  * @returns {Promise<string>} The deidentified text.
  */
 export async function deidentifyWithRecordTransformations(
-	rows: [],
-	client: DlpServiceClient,
-	transformation:
-		| MaskTransformation
-		| RedactTransformation
-		| ReplaceTransformation
-		| ReplaceWithInfoTypeTransformation
+  rows: [],
+  client: DlpServiceClient,
+  transformation:
+    | MaskTransformation
+    | RedactTransformation
+    | ReplaceTransformation
+    | ReplaceWithInfoTypeTransformation
 ) {
-	let table;
+  let table;
 
-	try {
-		// Convert raw rows to Table type
-		table = rowsToTable(rows);
-	} catch (error) {
-		functions.logger.debug(`Error converting rows to Table type.`);
-		throw error;
-	}
+  try {
+    // Convert raw rows to Table type
+    table = rowsToTable(rows);
+  } catch (error) {
+    functions.logger.debug(`Error converting rows to Table type.`);
+    throw error;
+  }
 
-	// Construct de-identification request
-	const request = {
-		...transformation.deidentifyConfig,
-		item: {
-			table: table,
-		},
-	};
+  // Construct de-identification request
+  const request = {
+    ...transformation.deidentifyConfig,
+    item: {
+      table: table,
+    },
+  };
 
-	// Run deidentification request
-	const [response] = await client.deidentifyContent(request);
+  // Run deidentification request
+  const [response] = await client.deidentifyContent(request);
 
-	functions.logger.debug(tableToReplies(response.item?.table));
+  functions.logger.debug(tableToReplies(response.item?.table));
 
-	return tableToReplies(response.item?.table);
+  return tableToReplies(response.item?.table);
 }
