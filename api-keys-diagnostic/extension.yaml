@@ -8,7 +8,7 @@ specVersion: v1beta  # Version of the Firebase Extensions specification
 displayName: API Keys Diagnostic
 
 description: >-
-  Sends the world a greeting.
+  The API Keys Diagnostic Extension is a security-focused tool designed to safeguard your Firebase project. It routinely scans your project's API keys and sends EventArc events if it detects any unrestricted keys.
 
 license: Apache-2.0  # https://spdx.org/licenses/
 

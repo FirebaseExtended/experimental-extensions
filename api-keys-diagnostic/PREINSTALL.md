@@ -1,22 +1,26 @@
-<!-- 
-This file provides your users an overview of your extension. All content is optional, but this is the recommended format. Your users will see the contents of this file when they run the `firebase ext:info` command.
+The API Keys Diagnostic Extension helps you identify unsecured API keys in your Firebase project by regularly scanning your project's API keys and sending notifications if any unrestricted keys are found. 
 
-Include any important functional details as well as a brief description for any additional setup required by the user (both pre- and post-installation).
+This extension uses Cloud Functions to interact with the Google Cloud API and [Eventarc](https://cloud.google.com/eventarc/docs) to allow developers to subscribe to the discovery of any unrestricted keys.
 
-Learn more about writing a PREINSTALL.md file in the docs:
-https://firebase.google.com/docs/extensions/alpha/create-user-docs#writing-preinstall
--->
+### Schedule scanning
 
-Use this extension to send a friendly greeting.
+This extension regularly scans your project's API keys: Cloud Function are scheudled tp run every 2 minutes, checking your project's API keys for any missing restrictions.
 
-When triggered by an HTTP request, this extension responds with your specified friendly greeting.
+The Cloud Function filters the API keys to find any unrestricted keys and logs them.
 
-<!-- We recommend keeping the following section to explain how billing for Firebase Extensions works -->
-# Billing
+If any unsecured API keys are found, the extension sends an event via the Eventarc channel.### 
 
-This extension uses other Firebase or Google Cloud Platform services which may have associated charges:
+### Pre-requisites
 
-<!-- List all products the extension interacts with -->
-- Cloud Functions
+You need to set up a Eventarc function listener to subscribe to any unrestricted keys, and to handle the events accordingly. 
 
-When you use Firebase Extensions, you're only charged for the underlying resources that you use. A paid-tier billing plan is only required if the extension uses a service that requires a paid-tier plan, for example calling to a Google Cloud Platform API or making outbound network requests to non-Google services. All Firebase services offer a free tier of usage. [Learn more about Firebase billing.](https://firebase.google.com/pricing)
+### Billing
+
+To install an extension, your project must be on the Blaze (pay as you go) plan
+
+You will be charged a small amount (typically around $0.01/month) for the Firebase resources required by this extension (even if it is not used).
+
+This extension uses other Firebase and Google Cloud Platform services, which have associated charges if you exceed the service’s no-cost tier:
+Google Cloud API
+Eventarc
+Cloud Functions (Node.js 10+ runtime. See FAQs)
