@@ -15,5 +15,7 @@ module.exports = {
   moduleNameMapper: {
     "firebase-admin/eventarc":
       "<rootDir>/node_modules/firebase-admin/lib/eventarc",
+    "firebase-functions/encoder":
+      "<rootDir>/node_modules/firebase-functions/lib/encoder",
   },
 };
