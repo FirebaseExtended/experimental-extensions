@@ -21,7 +21,7 @@ import config from "./config";
 export const autocomplete = functions.firestore
   .document(`${config.collectionId}/{documentId}`)
   .onWrite(async (snapshot) => {
-    const data = snapshot.after.data();
+    const data = snapshot.after?.data();
 
     if (!data) return;
 
@@ -42,7 +42,7 @@ export const autocomplete = functions.firestore
           key: config.apiKey,
         },
       });
-      console.log(res.data);
+
       if (res.data.status !== "OK") {
         const {
           status,
@@ -64,6 +64,7 @@ export const autocomplete = functions.firestore
       }
 
       const predictions = res.data.predictions;
+
       await snapshot.after.ref.update({
         ext_PlacesAutocomplete: { predictions: predictions },
       });

@@ -1,7 +1,8 @@
 {
   "extensions": {
     "firestore-record-user-acknowledgements": "../firestore-record-user-acknowledgements",
-    "firestore-bundle-server": "../firestore-bundle-server"
+    "firestore-bundle-server": "../firestore-bundle-server",
+    "firestore-places-autocomplete": "../firestore-places-autocomplete"
   },
   "storage": {
     "rules": "storage.rules"

@@ -16,6 +16,6 @@
 
 export default {
   apiKey: process.env.API_KEY!,
-  collectionId: process.env.COLLECTION_ID!,
+  collectionId: process.env.COLLECTION_PATH!,
   instanceId: process.env.EXT_INSTANCE_ID!,
 };
