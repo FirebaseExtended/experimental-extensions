@@ -39,6 +39,7 @@ export const textToSpeech = functions.firestore
             : `${snap.id}${fileExtension}`;
 
           const bucket = admin.storage().bucket(config.bucketName);
+
           const file = bucket.file(fileName);
           await file.save(Buffer.from(speech.audioContent));
 
@@ -54,7 +55,9 @@ export const textToSpeech = functions.firestore
 async function processText(request: ISynthesizeSpeechRequest) {
   let response: ISynthesizeSpeechResponse;
   // Performs the text-to-speech request
+
   try {
+    //@ts-ignore
     [response] = await ttsClient.synthesizeSpeech(request);
   } catch (e) {
     logger.error(e);
