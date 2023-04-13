@@ -20,10 +20,10 @@ import { getExtensions } from "firebase-admin/extensions";
 
 import { BigQuery } from "@google-cloud/bigquery";
 import { ConnectionServiceClient } from "@google-cloud/bigquery-connection";
-import * as GMaps from "@googlemaps/google-maps-services-js";
+import { Client } from "@googlemaps/google-maps-services-js";
 import config from "./config";
 
-const gMapsClient = new GMaps.Client();
+const gMapsClient = new Client();
 const bigqueryClient = new BigQuery();
 const bigqueryConnectionClient = new ConnectionServiceClient();
 
@@ -83,8 +83,9 @@ exports.getLatLong = functions.https.onRequest(async (req, res) => {
 
     res.status(200).json({ replies: replies });
   } catch (error) {
-    functions.logger.error(error);
-    res.status(500).json({ errorMessage: error });
+    const err = error as Error;
+    functions.logger.error(err.message);
+    res.status(500).json({ errorMessage: err.message });
   }
 });
 
@@ -108,12 +109,13 @@ exports.getDrivingTime = functions.https.onRequest(async (req, res) => {
 
     res.status(200).json({ replies: replies });
   } catch (error) {
-    functions.logger.error(error);
-    res.status(500).json({ errorMessage: error });
+    const err = error as Error;
+    functions.logger.error(err.message);
+    res.status(500).json({ errorMessage: err.message });
   }
 });
 
-exports.createBigQueryConnection = functions.tasks
+export const createBigQueryConnection = functions.tasks
   .taskQueue()
   .onDispatch(async (task) => {
     const runtime = getExtensions().runtime();
