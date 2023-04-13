@@ -4,7 +4,7 @@ This extension converts text from Firestore documents into speech using the Goog
 ### Monitor the specified Firestore collection for new documents
 This extension reads the text field from newly created documents and converts the text into speech using the Google Cloud Text-to-Speech API.
 
-### Saving audio to the a defined storage bucket
+### Saving audio to the defined storage bucket
 The the resulting audio files are then saved in the specified Cloud Storage bucket.
 
 ### Billing
