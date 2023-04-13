@@ -1,7 +1,5 @@
 {
   "extensions": {
-    "firestore-record-user-acknowledgements": "../firestore-record-user-acknowledgements",
-    "firestore-bundle-server": "../firestore-bundle-server",
     "bigquery-dlp-functions": "../bigquery-dlp-functions"
   },
   "storage": {

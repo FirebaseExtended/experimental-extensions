@@ -1,6 +1,6 @@
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
-import DLP from "@google-cloud/dlp";
+import { DlpServiceClient } from "@google-cloud/dlp";
 import { ConnectionServiceClient } from "@google-cloud/bigquery-connection";
 import { BigQuery } from "@google-cloud/bigquery";
 import { getExtensions } from "firebase-admin/extensions";
@@ -20,9 +20,10 @@ import { reidentifyWithInfoTypeTransformations } from "./reidentify";
 
 admin.initializeApp();
 
-const dlp = new DLP.DlpServiceClient();
 const bigqueryClient = new BigQuery();
 const bigqueryConnectionClient = new ConnectionServiceClient();
+
+const dlp = new DlpServiceClient();
 
 exports.deidentifyData = functions.https.onRequest(
   async (request, response) => {
@@ -118,7 +119,7 @@ exports.reidentifyData = functions.https.onRequest(
   }
 );
 
-exports.createBigQueryConnection = functions.tasks
+export const createBigQueryConnection = functions.tasks
   .taskQueue()
   .onDispatch(async () => {
     const runtime = getExtensions().runtime();
