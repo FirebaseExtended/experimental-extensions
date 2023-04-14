@@ -1,5 +1,6 @@
 import { firestore } from "firebase-admin";
 import * as functions from "firebase-functions";
+import { Address } from "./types";
 
 export function addressesChanged(a: Address, b?: Address) {
   return (

@@ -27,7 +27,7 @@ type SupportedRegions =
   | "GB" // United Kingdom
   | "US"; // United States
 
-type Address = {
+export type Address = {
   addressLines: [string];
   locality?: string;
   // Supported regions: https://developers.google.com/maps/documentation/address-validation/coverage
