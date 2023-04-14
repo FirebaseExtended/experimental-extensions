@@ -165,7 +165,7 @@ export const validateAddressTrigger = functions.firestore
 
           // Write the error back to the document.
           await change.after.ref.update({
-            error: err?.error,
+            error: error?.error,
             status: Status.FAILURE,
           });
         } else {
