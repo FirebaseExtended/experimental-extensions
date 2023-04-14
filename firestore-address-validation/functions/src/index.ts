@@ -6,6 +6,7 @@ import axios, { AxiosError } from "axios";
 
 import { addressesChanged, checkDataValidity } from "./utils";
 import config from "./config";
+import { Address } from "./types";
 
 admin.initializeApp();
 
@@ -29,6 +30,7 @@ enum Status {
  *
  * @param {Address} address The address to validate.
  */
+
 async function validateAddress(address: Address) {
   return axios({
     url: `https://addressvalidation.googleapis.com/v1:validateAddress?key=${config.apiKey}`,
@@ -163,15 +165,19 @@ export const validateAddressTrigger = functions.firestore
 
           // Write the error back to the document.
           await change.after.ref.update({
-            error: error?.error,
+            error: err?.error,
             status: Status.FAILURE,
           });
         } else {
           functions.logger.error(e.response);
         }
       } else {
-        functions.logger.error(e);
-        await change.after.ref.update({ error: e, status: Status.FAILURE });
+        const err = e as Error;
+        functions.logger.error(err);
+        await change.after.ref.update({
+          error: { message: err.message },
+          status: Status.FAILURE,
+        });
       }
     }
     return;
