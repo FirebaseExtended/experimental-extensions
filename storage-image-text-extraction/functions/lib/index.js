@@ -16,18 +16,15 @@
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 const functions = require("firebase-functions");
-const vision_1 = require("@google-cloud/vision");
-const config_1 = require("./config");
 const admin = require("firebase-admin");
+const vision_1 = require("@google-cloud/vision");
+const logs = require("./logs");
+const config_1 = require("./config");
+const util_1 = require("./util");
 admin.initializeApp();
-const client = new vision_1.default.ImageAnnotatorClient();
-const db = admin.firestore();
+const client = new vision_1.ImageAnnotatorClient();
 exports.extractText = functions.storage.object().onFinalize(async (object) => {
-    var _a, _b, _c;
-    // TODO: allow configuration.
-    if (!((_a = object.name) === null || _a === void 0 ? void 0 : _a.toLowerCase().endsWith(".jpg")) &&
-        !((_b = object.name) === null || _b === void 0 ? void 0 : _b.toLowerCase().endsWith(".jpeg")) &&
-        !((_c = object.name) === null || _c === void 0 ? void 0 : _c.toLowerCase().endsWith(".png"))) {
+    if (!(0, util_1.shouldExtractText)(object)) {
         return;
     }
     const bucket = admin.storage().bucket(object.bucket);
@@ -47,28 +44,35 @@ exports.extractText = functions.storage.object().onFinalize(async (object) => {
     const [results] = await client.annotateImage(request);
     const textAnnotations = results.textAnnotations;
     if (!textAnnotations) {
-        functions.logger.log(`text annotation did not complete successfully on image ${filePath}`);
+        logs.imageExtractionFailed(object.name);
         return;
     }
-    functions.logger.log("Extracted text from image: ", textAnnotations);
+    logs.successfulImageExtraction(object.name);
     if (textAnnotations.length === 0 || !textAnnotations[0].description) {
-        functions.logger.log(`No text found in image ${filePath}`);
-        await db
+        logs.noTextFound(object.name);
+        await admin
+            .firestore()
             .collection(config_1.default.collectionPath)
             .doc(object.name)
-            .create({
-            file: "gs://" + object.bucket + "/" + object.name,
+            .set({
+            file: filePath,
             text: null,
         });
         return;
     }
     const extractedText = textAnnotations[0].description;
-    await db
+    const data = config_1.default.detail === "basic"
+        ? {
+            file: `gs://${object.bucket}/${object.name}`,
+            text: extractedText,
+        }
+        : {
+            file: `gs://${object.bucket}/${object.name}`,
+            textAnnotations,
+        };
+    await admin
+        .firestore()
         .collection(config_1.default.collectionPath)
         .doc(object.name)
-        .create({
-        file: "gs://" + object.bucket + "/" + object.name,
-        text: extractedText,
-    });
+        .set(data);
 });
-//# sourceMappingURL=index.js.map

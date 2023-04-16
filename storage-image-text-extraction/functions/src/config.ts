@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-function paramToArray(param : unknown) {
+function paramToArray(param: unknown) {
   return typeof param === "string" ? param.split(",") : undefined;
 }
 

@@ -15,7 +15,12 @@
  * limitations under the License.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
+function paramToArray(param) {
+    return typeof param === "string" ? param.split(",") : undefined;
+}
 exports.default = {
     collectionPath: process.env.COLLECTION_PATH || "extractedText",
+    includePathList: paramToArray(process.env.INCLUDE_PATH_LIST),
+    excludePathList: paramToArray(process.env.EXCLUDE_PATH_LIST),
+    detail: process.env.DETAIL === "basic" ? "basic" : "full",
 };
-//# sourceMappingURL=config.js.map

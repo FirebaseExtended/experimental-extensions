@@ -16,18 +16,15 @@
 
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
-import vision from "@google-cloud/vision";
+import { ImageAnnotatorClient } from "@google-cloud/vision";
 import * as logs from "./logs";
 import config from "./config";
 import { shouldExtractText } from "./util";
 
 admin.initializeApp();
-
-const client = new vision.ImageAnnotatorClient();
-const db = admin.firestore();
+const client = new ImageAnnotatorClient();
 
 exports.extractText = functions.storage.object().onFinalize(async (object) => {
-  
   if (!shouldExtractText(object)) {
     return;
   }
@@ -47,43 +44,48 @@ exports.extractText = functions.storage.object().onFinalize(async (object) => {
   };
 
   const filePath = `gs://${object.bucket}/${object.name}`;
-  
+
   const [results] = await client.annotateImage(request);
-  
+
   const textAnnotations = results.textAnnotations;
 
   if (!textAnnotations) {
-    logs.imageExtractionFailed(object.name!)
+    logs.imageExtractionFailed(object.name!);
     return;
   }
 
-  logs.successfulImageExtraction(object.name!)
+  logs.successfulImageExtraction(object.name!);
 
   if (textAnnotations.length === 0 || !textAnnotations[0].description) {
-    logs.noTextFound(object.name!)
+    logs.noTextFound(object.name!);
 
-    await db
-    .collection(config.collectionPath)
-    .doc(object.name!)
-    .set({
-      file: filePath,
-      text: null,
-    });
+    await admin
+      .firestore()
+      .collection(config.collectionPath)
+      .doc(object.name!)
+      .set({
+        file: filePath,
+        text: null,
+      });
 
     return;
   }
 
   const extractedText = textAnnotations[0].description;
-  
-  const data = config.detail === "basic" ? {
-    file: `gs://${object.bucket}/${object.name}`,
-    text: extractedText,
-  } : {
-    file: `gs://${object.bucket}/${object.name}`,
-    textAnnotations
-  }
 
-  await db
+  const data =
+    config.detail === "basic"
+      ? {
+          file: `gs://${object.bucket}/${object.name}`,
+          text: extractedText,
+        }
+      : {
+          file: `gs://${object.bucket}/${object.name}`,
+          textAnnotations,
+        };
+
+  await admin
+    .firestore()
     .collection(config.collectionPath)
     .doc(object.name!)
     .set(data);

@@ -80,7 +80,7 @@ params:
     validationErrorMessage: Must be a valid Cloud Firestore Collection
     default: extractedText
     required: true
-    - param: INCLUDE_PATH_LIST
+  - param: INCLUDE_PATH_LIST
     label: Paths that contain images you want to extract text from
     description: >
       Restrict storage-image-text-extraction to only extract text from images in specific locations in your Storage bucket by 
