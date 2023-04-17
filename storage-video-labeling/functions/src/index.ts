@@ -16,7 +16,7 @@
 
 import * as path from "path";
 import * as functions from "firebase-functions";
-import * as videoIntelligence from "@google-cloud/video-intelligence";
+import { VideoIntelligenceServiceClient } from "@google-cloud/video-intelligence";
 
 import { google } from "@google-cloud/video-intelligence/build/protos/protos";
 import IAnnotateVideoRequest = google.cloud.videointelligence.v1.IAnnotateVideoRequest;
@@ -26,45 +26,51 @@ import config from "./config";
 import * as logs from "./logs";
 import { shouldProcessStorageObject } from "./utils";
 
-const videoIntelligenceServiceClient = new videoIntelligence.VideoIntelligenceServiceClient();
+const videoIntelligenceServiceClient = new VideoIntelligenceServiceClient();
 
 logs.init();
 
-export const labelVideo = functions.storage.bucket(config.inputVideosBucket).object().onFinalize(async (object) => {
-  if (!object.name) return;
-  if (!shouldProcessStorageObject(object.name)) return;
+export const labelVideo = functions.storage
+  .bucket(config.inputVideosBucket)
+  .object()
+  .onFinalize(async (object) => {
+    if (!object.name) return;
 
-  // Output to a folder named the same as the original file, minus the file extension.
-  const outputUri = `gs://${config.outputBucket}${
-    config.outputPath
-  }${path.basename(object.name)}.json`;
+    console.log("test 1 >>>>", config);
 
-  const annotateConfig: IAnnotateVideoRequest = {
-    inputUri: `gs://${object.bucket}/${object.name}`,
-    outputUri,
-    locationId: config.locationId,
-    features: [Feature.LABEL_DETECTION],
-    videoContext: {
-      labelDetectionConfig: {
-        frameConfidenceThreshold: config.frameConfidenceThreshold,
-        labelDetectionMode: config.labelDetectionMode,
-        model: config.model,
-        stationaryCamera: config.stationaryCamera,
-        videoConfidenceThreshold: config.videoConfidenceThreshold,
+    if (!shouldProcessStorageObject(object.name)) return;
+
+    // Output to a folder named the same as the original file, minus the file extension.
+    const outputUri = `gs://${config.outputBucket}${
+      config.outputPath
+    }${path.basename(object.name)}.json`;
+
+    const annotateConfig: IAnnotateVideoRequest = {
+      inputUri: `gs://${object.bucket}/${object.name}`,
+      outputUri,
+      locationId: config.locationId,
+      features: [Feature.LABEL_DETECTION],
+      videoContext: {
+        labelDetectionConfig: {
+          frameConfidenceThreshold: config.frameConfidenceThreshold,
+          labelDetectionMode: config.labelDetectionMode,
+          model: config.model,
+          stationaryCamera: config.stationaryCamera,
+          videoConfidenceThreshold: config.videoConfidenceThreshold,
+        },
       },
-    },
-  };
+    };
 
-  logs.annotateVideo(object.name!, annotateConfig);
+    logs.annotateVideo(object.name!, annotateConfig);
 
-  const [operation] = await videoIntelligenceServiceClient.annotateVideo(
-    annotateConfig
-  );
+    const [operation] = await videoIntelligenceServiceClient.annotateVideo(
+      annotateConfig
+    );
 
-  if (operation.error) {
-    logs.operationError(object.name!, operation.error);
-    return;
-  }
+    if (operation.error) {
+      logs.operationError(object.name!, operation.error);
+      return;
+    }
 
-  logs.queued(object.name!);
-});
+    logs.queued(object.name!);
+  });
