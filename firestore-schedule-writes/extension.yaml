@@ -49,7 +49,7 @@ resources:
       location: ${LOCATION}
       scheduleTrigger:
         schedule: "${SCHEDULE}"
-      runtime: "nodejs12"
+      runtime: "nodejs16"
 
 # In the `params` field, set up your extension's user-configured parameters.
 # Learn more in the docs: https://firebase.google.com/docs/extensions/alpha/ref-extension-yaml#params-field

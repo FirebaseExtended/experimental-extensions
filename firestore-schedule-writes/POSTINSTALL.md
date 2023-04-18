@@ -1,23 +1,5 @@
 Schedule Firestore Writes allows you to write data to a collection in Firestore that is then written to a different location at a specified time in the future. This can be used for many common time-related tasks such as delayed notifications, alarms, and reminders. Because this all happens within Firestore, scheduled writes can be listened to by clients or connected with via Cloud Functions.
 
-# See it in action
-
-```js
-const TEN_MINUTES_MS = 10 * 60 * 1000;
-
-firebase
-  .firestore()
-  .collection("${param:QUEUE_COLLECTION}")
-  .add({
-    state: "PENDING", // IMPORTANT! Omitting this field will prevent the scheduled write from being picked up.
-    collection: "delivered", // only if you didn't specify a TARGET_COLLECTION
-    data: { message: "Hello from the future!" },
-    deliverTime: firebase.firestore.Timestamp.fromMillis(
-      Date.now() + TEN_MINUTES_MS
-    ),
-  });
-```
-
 ## Required Setup
 
 To use this extension, Firestore must have a two compound indexes in the `${param:QUEUE_COLLECTION}` collection. These can be created manually in the Firebase console or added to your `firestore.indexes.json` file deployed via Firebase CLI:
@@ -43,6 +25,24 @@ To use this extension, Firestore must have a two compound indexes in the `${para
     }
   ]
 }
+```
+
+# See it in action
+
+```js
+const TEN_MINUTES_MS = 10 * 60 * 1000;
+
+firebase
+  .firestore()
+  .collection("${param:QUEUE_COLLECTION}")
+  .add({
+    state: "PENDING", // IMPORTANT! Omitting this field will prevent the scheduled write from being picked up.
+    collection: "delivered", // only if you didn't specify a TARGET_COLLECTION
+    data: { message: "Hello from the future!" },
+    deliverTime: firebase.firestore.Timestamp.fromMillis(
+      Date.now() + TEN_MINUTES_MS
+    ),
+  });
 ```
 
 # Using the extension
