@@ -31,9 +31,7 @@ export const labelImage = functions.storage
   .bucket(process.env.IMG_BUCKET)
   .object()
   .onFinalize(async (object) => {
-
     logs.functionTriggered(config);
-
 
     if (!shouldLabelImage(object)) {
       return;
@@ -46,7 +44,7 @@ export const labelImage = functions.storage
     const request = getVisionRequest(imageBase64);
 
     logs.labelingImage(object.name!);
-    let results: IAnnotatedImageResponse
+    let results: IAnnotatedImageResponse;
 
     try {
       [results] = await client.annotateImage(request);
@@ -67,7 +65,7 @@ export const labelImage = functions.storage
     // prevent from creating a document with a slash in the name
     const docName = object.name!.replace(/\//g, "_");
 
-    const labels = formatLabels(labelAnnotations)
+    const labels = formatLabels(labelAnnotations);
 
     await db
       .collection(config.collectionPath)
