@@ -156,8 +156,6 @@ async function resetStuck(): Promise<void> {
     .select()
     .get();
 
-  console.log("stuck", stuck.docs.length);
-
   await Promise.all(
     stuck.docs.map(async (doc) => {
       await doc.ref.update({
