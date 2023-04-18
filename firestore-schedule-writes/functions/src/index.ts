@@ -26,14 +26,12 @@ const {
   queueCollection,
   targetCollection,
   stalenessThresholdSeconds,
-  cleanup
+  cleanup,
 } = config;
 
-const db = admin.firestore();
-const queueRef = db.collection(queueCollection);
-const targetRef = targetCollection ? db.collection(targetCollection) : null;
-
 async function fetchAndProcess(): Promise<void> {
+  const queueRef = admin.firestore().collection(queueCollection);
+
   const toProcess = await queueRef
     .where("state", "==", "PENDING")
     .where("deliverTime", "<=", admin.firestore.Timestamp.now())
@@ -149,12 +147,16 @@ async function processWrite(
 }
 
 async function resetStuck(): Promise<void> {
+  const queueRef = admin.firestore().collection(queueCollection);
+
   const stuck = await queueRef
     .where("state", "==", "PROCESSING")
     .where("leaseExpireTime", "<=", admin.firestore.Timestamp.now())
     .limit(BATCH_SIZE)
     .select()
     .get();
+
+  console.log("stuck", stuck.docs.length);
 
   await Promise.all(
     stuck.docs.map(async (doc) => {
@@ -175,10 +177,15 @@ async function resetStuck(): Promise<void> {
 }
 
 function getTargetRef(write: QueuedWrite) {
+  const targetRef = targetCollection
+    ? admin.firestore().collection(targetCollection)
+    : null;
+
   if (targetCollection && write.id) return targetRef!.doc(write.id);
   if (targetCollection) return targetRef!.doc();
-  if (write.doc) return db.doc(write.doc);
-  if (write.collection) return db.collection(write.collection).doc();
+  if (write.doc) return admin.firestore().doc(write.doc);
+  if (write.collection)
+    return admin.firestore().collection(write.collection).doc();
   throw new Error(
     `unable to determine write location from scheduled write: ${JSON.stringify(
       write
@@ -197,12 +204,13 @@ function deliver(write: QueuedWrite) {
   return ref.set(data, { merge: mergeWrite });
 }
 
-
-exports.deliverWrites = functions.pubsub.schedule(config.schedule).onRun(async () => {
-  try {
-    await resetStuck();
-    await fetchAndProcess();
-  } catch (e) {
-    console.error(e);
-  }
-});
+exports.deliverWrites = functions.pubsub
+  .schedule(config.schedule)
+  .onRun(async () => {
+    try {
+      await resetStuck();
+      await fetchAndProcess();
+    } catch (e) {
+      console.error(e);
+    }
+  });

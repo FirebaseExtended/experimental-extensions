@@ -1,7 +1,6 @@
 {
   "extensions": {
-    "firestore-record-user-acknowledgements": "../firestore-record-user-acknowledgements",
-    "firestore-bundle-server": "../firestore-bundle-server"
+    "firestore-schedule-writes": "../firestore-schedule-writes"
   },
   "storage": {
     "rules": "storage.rules"
@@ -39,7 +38,7 @@
     "rewrites": [
       {
         "source": "/bundles/*",
-        "function": "ext-firestore-bundle-server-serve"
+        "function": "ext-firestore-schedule-writes-serve"
       },
       {
         "source": "**",
