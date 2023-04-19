@@ -5,14 +5,12 @@ This extension validates addresses written to the specified Firestore collection
 Write an address to the ${ADDRESS_COLLECTION} collection:
 
 ```js
-firebase.firestore().collection("your_collection_id").add({ 
-    address: { 
-        line1: "1600 Amphitheatre Parkway",
-        city: "Mountain View",
-        region: "CA",
-        postalCode: "94043",
-        country: "US"
-    } 
+firebase.firestore().collection("${ADDRESS_COLLECTION}").add({ 
+    address: {
+        addressLines: ["1600 Amphitheatre Parkway"],
+        regionCode: "US",
+        locality: "Mountain View",
+    },
  });
 ```
 
