@@ -33,6 +33,10 @@ apis:
     reason: >-
       This extension requires access to the Google Places API to provide autocomplete suggestions.
 
+roles:
+  - role: datastore.user
+    reason: Allows the extension to write translated strings to Cloud Firestore.
+
 params:
   - param: API_KEY
     label: Google Places API key
