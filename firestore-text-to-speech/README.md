@@ -1,54 +1,29 @@
-# Translate Text in Firestore
+# Text to Speech with Firestore and Storage
 
 **Author**: Firebase (**[https://firebase.google.com](https://firebase.google.com)**)
 
-**Description**: Translates strings written to a Cloud Firestore collection into multiple languages (uses Cloud Translation API).
+**Description**: Converts text from Firestore documents into spoken audio files using Google Cloud Text-to-Speech API.
 
 
 
-**Details**: Use this extension to translate strings (for example, text messages) written to a Cloud Firestore collection.
+**Details**: This extension converts text from Firestore documents into speech using the Google Cloud Text-to-Speech API and saves the generated audio files in Cloud Storage for Firebase.
 
-This extension listens to your specified Cloud Firestore collection. If you add a string to a specified field in any document within that collection, this extension:
 
-- Translates the string into your specified target language(s); the source language of the string is automatically detected.
-- Adds the translation(s) of the string to a separate specified field in the same document.
+### Monitor the specified Firestore collection for new documents
+This extension reads the text field from newly created documents and converts the text into speech using the Google Cloud Text-to-Speech API.
 
-You specify the desired target languages using ISO-639-1 codes. You can find a list of valid languages and their corresponding codes in the [Cloud Translation API documentation](https://cloud.google.com/translate/docs/languages).
+### Saving audio to the defined storage bucket
+The the resulting audio files are then saved in the specified Cloud Storage bucket.
 
-If the original non-translated field of the document is updated, then the translations will be automatically updated, as well.
-
-#### Multiple collections for translations
-
-To translate multiple collections, install this extension multiple times, specifying a different
-collection path each time. There is currently no limit on how many instances of an extension you
-can install.
-
-#### Multiple field translations
-
-To translate multiple fields, store a map of input strings in the input field:
-
-```js
-admin.firestore().collection('translations').add({
-  first: "My name is Bob",
-  second: "Hello, friend"
-})
-```
-#### Multiple languages
-
-To translate text into multiple languages, set the `languages` parameter to a comma-separated list
-of languages, such as `en,fr,de`. See the [supported languages list](https://cloud.google.com/translate/docs/languages).
-#### Additional setup
-
-Before installing this extension, make sure that you've [set up a Cloud Firestore database](https://firebase.google.com/docs/firestore/quickstart) in your Firebase project.
-
-#### Billing
-To install an extension, your project must be on the [Blaze (pay as you go) plan](https://firebase.google.com/pricing)
+### Billing
+To install an extension, your project must be on the Blaze (pay as you go) plan.
 
 - You will be charged a small amount (typically around $0.01/month) for the Firebase resources required by this extension (even if it is not used).
-- This extension uses other Firebase and Google Cloud Platform services, which have associated charges if you exceed the service’s no-cost tier:
-  - Cloud Translation API
+- This extension uses other Firebase and Google Cloud Platform services, which have associated charges if you exceed the service's no-cost tier:
+  - Google Cloud Text-to-Speech API
   - Cloud Firestore
-  - Cloud Functions (Node.js 10+ runtime. [See FAQs](https://firebase.google.com/support/faq#extensions-pricing))
+  - Cloud Storage for Firebase
+  - Cloud Functions (Node.js 10+ runtime. See [FAQs](https://firebase.google.com/support/faq#extensions-pricing))
 
 
 
@@ -57,37 +32,41 @@ To install an extension, your project must be on the [Blaze (pay as you go) plan
 
 * Cloud Functions location: Where do you want to deploy the functions created for this extension? You usually want a location close to your database. For help selecting a location, refer to the [location selection guide](https://firebase.google.com/docs/functions/locations).
 
-* Target languages for translations, as a comma-separated list: Into which target languages do you want to translate new strings? The languages are identified using ISO-639-1 codes in a comma-separated list, for example: en,es,de,fr. For these codes, visit the [supported languages list](https://cloud.google.com/translate/docs/languages).
+* Collection path: What collection path contains documents with text you want to synthesize?
 
 
-* Collection path: What is the path to the collection that contains the strings that you want to translate?
+* Bucket name: In which storage bucket do you want to keep synthesized text?
 
 
-* Input field name: What is the name of the field that contains the string that you want to translate?
+* Storage path: What is the location in your storage bucket you would like to keep synthesized audio? By default this will be the root of the bucket.
 
 
-* Translations output field name: What is the name of the field where you want to store your translations?
+* Enable ssml: If set to \"Yes\", text processed by this extension will be assumed to be written in ssml.
 
+* Language code: What language code do you want to use?
 
-* Languages field name: What is the name of the field that contains the languages that you want to translate into? This field is optional. If you don't specify it, the extension will use the languages specified in the LANGUAGES parameter.
+* Voice type: What voice type do you want to use?
 
+* SSML Gender: What SSML Gender do you want to use?
 
-* Translate existing documents?: Should existing documents in the Firestore collection be translated as well?  If you've added new languages since a document was translated, this will fill those in as well.
+* SSML Gender: What audio encoding do you want to use?
+
+* Enable per document overrides.: If set to \"Yes\", options for synthesizing audio will be overwritten  by fields in the document containing the text to be synthesized.
+
+* Voice name: Alternatively you may specify a voice name, this will override other extension synthesization parameters (language code, SSML Gender, Voice type).
 
 
 
 
 **Cloud Functions:**
 
-* **fstranslate:** Listens for writes of new strings to your specified Cloud Firestore collection, translates the strings, then writes the translated strings back to the same document.
-
-* **fstranslatebackfill:** Searches your specified Cloud Firestore collection for existing documents, translates the strings into any missing languages, then writes the translated strings back to the same document.
+* **textToSpeech:** Processes document changes in the specified Cloud Firestore collection, writing synthesized natural speech files to Cloud Storage
 
 
 
 **APIs Used**:
 
-* translate.googleapis.com (Reason: To use Google Translate to translate strings into your specified target languages.)
+* texttospeech.googleapis.com (Reason: To use Google Text to Speech to generate natural sounding speech from your strings in Firestore.)
 
 
 
@@ -98,3 +77,5 @@ To install an extension, your project must be on the [Blaze (pay as you go) plan
 This extension will operate with the following project IAM roles:
 
 * datastore.user (Reason: Allows the extension to write translated strings to Cloud Firestore.)
+
+* storage.objectAdmin (Reason: Allows the extension to write translated strings to Cloud Storage.)
