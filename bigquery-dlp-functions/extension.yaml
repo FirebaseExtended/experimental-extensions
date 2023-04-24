@@ -1,0 +1,160 @@
+# Learn detailed information about the fields of an extension.yaml file in the docs:
+# https://firebase.google.com/docs/extensions/alpha/ref-extension-yaml
+
+name: bigquery-dlp-functions # Identifier for your extension
+version: 0.0.3 # Follow semver versioning
+specVersion: v1beta # Version of the Firebase Extensions specification
+
+author:
+  authorName: Firebase
+  url: https://firebase.google.com
+
+displayName: BigQuery DLP Remote Function
+
+description: This extension creates BigQuery functions to facilitate de-identification and re-identification in queries, providing configurable techniques, seamless integration, and ensuring better data privacy and compliance.
+
+license: Apache-2.0 # https://spdx.org/licenses/
+
+sourceUrl: TODO
+
+billingRequired: true
+
+apis:
+  - apiName: bigquery.googleapis.com
+    reason: Powers all BigQuery tasks performed by the extension.
+  - apiName: bigqueryconnection.googleapis.com
+    reason: Allows the extension to create a BigQuery connection.
+  - apiName: dlp.googleapis.com
+    reason: Allows the extension to use DLP services.
+
+roles:
+  - role: bigquery.jobUser
+    reason: Allows the extension to create BigQuery jobs.
+  - role: bigquery.dataOwner
+    reason: Allows the extension to create BigQuery routines.
+  - role: bigquery.connectionAdmin
+    reason: Allows the extension to create a BigQuery connection.
+  - role: dlp.user
+    reason: Allows the extension to use DLP services.
+
+resources:
+  - name: createBigQueryConnection
+    type: firebaseextensions.v1beta.function
+    description: Creates a BigQuery connection.
+    properties:
+      location: ${param:LOCATION}
+      runtime: nodejs14
+      taskQueueTrigger: {}
+  - name: deidentifyData
+    type: firebaseextensions.v1beta.function
+    description: TODO
+    properties:
+      location: ${param:LOCATION}
+      runtime: nodejs14
+      httpsTrigger: {}
+  - name: reidentifyData
+    type: firebaseextensions.v1beta.function
+    description: TODO
+    properties:
+      location: ${param:LOCATION}
+      runtime: nodejs14
+      httpsTrigger: {}
+
+params:
+  - param: TRANSFORMATION_METHOD
+    label: DLP Transformation Method
+    description: >-
+      The method used by Data Loss Prevention API to deidentify and/or encrypt sensitive information in the data.
+    type: select
+    options:
+      - label: Info Type Transformations
+        value: INFO_TYPE
+      - label: Record Type Transformations
+        value: RECORD
+    default: INFO_TYPE
+
+  - param: TRANSFORMATION_TECHNIQUE
+    label: DLP Transformation Technique
+    description: >-
+      The technique used by Data Loss Prevention API to deidentify and/or encrypt sensitive information in the data.
+    type: select
+    options:
+      - label: Replace with Masking Character
+        value: masking
+      - label: Redact a value (remove it from the data)
+        value: redact
+      - label: Replace with a fixed value
+        value: fixed
+      - label: Replace with InfoType value
+        value: replaceWithInfoType
+    default: masking
+
+  - param: FIELDS_TO_TRANSFORM
+    label: List of fields to transform using record transformation (comma separated)
+    description: >-
+      The list of fields to transform using record transformation. This is only used when the transformation method is set to `RECORD`.
+    type: string
+
+  - param: DATASET_ID
+    label: BigQuery Dataset ID
+    description: >-
+      The ID of the dataset where the extension will create a connection.
+    type: string
+    required: true
+    immutable: true
+
+  - param: LOCATION
+    label: Cloud Functions location
+    description: >-
+      Where do you want to deploy the functions created for this extension? You
+      usually want a location close to your database. For help selecting a
+      location, refer to the [location selection
+      guide](https://firebase.google.com/docs/functions/locations).
+    type: select
+    options:
+      - label: Iowa (us-central1)
+        value: us-central1
+      - label: South Carolina (us-east1)
+        value: us-east1
+      - label: Northern Virginia (us-east4)
+        value: us-east4
+      - label: Los Angeles (us-west2)
+        value: us-west2
+      - label: Salt Lake City (us-west3)
+        value: us-west3
+      - label: Las Vegas (us-west4)
+        value: us-west4
+      - label: Belgium (europe-west1)
+        value: europe-west1
+      - label: London (europe-west2)
+        value: europe-west2
+      - label: Frankfurt (europe-west3)
+        value: europe-west3
+      - label: Zurich (europe-west6)
+        value: europe-west6
+      - label: Hong Kong (asia-east2)
+        value: asia-east2
+      - label: Tokyo (asia-northeast1)
+        value: asia-northeast1
+      - label: Osaka (asia-northeast2)
+        value: asia-northeast2
+      - label: Seoul (asia-northeast3)
+        value: asia-northeast3
+      - label: Mumbai (asia-south1)
+        value: asia-south1
+      - label: Jakarta (asia-southeast2)
+        value: asia-southeast2
+      - label: Montreal (northamerica-northeast1)
+        value: northamerica-northeast1
+      - label: Sao Paulo (southamerica-east1)
+        value: southamerica-east1
+      - label: Sydney (australia-southeast1)
+        value: australia-southeast1
+    default: us-central1
+    required: true
+    immutable: true
+
+lifecycleEvents:
+  onInstall:
+    function: createBigQueryConnection
+    processingMessage: "Creating BigQuery connections"
