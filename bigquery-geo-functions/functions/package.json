@@ -1,5 +1,5 @@
 {
-  "name": "functions",
+  "name": "bigquery-geo-functions",
   "scripts": {
     "lint": "eslint --ext .js,.ts .",
     "build": "tsc",
@@ -8,7 +8,8 @@
     "shell": "npm run build && firebase functions:shell",
     "start": "npm run shell",
     "deploy": "firebase deploy --only functions",
-    "logs": "firebase functions:log"
+    "logs": "firebase functions:log",
+    "generate-readme": "node ../../generate-experimental-readme.js bigquery-geo-functions > ../README.md"
   },
   "main": "lib/index.js",
   "dependencies": {
