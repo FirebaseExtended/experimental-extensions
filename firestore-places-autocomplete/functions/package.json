@@ -1,5 +1,5 @@
 {
-  "name": "functions",
+  "name": "firestore-places-autocomplete",
   "scripts": {
     "lint": "eslint \"src/**/*\"",
     "lint:fix": "eslint \"src/**/*\" --fix",
@@ -7,7 +7,7 @@
     "build:watch": "tsc --watch",
     "mocha": "mocha '**/*.spec.ts'",
     "test": "(cd integration-tests && firebase emulators:exec 'npm run mocha' -P demo-test)",
-    "generate-readme": "node ../../generate-experimental-readme.js storage-extract-image-text > ../README.md"
+    "generate-readme": "node ../../generate-experimental-readme.js firestore-places-autocomplete > ../README.md"
   },
   "main": "lib/index.js",
   "dependencies": {
