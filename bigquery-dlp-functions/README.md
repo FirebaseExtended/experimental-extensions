@@ -2,7 +2,7 @@
 
 **Author**: Firebase (**[https://firebase.google.com](https://firebase.google.com)**)
 
-**Description**: TODO
+**Description**: This extension creates BigQuery functions to facilitate de-identification and re-identification in queries, providing configurable techniques, seamless integration, and ensuring better data privacy and compliance.
 
 ---
 
@@ -55,6 +55,8 @@ When you use Firebase Extensions, you're only charged for the underlying resourc
 - DLP Transformation Method: The method used by Data Loss Prevention API to deidentify and/or encrypt sensitive information in the data.
 
 - DLP Transformation Technique: The technique used by Data Loss Prevention API to deidentify and/or encrypt sensitive information in the data.
+
+- List of fields to transform using record transformation (comma separated): The list of fields to transform using record transformation. This is only used when the transformation method is set to `RECORD`.
 
 - BigQuery Dataset ID: The ID of the dataset where the extension will create a connection.
 
