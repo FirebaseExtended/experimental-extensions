@@ -6,7 +6,8 @@
     "build": "tsc",
     "build:watch": "tsc --watch",
     "mocha": "mocha '**/*.spec.ts'",
-    "test": "(cd integration-tests && firebase emulators:exec 'npm run mocha' -P demo-test)"
+    "test": "(cd integration-tests && firebase emulators:exec 'npm run mocha' -P demo-test)",
+    "generate-readme": "node ../../generate-experimental-readme.js storage-extract-image-text > ../README.md"
   },
   "main": "lib/index.js",
   "dependencies": {
