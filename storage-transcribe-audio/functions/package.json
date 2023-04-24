@@ -1,5 +1,5 @@
 {
-  "name": "functions",
+  "name": "storage-transcribe-audio",
   "scripts": {
     "lint": "eslint --ext .js,.ts .",
     "build": "tsc",
@@ -9,7 +9,7 @@
     "start": "npm run shell",
     "deploy": "firebase deploy --only functions",
     "logs": "firebase functions:log",
-    "generate-readme": "node ../../generate-experimental-readme.js storage-extract-image-text > ../README.md"
+    "generate-readme": "node ../../generate-experimental-readme.js storage-transcribe-audio > ../README.md"
   },
   "engines": {
     "node": "16"
