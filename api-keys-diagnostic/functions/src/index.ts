@@ -11,7 +11,7 @@ const eventChannel =
   getEventarc().channel(process.env.EVENTARC_CHANNEL);
 
 export const apiKeysDiagnostic = functions.pubsub
-  .schedule("every 2 minutes")
+  .schedule(config.schedule)
   .onRun(async () => {
     try {
       const auth = new google.auth.GoogleAuth({

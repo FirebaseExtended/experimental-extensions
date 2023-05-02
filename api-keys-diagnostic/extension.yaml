@@ -28,7 +28,7 @@ resources:
     properties:
       location: ${LOCATION}
       scheduleTrigger:
-        schedule: "every 2 minutes"
+        schedule: ${param:SCHEDULE}
 
 params:
   - param: LOCATION
@@ -81,6 +81,15 @@ params:
         value: australia-southeast1
     required: true
     immutable: true
+
+  - param: SCHEDULE
+    label: Schedule
+    description: >
+      What cron schedule would you like the diagnostic to run on?
+    example: translations
+    type: string
+    default: 0 0 * * *
+    required: true
 
 events:
   - type: firebase.extensions.api-keys-diagnostic.unsecured

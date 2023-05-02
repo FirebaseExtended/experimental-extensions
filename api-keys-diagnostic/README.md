@@ -28,9 +28,9 @@ firebase ext:install firebase/api-keys-diagnostic --project=<your-project-id>
 
 This extension uses Cloud Functions to interact with the Google Cloud API and [Eventarc](https://cloud.google.com/eventarc/docs) to allow developers to subscribe to the discovery of any unrestricted keys.
 
-### Schedule scanning
+### Scheduled scanning
 
-This extension regularly scans your project's API keys: Cloud Function are scheudled tp run every 2 minutes, checking your project's API keys for any missing restrictions.
+This extension regularly scans your project's API keys: Cloud Function are scheudled to run based on the provided [cron](https://cloud.google.com/scheduler/docs/configuring/cron-job-schedules) schedule, checking your project's API keys for any missing restrictions.
 
 The Cloud Function filters the API keys to find any unrestricted keys and logs them.
 
@@ -54,6 +54,8 @@ Cloud Functions (Node.js 10+ runtime. See FAQs)
 **Configuration Parameters:**
 
 - Cloud Functions location: Where do you want to deploy the functions created for this extension? For help selecting a location, refer to the [location selection guide](https://firebase.google.com/docs/functions/locations).
+
+- Schedule: What cron schedule would you like the diagnostic to run on?
 
 **Cloud Functions:**
 
