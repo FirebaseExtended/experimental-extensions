@@ -10,7 +10,8 @@
     "storage-image-labeling/functions",
     "firestore-nlp-extension/functions",
     "storage-mirror-firestore/functions",
-    "storage-mirror-firestore/stress_test"
+    "storage-mirror-firestore/stress_test",
+    "firestore-leaderboard/extension/functions"
   ],
   "version": "0.0.0"
 }
