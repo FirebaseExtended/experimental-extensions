@@ -8,6 +8,7 @@
     "lint": "prettier --list-different \"**/*.{js,md,yml,ts,json,yaml}\"",
     "clean": "lerna run --parallel clean && lerna clean",
     "build": "lerna run --parallel build",
+    "local:emulator": "cd _emulator && firebase emulators:start -P demo-test",
     "generate-readmes": "lerna run --parallel generate-readme",
     "postinstall": "lerna bootstrap --no-ci && lerna run --parallel clean && npm run build",
     "prepare": "husky install"
