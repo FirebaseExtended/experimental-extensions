@@ -1,26 +1,28 @@
 /*
- * This template contains a HTTP function that responds
- * with a greeting when called
+ * Copyright 2024 Google LLC
  *
- * Reference PARAMETERS in your functions code with:
- * `process.env.<parameter-name>`
- * Learn more about building extensions in the docs:
- * https://firebase.google.com/docs/extensions/publishers
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 import * as functions from "firebase-functions";
+import {collectUserEngagement, FirebaseUserEngagementSchema} from './user_engagement';
+import {enableFirebaseTelemetry} from '@genkit-ai/firebase';
 
-exports.greetTheWorld = functions.https.onRequest(
-  (req: functions.Request, res: functions.Response) => {
-    // Here we reference a user-provided parameter
-    // (its value is provided by the user during installation)
-    const consumerProvidedGreeting = process.env.GREETING;
+enableFirebaseTelemetry();
 
-    // And here we reference an auto-populated parameter
-    // (its value is provided by Firebase after installation)
-    const instanceId = process.env.EXT_INSTANCE_ID;
-
-    const greeting = `${consumerProvidedGreeting} World from ${instanceId}`;
-
-    res.send(greeting);
-  });
+/** Parses and uploads user engagement metadata. */
+exports.collectEngagement = functions.https.onRequest(
+    async (req: functions.Request, res: functions.Response) => {
+      collectUserEngagement(FirebaseUserEngagementSchema.parse(req.body));
+      res.send({});
+    });

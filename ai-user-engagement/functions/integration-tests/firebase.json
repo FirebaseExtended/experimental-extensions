@@ -9,6 +9,6 @@
     "singleProjectMode": true
   },
   "extensions": {
-    "greet-the-world": "../.."
+    "ai-user-engagement": "../.."
   }
 }
