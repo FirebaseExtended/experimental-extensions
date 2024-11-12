@@ -3,8 +3,8 @@
   "scripts": {
     "lint": "eslint \"src/**/*\"",
     "lint:fix": "eslint \"src/**/*\" --fix",
-    "build": "tsc",
-    "build:watch": "tsc --watch",
+    "build": "npx tsc",
+    "build:watch": "npx tsc --watch",
     "mocha": "mocha '**/*.spec.ts'",
     "test": "(cd integration-tests && firebase emulators:exec 'npm run mocha' -P demo-test)"
   },
