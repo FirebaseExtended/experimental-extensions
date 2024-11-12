@@ -14,23 +14,23 @@
  * limitations under the License.
  */
 
-import { z } from 'genkit';
-import { appendSpan, SPAN_TYPE_ATTR } from 'genkit/tracing';
+import {z} from "genkit";
+import {appendSpan, SPAN_TYPE_ATTR} from "genkit/tracing";
 
 /** Explicit user sentiment of response. */
 export enum FirebaseUserFeedbackEnum {
   /** The user reacted positively to the response. */
-  POSITIVE = 'positive',
+  POSITIVE = "positive",
   /** The user reacted negatively to the response. */
-  NEGATIVE = 'negative',
+  NEGATIVE = "negative",
 }
 
 /** Implicit user acceptance of response. */
 export enum FirebaseUserAcceptanceEnum {
   /** The user took the desired action. */
-  ACCEPTED = 'accepted',
+  ACCEPTED = "accepted",
   /** The user did not take the desired action. */
-  REJECTED = 'rejected',
+  REJECTED = "rejected",
 }
 
 /** Explicit user feedback on response. */
@@ -47,15 +47,21 @@ export const FirebaseUserAcceptanceSchema = z.object({
   value: z.nativeEnum(FirebaseUserAcceptanceEnum),
 });
 
-/** Schema for providing user engagement metadata. One or both of feedback and acceptance should be provided. */
+/**
+ * Schema for providing user engagement metadata. One or both of feedback and
+ * acceptance should be provided.
+ */
 export const FirebaseUserEngagementSchema = z.object({
   /** Flow or feature name. */
   name: z.string(),
   /**
-   * The trace ID of the execution for which we've received user engagement data.
+   * The trace ID of the execution for which we've received user engagement
+   * data.
    */
   traceId: z.string(),
-  /** The root span ID of the execution for which we've received user engagement data. */
+  /** The root span ID of the execution for which we've received user engagement
+   * data.
+   */
   spanId: z.string(),
   /** Explicit user feedback on response. */
   feedback: z.optional(FirebaseUserFeedbackSchema),
@@ -66,49 +72,53 @@ export type FirebaseUserEngagement = z.infer<
     typeof FirebaseUserEngagementSchema
 >;
 
-/** Associates user engagement metadata with the specified flow execution. */
+/**
+ * Associates user engagement metadata with the specified flow execution.
+ * @param {FirebaseUserEngagement} userEngagement engagement metadata
+ */
 export function collectUserEngagement(userEngagement: FirebaseUserEngagement) {
   // Collect user feedback, if provided
   if (userEngagement.feedback?.value) {
     const metadata = {
       feedbackValue: userEngagement.feedback.value,
-      subtype: 'userFeedback',
+      subtype: "userFeedback",
     };
     if (userEngagement.feedback.text) {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
-      metadata['textFeedback'] = userEngagement.feedback.text;
+      metadata["textFeedback"] = userEngagement.feedback.text;
     }
 
     appendSpan(
-        userEngagement.traceId,
-        userEngagement.spanId,
-        {
-          name: 'user-feedback',
-          path: `/{${userEngagement.name}}`,
-          metadata: metadata,
-        },
-        {
-          [SPAN_TYPE_ATTR]: 'userEngagement',
-        }
+      userEngagement.traceId,
+      userEngagement.spanId,
+      {
+        name: "user-feedback",
+        path: `/{${userEngagement.name}}`,
+        metadata: metadata,
+      },
+      {
+        [SPAN_TYPE_ATTR]: "userEngagement",
+      }
     );
   }
 
   // Collect user acceptance, if provided
   if (userEngagement.acceptance?.value) {
     appendSpan(
-        userEngagement.traceId,
-        userEngagement.spanId,
-        {
-          name: 'user-acceptance',
-          path: `/{${userEngagement.name}}`,
-          metadata: {
-            acceptanceValue: userEngagement.acceptance.value,
-            subtype: 'userAcceptance',
-          },
+      userEngagement.traceId,
+      userEngagement.spanId,
+      {
+        name: "user-acceptance",
+        path: `/{${userEngagement.name}}`,
+        metadata: {
+          acceptanceValue: userEngagement.acceptance.value,
+          subtype: "userAcceptance",
         },
-        {
-          [SPAN_TYPE_ATTR]: 'userEngagement',
-        }
+      },
+      {
+        [SPAN_TYPE_ATTR]: "userEngagement",
+      }
     );
   }
 }
