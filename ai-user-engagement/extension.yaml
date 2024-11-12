@@ -52,7 +52,7 @@ resources:
   description: >-
     HTTP request-triggered function that attaches the provided feedback and/or acceptance data to the provided Trace, and responds with an empty object.
   properties:
-    runtime: nodejs18
+    runtime: nodejs16
     httpsTrigger: {}
     availableMemoryMb: 512
 
