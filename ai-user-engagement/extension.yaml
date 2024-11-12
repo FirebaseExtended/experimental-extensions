@@ -1,31 +1,35 @@
-# Learn detailed information about the fields of an extension.yaml file in the docs:
-# https://firebase.google.com/docs/extensions/reference/extension-yaml
+# Copyright 2024 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
-# Identifier for your extension
 name: firebase-ai-user-engagement
-version: 0.0.1  # Follow semver versioning
-specVersion: v1beta  # Version of the Firebase Extensions specification
+version: 0.0.1
+specVersion: v1beta1
 
-# Friendly display name for your extension (~3-5 words)
 displayName: User Engagement for Firebase AI
-
-# Brief description of the task your extension performs (~1 sentence)
-description: >-
+description:
   Collects end user engagement metadata for AI features for use in the AI Monitoring product
 
-license: Apache-2.0  # https://spdx.org/licenses/
+license: Apache-2.0
 
-# Public URL for the source code of your extension.
 sourceUrl: https://github.com/FirebaseExtended/experimental-extensions
 
-# Specify whether a paid-tier billing plan is required to use your extension.
-# Learn more in the docs: https://firebase.google.com/docs/extensions/reference/extension-yaml#billing-required-field
 billingRequired: true
 
-# In an `apis` field, list any Google APIs (like Cloud Translation, BigQuery, etc.)
-# required for your extension to operate.
-# Learn more in the docs:
-# https://firebase.google.com/docs/extensions/reference/extension-yaml#apis-field
+author:
+  authorName: Firebase
+  url: https://firebase.google.com
+
 apis:
   - apiName: logging.googleapis.com
     reason: Writes new logs containing user engagement metadata
@@ -34,9 +38,6 @@ apis:
   - apiName: monitoring.googleapis.com
     reason: Creates and increments counters containing user engagement metadata
 
-# In a `roles` field, list any IAM access roles required for your extension to operate.
-# Learn more in the docs:
-# https://firebase.google.com/docs/extensions/reference/extension-yaml#roles-field
 roles:
   - role: cloudtrace.agent
     reason: Writes new spans containing user engagement metadata
@@ -45,9 +46,6 @@ roles:
   - role: monitoring.metricWriter
     reason: Increments counters containing user engagement metadata
 
-# In the `resources` field, list each of your extension's functions, including the trigger for each function.
-# Learn more in the docs:
-# https://firebase.google.com/docs/extensions/reference/extension-yaml#resources-field
 resources:
 - name: collectEngagement
   type: firebaseextensions.v1beta.function
@@ -57,3 +55,5 @@ resources:
     runtime: nodejs18
     httpsTrigger: {}
     availableMemoryMb: 512
+
+params: []
