@@ -35,6 +35,22 @@ describe("firebase-ai-user-engagement", () => {
     return expect(res.data).to.eql({});
   }).timeout(10000);
 
+  it("works as a callable function", async () => {
+    const request = {
+      name: "featureName",
+      traceId: "12345",
+      spanId: "987",
+      feedback: {
+        value: "positive",
+        text: "This is the best feature!"
+      }
+    };
+
+    const res = await axios.post(uri, { data: request });
+
+    return expect(res.data.data).to.eql({});
+  }).timeout(10000);
+
   it("should reject malformed request", async () => {
     const request = {
       name: "featureName",

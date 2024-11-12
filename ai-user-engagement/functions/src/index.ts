@@ -15,14 +15,21 @@
  */
 
 import * as functions from "firebase-functions";
-import {collectUserEngagement, FirebaseUserEngagementSchema} from './user_engagement';
-import {enableFirebaseTelemetry} from '@genkit-ai/firebase';
+import {
+  FirebaseUserEngagementSchema,
+  collectUserEngagement}
+  from "./user_engagement";
+import {enableFirebaseTelemetry} from "@genkit-ai/firebase";
 
 enableFirebaseTelemetry();
 
 /** Parses and uploads user engagement metadata. */
 exports.collectEngagement = functions.https.onRequest(
-    async (req: functions.Request, res: functions.Response) => {
-      collectUserEngagement(FirebaseUserEngagementSchema.parse(req.body));
-      res.send({});
-    });
+  async (req: functions.Request, res: functions.Response) => {
+    // The "data" field implies that this is being used as a callable function.
+    const hasData = "data" in req.body;
+    const input =
+        FirebaseUserEngagementSchema.parse(hasData ? req.body.data : req.body);
+    collectUserEngagement(input);
+    res.send(hasData ? {data: {}} : {});
+  });
