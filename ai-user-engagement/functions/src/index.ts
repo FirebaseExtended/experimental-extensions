@@ -15,11 +15,11 @@
  */
 
 import * as functions from "firebase-functions";
+import {enableFirebaseTelemetry} from "@genkit-ai/firebase";
 import {
   FirebaseUserEngagementSchema,
   collectUserEngagement}
-  from "./user_engagement";
-import {enableFirebaseTelemetry} from "@genkit-ai/firebase";
+  from "@genkit-ai/firebase/user_engagement";
 
 enableFirebaseTelemetry();
 
