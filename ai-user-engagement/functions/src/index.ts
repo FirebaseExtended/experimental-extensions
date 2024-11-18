@@ -30,6 +30,6 @@ exports.collectEngagement = functions.https.onRequest(
     const hasData = "data" in req.body;
     const input =
         FirebaseUserEngagementSchema.parse(hasData ? req.body.data : req.body);
-    collectUserEngagement(input);
+    await collectUserEngagement(input);
     res.send(hasData ? {data: {}} : {});
   });
