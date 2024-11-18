@@ -13,7 +13,7 @@
 # limitations under the License.
 
 name: firebase-ai-user-engagement
-version: 0.0.2
+version: 0.0.1
 specVersion: v1beta1
 
 displayName: User Engagement for Firebase AI
