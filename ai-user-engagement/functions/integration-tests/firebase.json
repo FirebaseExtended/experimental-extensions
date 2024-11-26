@@ -9,6 +9,8 @@
     "singleProjectMode": true
   },
   "extensions": {
-    "ai-user-engagement": "../.."
+    "ai-user-engagement-regular": "../..",
+    "ai-user-engagement-callable": "../..",
+    "ai-user-engagement-app-check": "../.."
   }
 }

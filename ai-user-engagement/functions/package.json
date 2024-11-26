@@ -30,6 +30,7 @@
     "eslint": "^8.15.1",
     "eslint-config-google": "^0.14.0",
     "eslint-plugin-import": "^2.26.0",
+    "firebase": "^11.0.2",
     "mocha": "^10.2.0",
     "ts-node": "^10.4.0"
   },

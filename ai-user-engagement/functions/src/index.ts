@@ -17,19 +17,35 @@
 import * as functions from "firebase-functions";
 import {enableFirebaseTelemetry} from "@genkit-ai/firebase";
 import {
-  FirebaseUserEngagementSchema,
+  FirebaseUserEngagement,
+  FirebaseUserEngagementSchema as Schema,
   collectUserEngagement}
   from "@genkit-ai/firebase/user_engagement";
 
 enableFirebaseTelemetry();
 
-/** Parses and uploads user engagement metadata. */
-exports.collectEngagement = functions.https.onRequest(
-  async (req: functions.Request, res: functions.Response) => {
-    // The "data" field implies that this is being used as a callable function.
-    const hasData = "data" in req.body;
-    const input =
-        FirebaseUserEngagementSchema.parse(hasData ? req.body.data : req.body);
-    await collectUserEngagement(input);
-    res.send(hasData ? {data: {}} : {});
-  });
+if (process.env.FUNCTION_MODE?.startsWith("CALLABLE")) {
+  const options =
+      process.env.FUNCTION_MODE === "CALLABLE_APP_CHECK" ?
+        {enforceAppCheck: true} : {};
+  exports.collectEngagement = functions
+    .runWith(options)
+    .https.onCall(async (data) => {
+      let input: FirebaseUserEngagement|null = null;
+      try {
+        input = Schema.parse(data);
+      } catch (e) {
+        throw new functions.https.HttpsError(
+          "invalid-argument", "Could not parse input");
+      }
+      await collectUserEngagement(input);
+      return {};
+    });
+} else {
+  exports.collectEngagement = functions.https.onRequest(
+    async (req: functions.Request, res: functions.Response) => {
+      const input = Schema.parse(req.body);
+      await collectUserEngagement(input);
+      res.send({});
+    });
+}
