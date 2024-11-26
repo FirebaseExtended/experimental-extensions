@@ -13,7 +13,7 @@
 # limitations under the License.
 
 name: firebase-ai-user-engagement
-version: 0.0.3
+version: 0.0.4
 specVersion: v1beta1
 
 displayName: User Engagement for Firebase AI
@@ -63,11 +63,11 @@ params:
     Select how the Function should be deployed. See documentation for [Callable Functions](https://firebase.google.com/docs/functions/callable?gen=1st) and [App Check enforcement](https://firebase.google.com/docs/app-check/cloud-functions)
   type: select
   options:
-  - label: Standard Firebase Function
+  - label: Firebase HTTPS Function
     value: STANDARD
-  - label: Callable Firebase Function
+  - label: Firebase Callable Function
     value: CALLABLE
-  - label: Callable Function with App Check
+  - label: Firebase Callable Function with App Check
     value: CALLABLE_APP_CHECK
   default: STANDARD
   required: true

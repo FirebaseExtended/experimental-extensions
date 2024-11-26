@@ -1,3 +1,7 @@
+# Documentation
+
+Follow [this link](https://drive.google.com/file/d/1vZHFaEFv0pssUeOZI23nxfFm-IEb4-s_/view) for complete documentation for the User Engagement feature in AI Monitoring.
+
 # See it in action
 
 You can test out this extension right away!
@@ -7,16 +11,19 @@ Collect the following information from the trace of a recent feature invocation.
 - Trace ID
 - Span ID of the root span in the above trace
 
-If you're using the "standard" (non-callable) Function, send a cURL request as follows:
+If you're using the "standard" HTTPS (non-callable) Function, send a cURL request as follows:
 
 ```shell
-curl -d '{"name": "$featureName", "traceId": "$traceId", "spanId": "$spanId", "feedback": {"value": "positive", "text": "Best feature ever!"}}' \
+curl -d '{"name": <featureName>, "traceId": <traceId>, "spanId": <spanId>, ' \
+  '"feedback": {"value": "positive", "text": "Best feature ever!"}}' \
   -H 'Content-Type: application/json' \
   ${function:collectEngagement.url}
 ```
 
 If you're using the callable Function, call `collectEngagement` from your client
 with the above data schema. App Check must be enabled if selected.
+
+For more usage examples see [official documentation](https://drive.google.com/file/d/1vZHFaEFv0pssUeOZI23nxfFm-IEb4-s_/view).
 
 # Using the extension
 
