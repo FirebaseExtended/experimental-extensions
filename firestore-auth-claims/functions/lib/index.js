@@ -1,12 +1,16 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const util_1 = require("util");
-const functions = require("firebase-functions");
+const functions = require("firebase-functions/v1");
 const admin = require("firebase-admin");
+const firestore_1 = require("firebase-admin/firestore");
 admin.initializeApp();
 const auth = admin.auth();
 const CLAIMS_FIELD = process.env.CLAIMS_FIELD || null;
-exports.sync = functions.handler.firestore.document.onWrite(async (change) => {
+const CLAIMS_COLLECTION = process.env.CLAIMS_COLLECTION || "user_claims";
+exports.sync = functions.firestore
+    .document(CLAIMS_COLLECTION)
+    .onWrite(async (change) => {
     const uid = change.after.id;
     try {
         // make sure the user exists (can be fetched) before trying to set claims
@@ -22,7 +26,8 @@ exports.sync = functions.handler.firestore.document.onWrite(async (change) => {
     }
     const beforeData = (CLAIMS_FIELD ? change.before.get(CLAIMS_FIELD) : change.before.data()) ||
         {};
-    const data = (CLAIMS_FIELD ? change.after.get(CLAIMS_FIELD) : change.after.data()) || {};
+    const data = (CLAIMS_FIELD ? change.after.get(CLAIMS_FIELD) : change.after.data()) ||
+        {};
     // don't write the _synced field to Auth
     if (data._synced) {
         delete data._synced;
@@ -45,6 +50,6 @@ exports.sync = functions.handler.firestore.document.onWrite(async (change) => {
         fpath.unshift(CLAIMS_FIELD);
     }
     functions.logger.info(`Claims set for user '${uid}', logging sync time to Firestore`, { uid });
-    return change.after.ref.update(new admin.firestore.FieldPath(...fpath), admin.firestore.FieldValue.serverTimestamp());
+    return change.after.ref.update(new firestore_1.FieldPath(...fpath), firestore_1.FieldValue.serverTimestamp());
 });
 //# sourceMappingURL=index.js.map

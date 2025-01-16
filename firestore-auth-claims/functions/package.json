@@ -7,17 +7,17 @@
   },
   "main": "lib/index.js",
   "dependencies": {
-    "@types/node": "^18.14.6",
-    "@typescript-eslint/eslint-plugin": "^5.54.1",
-    "@typescript-eslint/parser": "^5.54.1",
-    "firebase-admin": "^11.5.0",
-    "firebase-functions": "^4.2.1"
+    "@types/node": "^22.10.7",
+    "@typescript-eslint/eslint-plugin": "^8.20.0",
+    "@typescript-eslint/parser": "^8.20.0",
+    "firebase-admin": "^13.0.2",
+    "firebase-functions": "^6.2.0"
   },
   "devDependencies": {
-    "eslint": "^7.6.0",
-    "eslint-plugin-import": "^2.22.0",
-    "prettier": "^2.1.2",
-    "typescript": "^4.9.5"
+    "eslint": "^9.18.0",
+    "eslint-plugin-import": "^2.31.0",
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.3"
   },
   "private": true
 }
