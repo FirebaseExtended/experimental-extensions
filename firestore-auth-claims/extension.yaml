@@ -2,7 +2,7 @@
 # https://firebase.google.com/docs/extensions/alpha/ref-extension-yaml
 
 name: firestore-auth-claims # Identifier for your extension
-version: 0.1.2 # Follow semver versioning
+version: 0.1.3 # Follow semver versioning
 specVersion: v1beta # Version of the Firebase Extensions specification
 
 author:
@@ -52,7 +52,7 @@ resources:
       syncing them to custom claims in Firebase Auth users.
     properties:
       location: ${param:LOCATION}
-      runtime: nodejs12
+      runtime: nodejs20
       eventTrigger:
         eventType: providers/cloud.firestore/eventTypes/document.write
         resource: projects/${param:PROJECT_ID}/databases/(default)/documents/${param:CLAIMS_COLLECTION}/{id}

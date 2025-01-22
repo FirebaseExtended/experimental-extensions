@@ -1,7 +1,8 @@
 import { isDeepStrictEqual } from "util";
 
-import * as functions from "firebase-functions";
+import * as functions from "firebase-functions/v1";
 import * as admin from "firebase-admin";
+import { FieldPath, FieldValue } from "firebase-admin/firestore";
 
 admin.initializeApp();
 const auth = admin.auth();
@@ -62,9 +63,8 @@ exports.sync = functions.firestore
     );
     if (typeof data !== "object") {
       functions.logger.error(
-        `Invalid custom claims for user '${uid}'. Must be object, was ${JSON.stringify(
-          data
-        )}`,
+        `Invalid custom claims for user '${uid}'. Must be object, was 
+        ${JSON.stringify(data)}`,
         { uid }
       );
       return;
@@ -80,7 +80,7 @@ exports.sync = functions.firestore
       { uid }
     );
     return change.after.ref.update(
-      new admin.firestore.FieldPath(...fpath),
-      admin.firestore.FieldValue.serverTimestamp()
+      new FieldPath(...fpath),
+      FieldValue.serverTimestamp()
     );
   });
