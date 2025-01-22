@@ -2,6 +2,7 @@
   "name": "firestore-auth-claims",
   "scripts": {
     "lint": "eslint \"src/**/*\"",
+    
     "build": "tsc",
     "generate-readme": "node ../../generate-experimental-readme.js firestore-auth-claims > ../README.md"
   },
@@ -14,8 +15,9 @@
     "firebase-functions": "^6.2.0"
   },
   "devDependencies": {
-    "eslint": "^9.18.0",
-    "eslint-plugin-import": "^2.31.0",
+    "eslint": "^8.15.1",
+    "eslint-config-google": "^0.14.0",
+    "eslint-plugin-import": "^2.26.0",
     "prettier": "^3.4.2",
     "typescript": "^5.7.3"
   },

@@ -63,9 +63,8 @@ exports.sync = functions.firestore
     );
     if (typeof data !== "object") {
       functions.logger.error(
-        `Invalid custom claims for user '${uid}'. Must be object, was ${JSON.stringify(
-          data
-        )}`,
+        `Invalid custom claims for user '${uid}'. Must be object, was 
+        ${JSON.stringify(data)}`,
         { uid }
       );
       return;
