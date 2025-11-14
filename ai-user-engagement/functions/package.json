@@ -14,7 +14,7 @@
   },
   "main": "lib/index.js",
   "dependencies": {
-    "@genkit-ai/firebase": "^0.9.1",
+    "@genkit-ai/firebase": "^1.23.0",
     "firebase-admin": "^12.1.0",
     "firebase-functions": "^5.0.0",
     "rimraf": "^3.0.2",
